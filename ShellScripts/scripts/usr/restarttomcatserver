@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cd $MY_HOME
+
+tomcatPID=$(sudo netstat -nlp | grep :8090 | awk '{print $7}' | awk -F'/' '{print $1}')
+
+debugPID=$(sudo netstat -nlp | grep :8002 | awk '{print $7}' | awk -F'/' '{print $1}')
+
+if [[ "$tomcatPID" != "" ]]; then
+	echo $(date)' Going to kill tomcat'  >> output.txt
+	sudo kill -9 $tomcatPID >> output.txt 2>>output.txt
+	echo $(date)' Killed tomcat successfully'  >> output.txt
+fi
+
+if [[ "$debugPID" != "" ]]; then
+	echo $(date)' Going to kill jdwp'  >> output.txt
+	sudo kill -9 $debugPID >> output.txt 2>>output.txt
+	echo $(date)' Killed jdwp successfully'  >> output.txt
+fi
+
+echo $(date)" Going to start tomcat" >> output.txt
+
+sh TomcatBuild/run.sh >> output.txt 2>>output.txt

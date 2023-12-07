@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ "$1" == "off" ]
+then
+ bluetoothctl disconnect 48:D8:45:E8:4D:8D
+ bluetoothctl power off
+else
+ bluetoothctl power on
+ bluetoothctl connect 48:D8:45:E8:4D:8D
+fi
+

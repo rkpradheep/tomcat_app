@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Live Stream Viewer</title>
+</head>
+<style>
+   #container
+   {
+display: block;
+margin-left: auto;
+margin-right: auto;
+height:500px;
+width:600px;
+	  }
+</style>
+<body>
+
+<h1>Live Stream</h1>
+<button onclick="startLive()">Join Live</button><br><br>
+<button onclick="stopLive()">Stop Live</button><br><br>
+<div id="container">
+<video id="streamVideo" controls autoPlay playsInline height="500" width="500"></video>
+</div>
+<script src="js/live.js">
+</script>
+</body>
+</html>

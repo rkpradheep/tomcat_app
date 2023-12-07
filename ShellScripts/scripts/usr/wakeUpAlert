@@ -1,0 +1,7 @@
+#!/bin/bash
+S='\u001B[32m'
+E='\u001B[0m'
+mes=${1//â/\\x22}
+mes=${mes//\"/\\x22}
+message="Hi Pradheep, You got a message.\n=====================================\n${S}\n${mes}${E}\n====================================="
+gnome-terminal --working-directory=$MY_HOME -- bash -c "echo -e \"$message\";bash -i"

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+cd $MY_HOME
+
+ngrokPID=$(sudo netstat -nlp | grep :4040 | awk '{print $7}' | awk -F'/' '{print $1}')
+
+echo "current ngrok pid $ngrokPID" >> output.txt
+
+if [[ "$ngrokPID" != "" ]]; then
+	echo 'Going to kill ngrok'  >> output.txt
+	sudo kill -9  $ngrokPID >> output.txt 2>>output.txt
+	echo 'Killed ngrok successfully'  >> output.txt
+fi
+
+nohup nohup ngrok/ngrok --config ngrok/ngrok.yml http 8090 >> output.txt 2>>output.txt &
+
+while true
+do
+	url=$(curl -s http://localhost:4040/api/tunnels/ | jq .tunnels[0].public_url)
+	if [[ "$url" == *https* ]];then
+	   curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49 -d url=$url/api/v1/run
+	   echo 'ngrok connected successfully'  >> output.txt
+	   echo $url > $MY_HOME/liveUrl.txt
+	   break
+	fi
+	sleep 2
+	echo 'Not connected yet'  >> output.txt
+done

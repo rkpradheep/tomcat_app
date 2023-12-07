@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo Status : $2 >> /home/local/ZOHOCORP/pradheep-14225/output.txt
+sudo -su pradheep-14225  bash -c 'echo Status : $2 >> /home/local/ZOHOCORP/pradheep-14225/output.txt'
+if [ "$2" = "up" ]; then
+    sudo -su pradheep-14225   bash -c 'echo Restarting ngrok >> $MY_HOME/output.txt'
+	sudo -su pradheep-14225   bash -c 'restartngrok'
+fi

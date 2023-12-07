@@ -1,0 +1,12 @@
+plugins {
+    id 'java'
+    id 'java-library'
+}
+
+
+ext.home = System.getenv ("MY_HOME")
+
+apply from: 'TomcatServer/build.gradle'
+apply from: 'ShellScripts/build.gradle'
+
+// tasks : fullBuild, updateBuild, installScripts

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Server port="8005" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+
+  <GlobalNamingResources>
+
+    <Resource name="UserDatabase" auth="Container"
+              type="org.apache.catalina.UserDatabase"
+              description="User database that can be updated and saved"
+              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+              pathname="conf/tomcat-users.xml" />
+  </GlobalNamingResources>
+
+
+  <Service name="Catalina">
+    <Connector port="8090" protocol="HTTP/1.1" maxThreads="150" minSpareThreads="25" maxSpareThreads="75" enableLookups="false" acceptCount="100" bindOnInit="false" debug="4" connectionTimeout="20000" disableUploadTimeout="true" useBodyEncodingForURI="true" compression="off" compressionMinSize="2048" noCompressionUserAgents="gozilla, traviata" server="ZGS" parseBodyMethods="POST,PUT" compressableMimeType="text/html,text/xml,text/plain,application/javascript,application/json,text/css,image/gif,text/javascript,application/x-javascript"/>
+    <Connector port="8091" secure="true" maxThreads="150" minSpareThreads="25" maxSpareThreads="75" enableLookups="false" scheme="https" connectionTimeout="20000" redirectPort="8443" clientAuth="false" sslProtocol="TLS" SSLEnabled="true" keystoreFile="conf/sas.keystore" keystorePass="Uwqxh9h11" keystoreType="JKS" />
+    <Engine name="Catalina" defaultHost="localhost">
+      <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+               resourceName="UserDatabase"/>
+      </Realm>
+
+      <Host name="localhost"  appBase="webapps" errorReportValveClass="com.server.tomcat.CustomErrorReportValve"
+            unpackWARs="true" autoDeploy="true">
+
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="my_access_log" suffix=".txt"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b" rotatable="false" />
+      </Host>
+    </Engine>
+  </Service>
+</Server>

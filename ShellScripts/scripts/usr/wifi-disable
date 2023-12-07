@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo nmcli radio wifi off
+sudo systemctl stop wifi-enable.service

@@ -1,0 +1,121 @@
+ext.serverPath = "${home}/TomcatServer"
+sourceSets {
+    main {
+        java {
+            srcDirs = ["${serverPath}/src"]
+            outputDir = file ("${serverPath}/classes/")
+        }
+        compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${serverPath}/tomcat/lib")
+    }
+}
+
+ext.configureTaskDependencies = { task, dependentTasks ->
+    task.dependsOn (dependentTasks)
+    for (int i = 0; i < dependentTasks.size () - 1; i++) {
+        dependentTasks [i + 1].mustRunAfter dependentTasks [i]
+    }
+}
+
+task bundleResource {
+    doLast {
+        new File ("${serverPath}/build/TomcatServer").mkdirs()
+
+        copy {
+            from "${serverPath}/webapps/"
+            into "${serverPath}/build/TomcatServer"
+        }
+
+         copy{
+                from "${serverPath}/../app.properties"
+                into "${serverPath}/build/TomcatServer/WEB-INF/conf"
+            }
+
+        copy {
+            from "${serverPath}/classes"
+            exclude "com/server/tomcat"
+            into "${serverPath}/build/TomcatServer/WEB-INF/classes"
+        }
+
+        copy {
+            from "${serverPath}/resources"
+            into "${serverPath}/build/TomcatServer/WEB-INF/classes"
+        }
+
+        copy {
+            from "${serverPath}/lib"
+            exclude 'servlet-api.jar', 'websocket-api.jar'
+            into "${serverPath}/build/TomcatServer/WEB-INF/lib"
+        }
+
+        println "Resource bundle completed"
+
+    }
+}
+
+
+task packRootWar(type: War) {
+    archiveFileName = "ROOT.war"
+    from "${serverPath}/build/TomcatServer"
+    destinationDir = file("${serverPath}/build")
+}
+
+task deployBuild{
+    doLast{
+        copy {
+            from "${serverPath}/build/ROOT.war"
+            into "${home}/TomcatBuild/webapps"
+        }
+
+        println "deploy build completed"
+    }
+}
+
+task setupTomcatContainer{
+    doLast{
+        new File ("${home}/TomcatBuild").mkdirs()
+        delete "${home}/TomcatBuild/*"
+        copy{
+            from "${serverPath}/tomcat/"
+            into "${home}/TomcatBuild"
+        }
+        copy{
+            from "${serverPath}/build/CustomTomcatValves.jar"
+            into "${home}/TomcatBuild/lib"
+        }
+        println "set up tomcat container completed"
+    }
+}
+
+
+task buildTomcatValvesJar(type: Jar) {
+    archiveFileName = "CustomTomcatValves.jar"
+    from "${serverPath}/classes"
+    include "com/server/tomcat/CustomErrorReportValve.class"
+    destinationDir = file("${serverPath}/build")
+}
+
+task fullBuild{
+    doLast{
+        println "Full build completed"
+    }
+}
+
+task cleanUp{
+    doLast{
+        delete "${serverPath}/build"
+        delete "${serverPath}/classes"
+        delete "${home}/TomcatBuild/webapps/*"
+        println "clean up completed"
+    }
+}
+
+task updateBuild{
+    doLast{
+        println "update completed"
+    }
+}
+
+configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, deployBuild, cleanUp])
+configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, deployBuild, cleanUp])
+
+defaultTasks 'updateBuild'

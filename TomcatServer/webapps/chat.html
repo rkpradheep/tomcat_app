@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"  content="initial-scale=0.7,user-scalable=no"/>
+    <link rel="stylesheet" href="css/chat.css" />
+    <title>Secret Chat</title>
+</head>
+<body>
+<audio id="incomingSound" preload="auto">
+    <source src="css/message.mp3" type="audio/mpeg">
+</audio>
+<div id="wrapper">
+    <div id="menu">
+        <p><a id="leave" onclick="leave()" style="display:none">Leave Chat</a></p>
+        &nbsp&nbsp&nbsp<input type="text" style="border-radius: 7px; padding: 4px 6px" id="name" placeholder="Your name" onkeydown="joinNow(event)"/>&nbsp&nbsp&nbsp
+        <p><a id="join" onclick="join()" style="display:block">Join Chat</a></p>
+    </div>
+
+    <div id="chatbox">
+    </div>
+
+    <form name="message" action="" autocomplete="off" onkeydown="return event.key!='Enter';">
+        <input name="usermsg" type="text" id="chbox" style="outline:none" onkeydown="if(event.key=='Enter')sendMsg();"/>
+        <input type="file" id="file" name="files" multiple>
+        <input type="button" onclick="sendMsg()" id="send" style="background-image: url('css/send.png');background-size:100% 100%;width: 50px;height: 50px;
+   border: none;cursor: pointer;" value=""/>
+        <br><p id="filename" style="position:absolute;margin-left:10px;margin-top:70px;font-weight:bold;color:green"></p>
+        <br><p id="cancel" style="position:absolute;margin-left:10px;margin-top:90px;font-weight:bold;color:red;cursor:pointer;display:none" onclick="cancelFileUpload()">[ Cancel Upload ]</p>
+    </form>
+</div>
+</body>
+<script src="js/chat.js"></script>
+</html>

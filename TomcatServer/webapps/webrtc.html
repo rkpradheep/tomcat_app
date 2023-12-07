@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.6, user-scalable=no">
+    <title>Video Chat</title>
+    <link rel="stylesheet" href="/css/webrtc.css">
+</head>
+<body>
+<div class="video-container">
+    <video id="remote-view" poster="css/poster.png" controls autoplay playsinline></video>
+</div>
+<div class="button-container">
+    <div id="join-form">
+        <div class="join-call-container">
+            <input type="text" style="font-weight: bold;font-size: 15px;" id="callid" placeholder="Enter Session ID" autocomplete="off">
+            <button id="join" onclick="joinCall()">Join Session</button>
+            <button id="shareid" style="display:none" onclick="shareID()">Share Session ID</button>
+        </div>
+        <br><br>
+        <button id="call" style="margin-top: 50px;" onclick="startCall()">Initiate Call</button><br><br><br>
+        <div class="join-call-container">
+            <img id="mic" src="css/micon.png" style="display:none;height:35px;width;40px;cursor:pointer;padding-right: 8px;border-radius: 50%;" onclick="turnOnMic()"/>
+            <img id="micOff" src="css/micoff.png" style="display:none;height:35px;width;40px;cursor:pointer;padding-right: 8px;border-radius: 50%;" onclick="turnOffMic()"/>
+            <img id="video" src="css/videoon.png" style="display:none;height:40px;width;40px;cursor:pointer;padding-right: 8px;border-radius: 50%;" onclick="shareVideo()"/>
+            <img id="flipCamera" src="css/flip.png" style="display:none;height:40px;width:50px;cursor:pointer;padding-right: 8px;border-radius: 50%;" onclick="flipCamera()"/>
+            <img id="videoOff" src="css/videooff.png" style="display:none;height:40px;width;70px;cursor:pointer;padding-right: 8px;border-radius: 50%;" onclick="stopVideoShare()"/>
+            <img id="screen" src="css/screenon.png" style="display:none;height:40px;width;0px;cursor:pointer;background;transparent;padding-right: 8px;border-radius: 50%;" onclick="shareScreen()"/>
+            <img id="screenOff" src="css/screenoff.png" style="display:none;height:40px;width;0px;cursor:pointer;padding-right: 8px;border-radius: 50%;" onclick="stopShareScreen()"/>
+            <img id="hangUp" src="css/hangup.png" style="display:none;height:40px;width;60px;cursor:pointer;border-radius: 50%;" onclick="closeCall(true)"/>
+        </div>
+    </div>
+
+</div>
+<div id="snackbar">Some text some message..</div>
+<video id="self-view" poster="css/poster.png" style="position: absolute; bottom: 25vh; right: 0px; width: 20%; height: 20%;display:none" controls autoplay playsinline muted></video>
+<script src="js/webrtc.js"></script>
+</body>
+</html>
