@@ -1,0 +1,5 @@
+TomcatBuild/
+output.txt
+.gradle/
+build/
+app.properties
