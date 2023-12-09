@@ -12,6 +12,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,6 +40,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
@@ -55,7 +58,7 @@ public class Util
 	{
 		try
 		{
-			byte[] plainBytes = plainText.getBytes("UTF-8");
+			byte[] plainBytes = plainText.getBytes(StandardCharsets.UTF_8);
 			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			return new String(Base64.getEncoder().encode(cipher.doFinal(plainBytes)));
@@ -235,6 +238,13 @@ public class Util
 		response.getWriter().print(objectMapper.writeValueAsString(responseObject));
 	}
 
+	public static void writeSuccessJSONResponse(HttpServletResponse response, String responseMessage) throws IOException
+	{
+		Map<String, String> responseMap = new HashMap<>();
+		responseMap.put("message", responseMessage);
+		writeJSONResponse(response, responseMap);
+	}
+
 	public static String readFileAsString(File file) throws IOException
 	{
 		FileReader fileReader = new FileReader(file);
@@ -252,6 +262,11 @@ public class Util
 		IOUtils.copy(inputStream, stringWriter);
 
 		return stringWriter.toString();
+	}
+
+	public static long convertDateToMilliseconds(String date, String format) throws ParseException
+	{
+		return new SimpleDateFormat(format).parse(date).getTime();
 	}
 
 }

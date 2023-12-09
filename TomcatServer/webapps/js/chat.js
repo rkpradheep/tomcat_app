@@ -35,23 +35,23 @@ function join() {
         joining = false
         joined = false;
         lockUpload = false;
-        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 150px''>Disconnected!</b><br><br>";
+        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 1440px''>Disconnected!</b><br><br>";
         document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
         console.log(event);
     });
     socket.addEventListener('close', function(event) {
         console.log(event)
         console.log("Session closed at " + new Date())
-        if (event.code == 1006) {
-            rejoining = true;
-            setTimeout(join, 1000)
-            return;
-        }
+//        if (event.code == 1006) {
+//            //rejoining = true;
+//            //setTimeout(join, 1000)
+//            return;
+//        }
         document.getElementById("join").innerHTML = 'Join Chat'
         joining = false
         lockUpload = false;
-        if (event.reason == "Duplicate name") {
-            alert("Name already exists! Try different name")
+        if (event.reason == "duplicate_name") {
+            alert("Session already exists with this name. Please try again later.")
             document.getElementById("name").disabled = false;
             document.getElementById("join").style.display = "block"
 
@@ -59,7 +59,7 @@ function join() {
         document.getElementById("join").style.display = "block"
         document.getElementById("leave").style.display = "none"
         if (joined) {
-            document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 150px''>Disconnected!</b><br><br>";
+            document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 140px''>Disconnected!</b><br><br>";
             document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
         }
         joined = false;
@@ -78,7 +78,7 @@ function join() {
 function incoming(msg) {
 
     if (rejoining) {
-        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:green;margin: 150px''>Rejoined!</b><br><br>";
+        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:green;margin: 140px''>Rejoined!</b><br><br>";
         rejoining = false;
         document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
         return;
@@ -169,7 +169,7 @@ function leave() {
     joined = false;
     document.getElementById("incomingSound").play()
     socket.close();
-    document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 150px''>You Left!</b></br></br>";
+    document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 140px''>You Left!</b></br></br>";
     document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
     document.getElementById("join").style.display = "block"
     document.getElementById("leave").style.display = "none"

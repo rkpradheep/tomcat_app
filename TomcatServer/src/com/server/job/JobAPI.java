@@ -24,22 +24,19 @@ public class JobAPI extends HttpServlet
 	{
 		try
 		{
-			String taskName = request.getParameter("task");
-			if(taskName != null)
-			{
-				String data = request.getParameter("data");
-				int time = Integer.parseInt(request.getParameter("time"));
 
-				RefreshManager.addJob(TaskNameEnum.getClazz(taskName), data, time);
-
-			}
-			else
+			JSONObject payload = Util.getJSONObject(request);
+			long millSeconds = payload.optLong("seconds", -1) != -1 ? payload.getLong("seconds") * 1000L : Util.convertDateToMilliseconds(payload.getString("date_time"), "yyyy-MM-dd HH:mm") - System.currentTimeMillis();
+			if(millSeconds < -60 * 1000)
 			{
-				JSONObject payload = Util.getJSONObject(request);
-				RefreshManager.addJob(TaskNameEnum.getClazz(payload.getString("task")), payload.optString("data"), payload.getInt("time"));
+				throw new Exception("Cannot schedule job for past time");
 			}
 
-			response.getWriter().println("success");
+			TaskEnum.getHandler(payload.getString("task"));
+
+			JobUtil.scheduleJob(payload.getString("task"), payload.optString("data"), millSeconds);
+
+			Util.writeSuccessJSONResponse(response, "Job has been scheduled successfully.");
 		}
 		catch(Exception e)
 		{
@@ -52,7 +49,7 @@ public class JobAPI extends HttpServlet
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		Map<String, String> jobList = Arrays.stream(TaskNameEnum.values()).collect(Collectors.toMap(TaskNameEnum::getTaskName, TaskNameEnum::getTaskDisplayName));
+		Map<String, String> jobList = Arrays.stream(TaskEnum.values()).collect(Collectors.toMap(TaskEnum::getTaskName, TaskEnum::getTaskDisplayName));
 		Util.writeJSONResponse(response, jobList);
 	}
 }

@@ -39,7 +39,7 @@ public class ReminderTask implements Task
 
 		EXECUTION_TRACKER++;
 
-		RefreshManager.addJob(this.getClass(), data, 300);
+		JobUtil.scheduleJob(TaskEnum.REMINDER.getTaskName(), data, (5 * 60 * 1000));
 		String updateId = new JSONObject(db.getString("activityid")).optString("updateId", null);
 		String recentActivityId = new JSONObject(db.getString("activityid")).getString("recentActivityId");
 

@@ -90,6 +90,7 @@
 		<servlet-name>PageHandler</servlet-name>
 		<url-pattern>/app</url-pattern>
 		<url-pattern>/zoho</url-pattern>
+		<url-pattern>/internal</url-pattern>
 		<url-pattern>/index.jsp</url-pattern>
 	</servlet-mapping>
 

@@ -2,31 +2,63 @@
     function addJob() {
 
     const seconds = document.getElementById('time').value;
+    const date = document.getElementById('date').value.replace('T', ' ');
 
-    if( seconds == undefined || seconds.length <1 || isNaN(seconds))
+    if((seconds == undefined || seconds.length <1 || isNaN(seconds)) &&  date.length == 0)
     {
-        alert("Invalid delay seconds");
+        alert("Please enter either valid Delay Seconds or Date & Time");
         return;
     }
 
-        var data = {
+    var data = document.getElementById('data').value;
+    if(document.getElementById('task').value == "mail")
+    {
+
+    if(data.length < 1)
+    {
+        alert("Please enter valid message");
+        return;
+    }
+    var toAddress = prompt("Please enter your email address")
+    if(toAddress == null)
+    {
+        return;
+    }
+    if(! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toAddress))
+    {
+        alert("Invalid email");
+        return;
+    }
+
+    const email = {
+    "to" : toAddress,
+    "message" : document.getElementById('data').value
+    }
+
+    data = JSON.stringify(email)
+
+    }
+
+        var payload = {
         "task" : document.getElementById('task').value,
-        "time" : seconds,
-        "data" : document.getElementById('data').value
+        "data" : data,
+        "seconds" : seconds,
+        "date_time" : date
         }
           fetch( "/api/v1/jobs", {
                method: "POST",
                 headers: {
                     'Content-Type' : 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
           })
           .then(response =>
           {
           return response.text();
           }
           ).then(data=> {
-            alert(data)
+            const res = JSON.parse(data);
+            alert(res["message"] != undefined ? res["message"] : res["error"])
           }).catch(error => {
              alert("Something went wrong. Server might be down");
           });
@@ -55,3 +87,15 @@
         }
 
         getJobs()
+
+function handleFields()
+{
+    if(document.getElementById('task').value == "mail")
+    {
+        document.getElementById('data').placeholder = "Your message"
+    }
+    else
+    {
+        document.getElementById('data').placeholder = "Job data"
+    }
+}

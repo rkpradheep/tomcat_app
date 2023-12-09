@@ -15,7 +15,7 @@ public class ProxySelectorExtension extends java.net.ProxySelector
 
 	@Override public List<Proxy> select(URI uri)
 	{
-		LOGGER.log(Level.INFO, "Internal API call made for URI {0}", uri.getScheme() + "://" + uri.getHost() + getPort(uri) + uri.getPath());
+		//LOGGER.log(Level.INFO, "Internal API call made for URI {0}", uri.getScheme() + "://" + uri.getHost() + getPort(uri) + uri.getPath());
 		return Collections.singletonList(Proxy.NO_PROXY);
 	}
 

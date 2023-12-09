@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,12 +31,53 @@ public class ChatWebSocket
 	private static final Map<String, ByteBuffer> sessionIdVsChunkedData = new ConcurrentHashMap<>();
 	private static final Logger LOGGER = Logger.getLogger(ChatWebSocket.class.getName());
 
+	private static void handleMessage(String messageForSender, String messageForReceiver, String senderName)
+	{
+		activeSessions.forEach((key, value) -> {
+			try
+			{
+				if(value.equalsIgnoreCase(senderName))
+				{
+					ChatWebSocketUtil.addMessage(senderName, messageForSender);
+				}
+
+				if(key.isOpen())
+				{
+					if(value.equalsIgnoreCase(senderName))
+					{
+						key.getBasicRemote().sendText(messageForSender);
+					}
+					else
+					{
+						ChatWebSocketUtil.addMessage(activeSessions.get(key), messageForReceiver);
+						key.getBasicRemote().sendText(messageForReceiver);
+					}
+				}
+				else
+				{
+					activeSessions.remove(key);
+				}
+			}
+			catch(IOException e)
+			{
+				LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			}
+		});
+	}
+
 	@OnOpen
 	public void OnOpen(Session session) throws IOException
 	{
-		if(activeSessions.containsValue(session.getRequestParameterMap().get("name").get(0)))
+		for(String name : activeSessions.values())
 		{
-			session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "Duplicate name"));
+			if(name.trim().equalsIgnoreCase(session.getRequestParameterMap().get("name").get(0).trim()))
+			{
+				session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "duplicate_name"));
+				break;
+			}
+		}
+		if(!session.isOpen())
+		{
 			return;
 		}
 		session.setMaxBinaryMessageBufferSize(1024 * 300);
@@ -42,57 +85,39 @@ public class ChatWebSocket
 		activeSessions.put(session, session.getRequestParameterMap().get("name").get(0));
 		LOGGER.info("New Session connected with id " + session.getId());
 
+		String name = session.getRequestParameterMap().get("name").get(0);
+		ChatWebSocketUtil.addOrGetUser(name);
+
 		if(Boolean.parseBoolean(session.getRequestParameterMap().get("rejoin").get(0)))
 		{
 			session.getBasicRemote().sendText("rejoined");
 			return;
 		}
-		activeSessions.forEach((key, value) -> {
-			try
-			{
-				if(key.isOpen())
-				{
-					if(key.equals(session))
-						key.getBasicRemote().sendText("<b style='color:green;margin: 150px'>You Joined!</b></br></br>");
-					else
-						key.getBasicRemote().sendText("<b style='color:green;margin:150px'>" + activeSessions.get(session) + " Joined!</b></br></br>");
-				}
-				else
-					activeSessions.remove(key);
-			}
-			catch(IOException e)
-			{
-				throw new RuntimeException(e);
-			}
-		});
+
+		String messageForSender = ChatWebSocketUtil.getPreviousMessage(name) + "<b style='color:green;margin: 140px'>You Joined! [ " + Util.getFormattedCurrentTime() + " ]</b></br></br>";
+		String messageForReceiver = "<b style='color:green;margin:140px'>" + name + " Joined!</b></br></br>";
+
+		handleMessage(messageForSender, messageForReceiver, name);
+
 	}
 
 	@OnClose
 	public void onClose(Session session, CloseReason closeReason)
 	{
 		LOGGER.info("Session closed " + session.getId());
-		String name = activeSessions.remove(session);
-
-		if(closeReason.getCloseCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY)
+		String name = activeSessions.get(session);
+		if(Objects.isNull(name))
 		{
 			return;
 		}
+		String leftOrDisconnected = List.of(CloseReason.CloseCodes.CLOSED_ABNORMALLY, CloseReason.CloseCodes.GOING_AWAY).contains(closeReason.getCloseCode()) ? " Disconnected!" : " Left!";
 
-		activeSessions.forEach((key, value) -> {
-			try
-			{
-				if(key.isOpen() && name != null)
-				{
-					key.getBasicRemote().sendText("<b style='color:red;margin: 150px'>" + name + " Left</b></br></br>");
-				}
-				else
-					activeSessions.remove(key);
-			}
-			catch(IOException e)
-			{
-				throw new RuntimeException(e);
-			}
-		});
+		String messageForSender = "<b style='color:red;margin: 140px'>You" + leftOrDisconnected + " [ " + Util.getFormattedCurrentTime() + " ]</b></br></br>";
+		messageForSender = leftOrDisconnected.equals(" Disconnected!") ? messageForSender.replace("You", "") : messageForSender;
+		String messageForReceiver = "<b style='color:red;margin: 140px'>" + name + leftOrDisconnected + "</b></br></br>";
+
+		handleMessage(messageForSender, messageForReceiver, name);
+
 	}
 
 	@OnMessage
@@ -121,28 +146,12 @@ public class ChatWebSocket
 			sessionIdVsFileName.remove(session.getId());
 			sessionIdVsChunkedData.remove(session.getId());
 			session.getBasicRemote().sendText("currentFileCancelled");
-			LOGGER.info("File " + fileName+  " cancelled successfully");
+			LOGGER.info("File " + fileName + " cancelled successfully");
 			return;
 		}
 
-		activeSessions.forEach((key, value) -> {
-			try
-			{
-				if(key.isOpen())
-				{
-					if(key.equals(session))
-						key.getBasicRemote().sendText(getFormattedMessage("You", msg));
-					else
-						key.getBasicRemote().sendText(getFormattedMessage(activeSessions.get(session), msg));
-				}
-				else
-					activeSessions.remove(key);
-			}
-			catch(IOException e)
-			{
-				throw new RuntimeException(e);
-			}
-		});
+		handleMessage(getFormattedMessage("You", msg), getFormattedMessage(activeSessions.get(session), msg), activeSessions.get(session));
+
 	}
 
 	@OnMessage
@@ -161,31 +170,29 @@ public class ChatWebSocket
 	private void writeFile(Session session) throws IOException
 	{
 		ByteBuffer byteBuffer = sessionIdVsChunkedData.get(session.getId());
+		byte[] byteArray = byteBuffer.array();
+
 		new File(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads").mkdirs();
 		FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads/" + sessionIdVsFileName.get(session.getId()));
-		fileOutputStream.write(byteBuffer.array());
+		fileOutputStream.write(byteArray);
 		fileOutputStream.close();
+
+		new File(Util.HOME_PATH + "/uploads").mkdirs();
+		fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/uploads/" + sessionIdVsFileName.get(session.getId()));
+		fileOutputStream.write(byteArray);
+		fileOutputStream.close();
+
+		//uploadFile(sessionIdVsFileName.get(session.getId()), new ByteArrayInputStream(byteBuffer.array()));
+
 		String msg = "<a  target='_blank' href='/uploads/" + sessionIdVsFileName.get(session.getId()) + "'>" + sessionIdVsFileName.get(session.getId()) + "</a></br></br>";
 		sessionIdVsFileName.remove(session.getId());
 		sessionIdVsChunkedData.remove(session.getId());
-		activeSessions.forEach((key, value) -> {
-			try
-			{
-				if(key.isOpen())
-				{
-					if(key.equals(session))
-						key.getBasicRemote().sendText(getFormattedMessage("You", msg));
-					else
-						key.getBasicRemote().sendText(getFormattedMessage(activeSessions.get(session), msg));
-				}
-				else
-					activeSessions.remove(key);
-			}
-			catch(IOException e)
-			{
-				throw new RuntimeException(e);
-			}
-		});
+
+		String messageForSender = getFormattedMessage("You", msg);
+		String messageForReceiver = getFormattedMessage(activeSessions.get(session), msg);
+
+		handleMessage(messageForSender, messageForReceiver, activeSessions.get(session));
+
 		session.getBasicRemote().sendText("fileuploaddone123");
 	}
 

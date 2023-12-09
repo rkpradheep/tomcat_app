@@ -2,6 +2,8 @@ package com.server.file;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,6 +22,8 @@ import javax.crypto.Cipher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
 
 import com.server.common.Util;
 
@@ -148,6 +152,30 @@ public class FileManager extends HttpServlet
 			e.printStackTrace();
 		}
 
+	}
+
+	public static void copyUploads()
+	{
+		new File(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads").mkdirs();
+		for(File file : new File(Util.HOME_PATH + "/uploads").listFiles())
+		{
+			try
+			{
+				FileInputStream fileInputStream = new FileInputStream(file);
+				byte[] b = new byte[2048];
+				FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads/" + file.getName());
+				int len = 0;
+				while((len = fileInputStream.read(b)) != -1)
+				{
+					fileOutputStream.write(b, 0, len);
+				}
+				fileInputStream.close();
+			}
+			catch(Exception e)
+			{
+				LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			}
+		}
 	}
 
 }

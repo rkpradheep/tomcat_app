@@ -7,11 +7,11 @@
 <br />
 <br />
 Job &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<select id="task">
+<select id="task" onchange="handleFields()">
 </select><br><br>
-Delay Second(s) &nbsp;&nbsp;&nbsp; <input type="text" id="time"><br><br>
-Data &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input type="text" id="data"><br><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button style="cursor:pointer" onclick="addJob()">ADD</button>
+Delay Second(s) &nbsp;&nbsp;&nbsp; <input type="text" id="time"/>&nbsp;&nbsp;&nbsp; Or &nbsp;&nbsp;&nbsp; Date & Time &nbsp;&nbsp;&nbsp; <input type="datetime-local" id="date"><br><br>
+<textarea id="data" rows="5" cols="50" placeholder="Your message"></textarea><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button style="cursor:pointer" onclick="addJob()">SCHEDULE</button>
 </body>
 <script src="js/jobs.js"></script>
 </html>
