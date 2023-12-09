@@ -3,3 +3,5 @@ output.txt
 .gradle/
 build/
 app.properties
+uploads
+liveUrl.txt
