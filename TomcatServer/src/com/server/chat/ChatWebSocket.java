@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -31,8 +32,8 @@ public class ChatWebSocket
 	private static final Map<String, ByteBuffer> sessionIdVsChunkedData = new ConcurrentHashMap<>();
 	private static final Logger LOGGER = Logger.getLogger(ChatWebSocket.class.getName());
 
-	private static void handleMessage(String messageForSender, String messageForReceiver, String senderName)
-	{
+	private static final Consumer<String[]> handleMessage = (messageParams) -> {
+		String messageForSender = messageParams[0], messageForReceiver = messageParams[1], senderName = messageParams[2];
 		activeSessions.forEach((key, value) -> {
 			try
 			{
@@ -63,7 +64,7 @@ public class ChatWebSocket
 				LOGGER.log(Level.SEVERE, "Exception occurred", e);
 			}
 		});
-	}
+	};
 
 	@OnOpen
 	public void OnOpen(Session session) throws IOException
@@ -97,8 +98,7 @@ public class ChatWebSocket
 		String messageForSender = ChatWebSocketUtil.getPreviousMessage(name) + "<b style='color:green;margin: 140px'>You Joined! [ " + Util.getFormattedCurrentTime() + " ]</b></br></br>";
 		String messageForReceiver = "<b style='color:green;margin:140px'>" + name + " Joined!</b></br></br>";
 
-		handleMessage(messageForSender, messageForReceiver, name);
-
+		handleMessage.accept(new String[] {messageForSender, messageForReceiver, name});
 	}
 
 	@OnClose
@@ -116,8 +116,7 @@ public class ChatWebSocket
 		messageForSender = leftOrDisconnected.equals(" Disconnected!") ? messageForSender.replace("You", "") : messageForSender;
 		String messageForReceiver = "<b style='color:red;margin: 140px'>" + name + leftOrDisconnected + "</b></br></br>";
 
-		handleMessage(messageForSender, messageForReceiver, name);
-
+		handleMessage.accept(new String[] {messageForSender, messageForReceiver, name});
 	}
 
 	@OnMessage
@@ -150,7 +149,7 @@ public class ChatWebSocket
 			return;
 		}
 
-		handleMessage(getFormattedMessage("You", msg), getFormattedMessage(activeSessions.get(session), msg), activeSessions.get(session));
+		handleMessage.accept(new String[] {getFormattedMessage("You", msg), getFormattedMessage(activeSessions.get(session), msg), activeSessions.get(session)});
 
 	}
 
@@ -191,7 +190,7 @@ public class ChatWebSocket
 		String messageForSender = getFormattedMessage("You", msg);
 		String messageForReceiver = getFormattedMessage(activeSessions.get(session), msg);
 
-		handleMessage(messageForSender, messageForReceiver, activeSessions.get(session));
+		handleMessage.accept(new String[] {messageForSender, messageForReceiver, activeSessions.get(session)});
 
 		session.getBasicRemote().sendText("fileuploaddone123");
 	}

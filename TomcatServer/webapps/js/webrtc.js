@@ -33,33 +33,6 @@ const isMobile =
     navigator.userAgent.match(/BlackBerry/i) ||
     navigator.userAgent.match(/Windows Phone/i);
 
-window.iceServers = {
-    iceServers: [{
-            "urls": "stun:stun.relay.metered.ca:80"
-        },
-        {
-            "urls": "turn:a.relay.metered.ca:80",
-            "username": "e5abc3faebd9aa71a99b0bab",
-            "credential": "qv6exo/s/HRJkuFD"
-        },
-        {
-            "urls": "turn:a.relay.metered.ca:80?transport=tcp",
-            "username": "e5abc3faebd9aa71a99b0bab",
-            "credential": "qv6exo/s/HRJkuFD"
-        },
-        {
-            "urls": "turn:a.relay.metered.ca:443",
-            "username": "e5abc3faebd9aa71a99b0bab",
-            "credential": "qv6exo/s/HRJkuFD"
-        },
-        {
-            "urls": "turn:a.relay.metered.ca:443?transport=tcp",
-            "username": "e5abc3faebd9aa71a99b0bab",
-            "credential": "qv6exo/s/HRJkuFD"
-        }
-    ]
-};
-
 async function startCall() {
     name = prompt("Enter your name")
     if (name == null || name.length < 1) {
@@ -87,7 +60,16 @@ async function joinCall() {
 }
 
 async function setupWebRtcConnection() {
-    webRtcPeerConnection = new RTCPeerConnection(window.iceServers)
+
+fetch("/api/v1/webrtc/iceservers", {
+  method: "GET"
+})
+.then(response =>
+{
+return response.text();
+}
+).then(data=> {
+    webRtcPeerConnection = new RTCPeerConnection(JSON.parse(data))
     webRtcPeerConnection.ontrack = event => {
         console.log("Tracks received")
         if (event.track.kind === 'audio') {
@@ -126,6 +108,9 @@ async function setupWebRtcConnection() {
             is_offerer: isOfferer
         }));
     };
+}).catch(error => {
+   console.log(error)
+});
 }
 
 async function setupSignallingServer(id, name) {

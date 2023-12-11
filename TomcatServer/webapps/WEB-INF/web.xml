@@ -134,9 +134,9 @@
 		<servlet-name>FileManager</servlet-name>
 		<url-pattern>/files</url-pattern>
 	</servlet-mapping>
+
+
 	<servlet>
-
-
 	<servlet-name>Job</servlet-name>
 		<servlet-class>com.server.job.JobAPI</servlet-class>
 	</servlet>
@@ -144,6 +144,16 @@
 		<servlet-name>Job</servlet-name>
 		<url-pattern>/api/v1/jobs</url-pattern>
 		<url-pattern>/api/v1/jobs/list</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+	<servlet-name>WebRTCUtil</servlet-name>
+		<servlet-class>com.server.webrtc.WebRTCUtil</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WebRTCUtil</servlet-name>
+		<url-pattern>/api/v1/webrtc/iceservers</url-pattern>
 	</servlet-mapping>
 
 
