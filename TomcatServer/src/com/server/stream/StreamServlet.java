@@ -12,7 +12,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/stream")
+@ServerEndpoint(value = "/api/v1/stream")
 public class StreamServlet extends HttpServlet
 {
 	public static boolean broadCastStarted = false;

@@ -24,7 +24,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import com.server.common.Util;
 
-@ServerEndpoint(value = "/chat")
+@ServerEndpoint(value = "/api/v1/chat")
 public class ChatWebSocket
 {
 	private static final Map<Session, String> activeSessions = new ConcurrentHashMap<>();

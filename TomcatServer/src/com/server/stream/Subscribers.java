@@ -12,7 +12,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/live")
+@ServerEndpoint(value = "/api/v1/live")
 public class Subscribers
 {
 

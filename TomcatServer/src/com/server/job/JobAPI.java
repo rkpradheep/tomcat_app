@@ -34,9 +34,9 @@ public class JobAPI extends HttpServlet
 
 			TaskEnum.getHandler(payload.getString("task"));
 
-			JobUtil.scheduleJob(payload.getString("task"), payload.optString("data"), millSeconds);
+			Long jobID = JobUtil.scheduleJob(payload.getString("task"), payload.optString("data"), millSeconds);
 
-			Util.writeSuccessJSONResponse(response, "Job has been scheduled successfully.");
+			Util.writeSuccessJSONResponse(response, "Job has been scheduled successfully with ID " + jobID.toString());
 		}
 		catch(Exception e)
 		{

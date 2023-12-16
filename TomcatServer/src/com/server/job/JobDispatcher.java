@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import com.server.db.DBUtil;
+import com.server.security.LoginUtil;
 
 public class JobDispatcher implements Task
 {
@@ -12,6 +13,8 @@ public class JobDispatcher implements Task
 	{
 		try
 		{
+			LoginUtil.deleteExpiredSessions();
+
 			String selectQuery = "SELECT * FROM Job where scheduled_time <= " + (System.currentTimeMillis() + 5000);
 
 			try(Connection connection = DBUtil.getServerDBConnection())

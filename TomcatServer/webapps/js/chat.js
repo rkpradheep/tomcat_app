@@ -20,12 +20,13 @@ function join() {
     if (window.location.origin.includes('https'))
         url = "wss://";
 
-    url = url + window.location.host + "/chat?name=" + document.getElementById("name").value + "&rejoin=" + rejoining;
+    url = url + window.location.host + "/api/v1/chat?name=" + document.getElementById("name").value + "&rejoin=" + rejoining;
     socket = new WebSocket(url);
     socket.addEventListener('open', function(event) {
         joined = true;
         joining = false
         document.getElementById("name").style.fontWeight = "bold";
+        document.getElementById("chatbox").innerHTML = ''
         document.getElementById("name").disabled = true;
         document.getElementById("join").style.display = "none"
         document.getElementById("leave").style.display = "block"
@@ -35,7 +36,7 @@ function join() {
         joining = false
         joined = false;
         lockUpload = false;
-        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 1440px''>Disconnected!</b><br><br>";
+        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 140px''>Disconnected!</b><br><br>";
         document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
         console.log(event);
     });
@@ -77,12 +78,12 @@ function join() {
 
 function incoming(msg) {
 
-    if (rejoining) {
-        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:green;margin: 140px''>Rejoined!</b><br><br>";
-        rejoining = false;
-        document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
-        return;
-    }
+//    if (rejoining) {
+//        document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:green;margin: 140px''>Rejoined!</b><br><br>";
+//        rejoining = false;
+//        document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
+//        return;
+//    }
 
     if (msg.startsWith("fileuploaddone123") || msg.startsWith("currentFileCancelled")) {
         fileOffset = 0;

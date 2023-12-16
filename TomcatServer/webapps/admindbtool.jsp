@@ -2,7 +2,7 @@
 <%@page session="false"%>
 <html>
     <head>
-        <title>DB Tool</title>
+        <title>Admin DB Tool</title>
         <!--<meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
     </head>
     <style>
@@ -179,43 +179,8 @@
     </style>
     <body>
         <div class="loading" id="loading" style="display:none">Loading&#8230;</div>
-        <br/>
-        <br/>
-        Product &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <select id="product" onchange="getDBCredential(true)">
-        <option value="custom">CUSTOM</option>
-        </select>
         <br />
-        <br />
-        <br />
-        <form>
-            Server &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" id="mysql" name="server" value="mysql" />
-            <label for="mysql">MySql</label>
-            <input type="radio" id="postgresql" name="server" value="postgresql" />
-            <label for="postgresql">Postgresql</label><br />
-            <br />
-        </form>
-        Main Cluster IP &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="ip" style="width: 400px; height: 25px;" /><br />
-        <br />
-        User &nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="user" style="width: 400px; height: 25px;" />
-        <br />
-        <br />
-        Password &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="password" id="password" style="width: 400px; height: 25px;" /><br />
-        <!-- <select name="columnList" id="columnList">
-            <option value="" disabled selected>COLUMN</option>
-        </select> -->
-        <br />
-        <br />
-      <!--  Enter either ZSID or PK Value : <br />
-        <br /> -->
-        DataSpace ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="zsid" style="width: 400px; height: 25px;" /><br />
-        <br />
-        <!-- PK Value &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --> <input type="text" id="pk" style="width: 400px; height: 25px;display: none" /><br />
-        <br />
-        <!--<p>Click on <b>Enable Autocomplete and Quick Execution</b> button to enable intellisense support.</p>-->
-        <br />
-        <button id="quickExe" onclick="getTables()">Enable Quick Execution</button><br />
-        <br />
+
         <div id="tableSelection" style="display: none;">
             <b>Quick Execution</b> (Select the table) &nbsp;&nbsp;&nbsp;
             <select name="tableList" id="tableList" onchange="getColumns()">
@@ -229,8 +194,6 @@
                 <option value="5000">5000</option>
             </select>
             &nbsp;&nbsp;&nbsp <button onclick="refreshTable()">REFRESH</button>
-           <!-- <br><p style="font-size: 15px;"> Note: Use Manual Execution below after selecting the table from the above dropdown for complex query.</p>
-            <button onclick="generateSQL('')" id="sqlGen">Generate Select query for selected table</button> -->
         </div>
         <br />
         <br />
@@ -239,7 +202,7 @@
         <br />
         <br />
 
-        <b>Manual Execution</b>(Only DQL)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+        <b>Manual Execution</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
         <br />
         <textarea id="query" rows="10" cols="50" style="height: 100px; width: 500px;"> </textarea><br />
         <p style="font-size: 11px; display: none;" id="suggestionHint">* Click on the matching suggestion to autocomplete</p>
@@ -255,31 +218,13 @@
             <textarea readonly id="output" name="output" rows="10" cols="50" style="font-size: 18px; color: white; background-color: black;"></textarea>
         </div>
         <script>
-        var SAS_META;
-        var SERVICE_META;
         var QUERY_OUTPUT = "";
         var CURRENT_TABLE_PK = "";
         var TABLE_LIST = [];
         var COLUMN_LIST = [];
-        var isEncrypted = true;
 
-        setElementValue("zsid", "admin");
+        populateNeededEntity();
 
-        function getSASMeta() {
-            fetch("/api/v1/sas/meta", {
-                    method: "GET",
-                })
-                .then((response) => {
-                    return response.text();
-                })
-                .then((data) => {
-                    SAS_META = JSON.parse(data);
-                    getDBCredential(false);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
         const textArea = document.getElementById("query");
         const autocompleteContainer = document.getElementById("autocomplete-container");
 
@@ -328,52 +273,18 @@
             });
         }
 
-        var res;
-        fetch("/api/v1/sas/services", {
-                method: "GET"
-            })
-            .then((response) => {
-                return response.text();
-            })
-            .then((data) => {
-                SERVICE_META = JSON.parse(data);
-                var serviceListOptions = ""
-                for (var service in SERVICE_META) {
-                    serviceListOptions += "<option value=" + service + ">" + SERVICE_META[service].display_name + "</option>";
-                }
-                document.getElementById("product").innerHTML = document.getElementById("product").innerHTML + serviceListOptions;
-                setElementValue("product", "books");
-                getSASMeta();
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-
         function execute() {
-            unHideElement("response");
-            if (!preExecutionValidation()) {
-                return;
-            }
 
-            if (document.getElementById("pk").value.length == 0 && document.getElementById("zsid").value.length == 0) {
-                alert("Please enter a valid ZSID or PK value");
-                return;
-            }
+            unHideElement("response");
+
             unHideElement("loading");
 
             const data = {
-                "server": document.querySelector('input[name="server"]:checked').value,
-                "ip": document.getElementById("ip").value,
-                "user": document.getElementById("user").value,
-                "password": document.getElementById("password").value,
-                "zsid": document.getElementById("zsid").value,
-                "pk": document.getElementById("pk").value,
                 "query": document.getElementById("query").value,
-                "is_encrypted": isEncrypted
             }
 
             var res;
-            fetch("/api/v1/sas/execute", {
+            fetch("/api/v1/admin/db/execute", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'
@@ -387,23 +298,11 @@
                     res = JSON.parse(data)
                     var error = res["error"]
                     if (error != undefined) {
-                        if (res["error"] == "key_expired") {
-                            getSASMeta();
-                            return;
-                        }
                         throw new Error("API error")
                     }
                     hideElement("loading");
-                    var temp = JSON.parse(data);
-                    if (Array.isArray(temp["query_output"])) {
-                        QUERY_OUTPUT = temp["query_output"];
-                        delete temp["query_output"];
-                    } else if (temp["query_output"] != undefined && temp["query_output"] != null) {
-                        handleQueryOutputForFailed();
-                        setElementValue("output", temp["query_output"]);
-                        return;
-                    }
-                    setElementValue("output", "EXECUTION_INFO : \n" + JSON.stringify(temp, null, 2));
+                    QUERY_OUTPUT = res["query_output"];
+                    setElementValue("output", "EXECUTION_INFO : \n" + JSON.stringify(res['query_output'], null, 2));
                     handleQueryOutput(res, "", "");
                 })
                 .catch((error) => {
@@ -415,36 +314,16 @@
                 });
         }
 
-        function generateSQL(criteria) {
-            if (getElementValue("tableList").length == 0) {
-                alert("Populate table first");
-                return;
-            }
-            if (criteria.length == 0) document.getElementById("query").value = "Select * from " + document.getElementById("tableList").value + getLimitAndOrderBy();
-            else document.getElementById("query").value = "Select * from " + document.getElementById("tableList").value + " where " + criteria + " LIKE" + '"%' + document.getElementById(criteria).value + '%"' + getLimitAndOrderBy();
-        }
-
         function getTables() {
             TABLE_LIST = []
-            if (!preExecutionValidation()) {
-                return;
-            }
-
-
             unHideElement("loading");
 
             const data = {
-                "server": document.querySelector('input[name="server"]:checked').value,
-                "ip": document.getElementById("ip").value,
-                "user": document.getElementById("user").value,
-                "password": document.getElementById("password").value,
-                "pk": document.getElementById("pk").value,
                 "need_table": "true",
-                "is_encrypted": isEncrypted
             }
             var res;
 
-            fetch("/api/v1/sas/execute", {
+            fetch("/api/v1/admin/db/execute", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'
@@ -458,15 +337,10 @@
                     res = JSON.parse(data);
                     var error = res["error"]
                     if (error != undefined) {
-                        if (res["error"] == "key_expired") {
-                            getSASMeta();
-                            return;
-                        }
                         throw new Error("API error")
                     }
 
                     TABLE_LIST = res;
-                    hideElement("quickExe")
                     hideElement("loading");
                     unHideElement("response");
                     populateTables();
@@ -477,7 +351,6 @@
                 .catch((error) => {
                     unHideElement("response");
                     hideElement("loading");
-                    unHideElement("quickExe");
                     setElementValue("output", JSON.stringify(res, null, 2));
                     hideElement("tableSelection");
                     hideElement("queryOutputContainer");
@@ -487,25 +360,18 @@
         }
 
         function getColumns() {
-            if (!preExecutionValidation()) {
-                return;
-            }
+
             COLUMN_LIST = []
             setElementValue("recordLimit", "50")
 
             const data = {
-                "server": document.querySelector('input[name="server"]:checked').value,
-                "ip": document.getElementById("ip").value,
-                "user": document.getElementById("user").value,
-                "password": document.getElementById("password").value,
                 "need_column": "true",
                 "table": document.getElementById("tableList").value,
-                "is_encrypted": isEncrypted
             }
 
             unHideElement("loading");
             var res;
-            fetch("/api/v1/sas/execute", {
+            fetch("/api/v1/admin/db/execute", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'
@@ -519,17 +385,11 @@
                     res = JSON.parse(data);
                     var error = res["error"]
                     if (error != undefined) {
-                        if (res["error"] == "key_expired") {
-                            getSASMeta();
-                            return;
-                        }
                         throw new Error("API error")
                     }
                     populateColumn(res);
-                    if (getElementValue("pk").length != 0 || getElementValue("zsid").length != 0) {
-                        setElementValue("query", "Select * from " + document.getElementById("tableList").value + getLimitAndOrderBy());
-                        execute();
-                    }
+                    setElementValue("query", "Select * from " + document.getElementById("tableList").value + getLimitAndOrderBy());
+                    execute();
                 })
                 .catch((error) => {
                     hideElement("loading");
@@ -546,12 +406,6 @@
                 tableListOptions += "<option >" + TABLE_LIST[i] + "</option>";
             }
             document.getElementById("tableList").innerHTML = tableListOptions;
-            if (getElementValue("zsid") == "admin")
-                if (document.getElementById("mysql").checked)
-                    document.querySelector("#tableList").value = "SASAccounts";
-                else
-                    document.querySelector("#tableList").value = "sasaccounts";
-
         }
 
         function populateColumn(columnMeta) {
@@ -674,56 +528,6 @@
             }, criteriaColumn, criteriaValAux);
         }
 
-        function getDBCredential(isProductSwitch) {
-            var product = getElementValue("product");
-            var space = getElementValue("zsid");
-            var pkValue = getElementValue("pk");
-            isEncrypted = true;
-
-            if (isProductSwitch) {
-                TABLE_LIST = [];
-                COLUMN_LIST = [];
-                setElementValue("zsid", "admin");
-                hideElement("queryOutputContainer");
-                hideElement("tableSelection");
-                if (product == "custom")
-                    unHideElement("quickExe");
-                setElementValue("query", "")
-                hideElement("response", "")
-            }
-
-            setElementValue("recordLimit", "50");
-
-            if (product == "custom") {
-                isEncrypted = false;
-
-                if (isProductSwitch) {
-                    setElementChecked("postgresql", false);
-                    setElementChecked("mysql", false);
-
-                    setElementValue("ip", "");
-                    setElementValue("user", "");
-                    setElementValue("password", "");
-                }
-
-                if (getElementValue("ip").length != 0 && getElementValue("user").length != 0)
-                    populateNeededEntity();
-                else
-                    setElementValue("zsid", "admin")
-            }
-            else
-            {
-                setElementChecked("postgresql", SERVICE_META[product].server == "postgresql");
-                setElementChecked("mysql", SERVICE_META[product].server == "mysql");
-
-                setElementValue("ip", SAS_META[product].ip);
-                setElementValue("user", SAS_META[product].user);
-                setElementValue("password", SAS_META[product].password);
-
-                populateNeededEntity();
-            }
-        }
-
         document.addEventListener("click", function(event) {
             if (!document.getElementById("query").contains(event.target)) {
                 autocompleteContainer.style.display = "none";
@@ -764,22 +568,6 @@
                 handleQueryOutput({
                     query_output: [failed]
                 }, "", "");
-        }
-
-        function preExecutionValidation() {
-            if (document.querySelector('input[name="server"]:checked') == null) {
-                alert("Choose DB Server");
-                return false;
-            }
-            if (document.getElementById("ip").value.length == 0) {
-                alert("Please enter a valid Main Cluster IP ");
-                return false;
-            }
-            if (document.getElementById("user").value.length == 0) {
-                alert("Please enter a valid User");
-                return false;
-            }
-            return true;
         }
 
         function isValidColumn(criteriaColumn, currentColumn, value) {

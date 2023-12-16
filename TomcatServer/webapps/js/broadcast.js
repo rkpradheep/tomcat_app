@@ -8,7 +8,7 @@
     var url = "ws://";
     if (window.location.origin.includes('https'))
         url = "wss://";
-    url = url + window.location.host + "/broadcast";
+    url = url + window.location.host + "/api/v1/broadcast";
     socket = new WebSocket(url);
 
     socket.addEventListener('open', function(event) {

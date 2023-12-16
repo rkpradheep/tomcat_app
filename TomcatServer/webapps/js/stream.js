@@ -16,7 +16,7 @@ function startStreamNow() {
     var url = "ws://";
     if (window.location.origin.includes('https'))
         url = "wss://";
-    url = url + window.location.host + "/stream";
+    url = url + window.location.host + "/api/v1/stream";
     socket = new WebSocket(url);
     socket.addEventListener('open', function(event) {
         console.log("session started")

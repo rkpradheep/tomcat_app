@@ -54,6 +54,16 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
+
+	<filter>
+		<filter-name>SecurityFilter</filter-name>
+		<filter-class>com.server.security.SecurityFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>SecurityFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
 	<listener>
 		<listener-class>com.server.common.ContextListener</listener-class>
 	</listener>
@@ -69,6 +79,27 @@
 		<url-pattern>/api/v1/sas/execute</url-pattern>
 		<url-pattern>/api/v1/sas/meta</url-pattern>
 		<url-pattern>/api/v1/sas/services</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>AdminDBHandler</servlet-name>
+		<servlet-class>com.server.admin.AdminDBHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AdminDBHandler</servlet-name>
+		<url-pattern>/api/v1/admin/db/execute</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>LoginHandler</servlet-name>
+		<servlet-class>com.server.security.LoginHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>LoginHandler</servlet-name>
+		<url-pattern>/api/v1/authenticate</url-pattern>
+		<url-pattern>/api/v1/admin/authenticate</url-pattern>
 	</servlet-mapping>
 
 
@@ -92,6 +123,8 @@
 		<url-pattern>/zoho</url-pattern>
 		<url-pattern>/internal</url-pattern>
 		<url-pattern>/index.jsp</url-pattern>
+		<url-pattern>/login</url-pattern>
+		<url-pattern>/adminlogin</url-pattern>
 	</servlet-mapping>
 
 
@@ -161,6 +194,10 @@
 		<session-timeout>
 			30
 		</session-timeout>
+<!--		<cookie-config>-->
+<!--			<name>iam_token</name>-->
+<!--			<max-age>1800</max-age>-->
+<!--		</cookie-config>-->
 	</session-config>
 	<listener>
 		<listener-class>

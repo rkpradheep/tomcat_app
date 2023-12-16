@@ -19,9 +19,8 @@ public class PageHandler extends HttpServlet
 			response.sendRedirect("/zoho");
 			return;
 		}
-		InputStream inputStream = getServletContext().getResourceAsStream("/WEB-INF/conf".concat(request.getRequestURI()) + ".html");
 		response.setContentType("text/html; charset=UTF-8");
-		String outputHtml = Util.readFileAsString(inputStream);
+		String outputHtml = Util.readFileAsString(request.getRequestURI() + ".html");
 		response.getWriter().println(outputHtml);
 	}
 }

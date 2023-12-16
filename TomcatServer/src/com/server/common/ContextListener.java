@@ -10,6 +10,7 @@ import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -39,6 +40,8 @@ public class ContextListener implements ServletContextListener
 		RefreshManager.init();
 
 		FileManager.copyUploads();
+
+		Util.SERVLET_CONTEXT = sce.getServletContext();
 
 		LOGGER.log(Level.INFO, "Context Initialised at {0}", Util.getFormattedCurrentTime());
 	}

@@ -11,9 +11,9 @@
 -- ---------------------------------------------------------
 
 
--- CREATE DATABASE "serverdb" ------------------------------
-CREATE DATABASE IF NOT EXISTS `serverdb` CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `serverdb`;
+-- CREATE DATABASE "tomcatserver" --------------------------
+CREATE DATABASE IF NOT EXISTS `tomcatserver` CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `tomcatserver`;
 -- ---------------------------------------------------------
 
 
@@ -25,7 +25,7 @@ CREATE TABLE `ChatUser`(
 CHARACTER SET = utf8
 COLLATE = utf8_general_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 4;
+AUTO_INCREMENT = 1000000000002;
 -- -------------------------------------------------------------
 
 
@@ -38,7 +38,7 @@ CREATE TABLE `ChatUserDetails`(
 CHARACTER SET = utf8
 COLLATE = utf8_general_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 130;
+AUTO_INCREMENT = 1000000000006;
 -- -------------------------------------------------------------
 
 
@@ -52,7 +52,32 @@ CREATE TABLE `Job`(
 CHARACTER SET = utf8
 COLLATE = utf8_general_ci
 ENGINE = InnoDB
-AUTO_INCREMENT = 68;
+AUTO_INCREMENT = 1000000000000;
+-- -------------------------------------------------------------
+
+
+-- CREATE TABLE "Users" ----------------------------------------
+CREATE TABLE `Users`( 
+	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
+	`name` VarChar( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`password` VarChar( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	PRIMARY KEY ( `id` ) )
+CHARACTER SET = utf8
+COLLATE = utf8_general_ci
+ENGINE = InnoDB
+AUTO_INCREMENT = 1000000000001;
+-- -------------------------------------------------------------
+
+
+-- CREATE TABLE "SessionManagement" ----------------------------
+CREATE TABLE `SessionManagement`( 
+	`id` VarChar( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`user_id` BigInt( 255 ) NOT NULL,
+	`expiry_time` BigInt( 255 ) NOT NULL,
+	PRIMARY KEY ( `id` ) )
+CHARACTER SET = utf8
+COLLATE = utf8_general_ci
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
@@ -61,10 +86,24 @@ CREATE INDEX `chatuserdetails_fk1` USING BTREE ON `ChatUserDetails`( `chatuserid
 -- -------------------------------------------------------------
 
 
+-- CREATE INDEX "lnk_Users_SessionManagement" ------------------
+CREATE INDEX `lnk_Users_SessionManagement` USING BTREE ON `SessionManagement`( `user_id` );
+-- -------------------------------------------------------------
+
+
 -- CREATE LINK "chatuserdetails_fk1" ---------------------------
 ALTER TABLE `ChatUserDetails`
 	ADD CONSTRAINT `chatuserdetails_fk1` FOREIGN KEY ( `chatuserid` )
 	REFERENCES `ChatUser`( `id` )
+	ON DELETE Cascade
+	ON UPDATE Cascade;
+-- -------------------------------------------------------------
+
+
+-- CREATE LINK "lnk_Users_SessionManagement" -------------------
+ALTER TABLE `SessionManagement`
+	ADD CONSTRAINT `lnk_Users_SessionManagement` FOREIGN KEY ( `user_id` )
+	REFERENCES `Users`( `id` )
 	ON DELETE Cascade
 	ON UPDATE Cascade;
 -- -------------------------------------------------------------

@@ -12,7 +12,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import com.server.common.Util;
 
-@ServerEndpoint(value = "/broadcast")
+@ServerEndpoint(value = "/api/v1/broadcast")
 public class BroadCast
 {
 

@@ -38,9 +38,9 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
@@ -53,6 +53,8 @@ public class Util
 	public static final String HOME_PATH = System.getenv("MY_HOME");
 
 	private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
+
+	public static ServletContext SERVLET_CONTEXT;
 
 	public static String encryptData(PublicKey publicKey, String plainText)
 	{
@@ -255,8 +257,10 @@ public class Util
 		return stringWriter.toString();
 	}
 
-	public static String readFileAsString(InputStream inputStream) throws IOException
+	public static String readFileAsString(String fileName) throws IOException
 	{
+		InputStream inputStream = SERVLET_CONTEXT.getResourceAsStream("/WEB-INF/conf/".concat(fileName));
+
 		StringWriter stringWriter = new StringWriter();
 
 		IOUtils.copy(inputStream, stringWriter);

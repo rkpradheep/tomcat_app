@@ -21,7 +21,7 @@ function startLive() {
     if (window.location.origin.includes('https'))
         url = "wss://";
 
-    url = url + window.location.host + "/live";
+    url = url + window.location.host + "/api/v1/live";
     socket = new WebSocket(url)
     socket.addEventListener("error", (event) => {
         console.log("WebSocket closed: " + event);

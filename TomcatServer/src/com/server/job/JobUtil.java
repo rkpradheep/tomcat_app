@@ -14,7 +14,7 @@ public class JobUtil
 {
 	private static final Logger LOGGER = Logger.getLogger(JobUtil.class.getName());
 
-	public static void scheduleJob(String taskName, String data, long milliSeconds) throws SQLException
+	public static Long scheduleJob(String taskName, String data, long milliSeconds) throws SQLException
 	{
 		String insertQuery = "INSERT INTO Job (task_name, data, scheduled_time) VALUES (?, ?, ?)";
 		long id;
@@ -34,6 +34,7 @@ public class JobUtil
 		}
 
 		LOGGER.log(Level.INFO, "Job added with ID {0} for task {1} with delay {2} seconds at {3}", new Object[] {Long.toString(id), taskName, milliSeconds / 1000, Util.getFormattedCurrentTime()});
+		return id;
 	}
 
 	static void deleteJob(long id) throws Exception
