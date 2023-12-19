@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class SecurityUtil
 {
-	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = List.of("/_app/health", "/(admin/)?authenticate", "/login", "/adminlogin", "(/(resources|css|js)/.*)");
+	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = List.of("/_app/health", "/(admin/)?authenticate", "/login", "/adminlogin", "(/(resources|css|js)/.*)", "/api/v1/jobs");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("(.*)(/api/)(.*)");
 	public static final Function<String, Boolean> CAN_SKIP_AUTHENTICATION = requestURI -> requestURI.matches("(.*)(" + String.join("|", SKIP_AUTHENTICATION_ENDPOINTS) + ")");
 

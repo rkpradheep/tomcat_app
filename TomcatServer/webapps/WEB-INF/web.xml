@@ -189,6 +189,15 @@
 		<url-pattern>/api/v1/webrtc/iceservers</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+	<servlet-name>UserHandler</servlet-name>
+		<servlet-class>com.server.user.UserHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>UserHandler</servlet-name>
+		<url-pattern>/api/v1/admin/users</url-pattern>
+	</servlet-mapping>
+
 
 	<session-config>
 		<session-timeout>

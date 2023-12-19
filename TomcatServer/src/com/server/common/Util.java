@@ -43,10 +43,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.security.LoginUtil;
 
 public class Util
 {
@@ -198,10 +200,16 @@ public class Util
 
 	public static void writerErrorResponse(HttpServletResponse response, String message) throws IOException
 	{
-		response.setStatus(HttpStatus.SC_BAD_REQUEST);
+		writerErrorResponse(response, HttpStatus.SC_BAD_REQUEST, null, message);
+	}
+
+	public static void writerErrorResponse(HttpServletResponse response, int statusCode, String code, String message) throws IOException
+	{
+		response.setStatus(statusCode);
 
 		Map<String, String> responseMap = new HashMap<>();
 		responseMap.put("error", message);
+		responseMap.put("code", code);
 
 		writeJSONResponse(response, responseMap);
 	}

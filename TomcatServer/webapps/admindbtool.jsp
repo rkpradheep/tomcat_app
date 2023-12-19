@@ -3,8 +3,9 @@
 <html>
     <head>
         <title>Admin DB Tool</title>
-        <!--<meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </head>
+    <script src="js/common.js"></script>
     <style>
     .loading {
       position: fixed;
@@ -181,6 +182,17 @@
         <div class="loading" id="loading" style="display:none">Loading&#8230;</div>
         <br />
 
+        <b>Add User : </b> <input type="text" id="user_name" placeholder="Name"/>
+        &nbsp;&nbsp;<input type="password" id="user_password" placeholder="Password" />
+        &nbsp;&nbsp;<select name="role" id="user_role">
+                <option value="user">USER</option>
+                <option value="admin">ADMIN</option>
+            </select>
+        &nbsp;&nbsp;<button onclick="addUser()">ADD</button> &nbsp;&nbsp;&nbsp
+        <br/>
+        <br/>
+        <br/>
+
         <div id="tableSelection" style="display: none;">
             <b>Quick Execution</b> (Select the table) &nbsp;&nbsp;&nbsp;
             <select name="tableList" id="tableList" onchange="getColumns()">
@@ -193,7 +205,18 @@
                 <option value="1000">1000</option>
                 <option value="5000">5000</option>
             </select>
-            &nbsp;&nbsp;&nbsp <button onclick="refreshTable()">REFRESH</button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp <button onclick="refreshTable()">REFRESH</button> &nbsp;&nbsp;&nbsp <br>
+             SET &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; <select name="columnListForSet" id="columnListForSet">
+                   <option value="" disabled selected>Loading .. </option>
+             </select>
+             &nbsp;&nbsp;&nbsp<input type="text" id="set_column_value"/> <br/>
+
+             WHERE &nbsp;&nbsp;&nbsp; <select name="columnListForWhere" id="columnListForWhere">
+                   <option value="" disabled selected>Loading .. </option>
+             </select>
+             &nbsp;&nbsp;&nbsp<input type="text" id="where_column_value"/>
+            &nbsp;&nbsp;&nbsp<button onclick="updateRow()">UPDATE</button> &nbsp;&nbsp;&nbsp
+            <button style='background-color:red' onclick="deleteRow()">DELETE</button>
         </div>
         <br />
         <br />
@@ -273,6 +296,60 @@
             });
         }
 
+        function updateRow()
+        {
+            const tableName = document.getElementById("tableList").value;
+            const setColumnName = document.getElementById("columnListForSet").value;
+            const whereColumnName = document.getElementById("columnListForWhere").value;
+            const setColumnValue = document.getElementById("set_column_value").value;
+            const whereColumnValue = document.getElementById("where_column_value").value;
+             var gotConsent = true;
+            if(setColumnValue == undefined || setColumnValue.length < 1)
+            {
+                alert("Please enter value column value");
+                return;
+            }
+
+            var updateQuery = "Update " + tableName + " set " + setColumnName + " = '" + setColumnValue + "'";
+
+            if(whereColumnValue == undefined || whereColumnValue.length < 1)
+                gotConsent = confirm("You are trying to perform update operation without criteria. Do you want to proceed?");
+            else
+                updateQuery = updateQuery + " Where " + whereColumnName + " = '" + whereColumnValue + "'"
+
+
+            document.getElementById("query").value = updateQuery
+            confirmAndExecute();
+        }
+
+        function confirmAndExecute()
+        {
+        if(confirm("Do you want to continue?\n Query to be executed : \n\n" + document.getElementById("query").value))
+            execute();
+        }
+
+        function deleteRow()
+        {
+            const tableName = document.getElementById("tableList").value;
+            const columnName = document.getElementById("columnListForWhere").value;
+            const columnValue = document.getElementById("where_column_value").value;
+            var gotConsent = true;
+
+            var deleteQuery = "Delete from " + tableName;
+
+            if(columnValue == undefined || columnValue.length < 1)
+                gotConsent = confirm("You are trying to perform delete operation without criteria. Do you want to proceed?");
+            else
+                deleteQuery = deleteQuery + " Where " + columnName + " = '" + columnValue + "'"
+
+            if(!gotConsent)
+              return;
+
+            document.getElementById("query").value = deleteQuery;
+            confirmAndExecute();
+        }
+
+
         function execute() {
 
             unHideElement("response");
@@ -296,6 +373,10 @@
                 })
                 .then((data) => {
                     res = JSON.parse(data)
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
                     var error = res["error"]
                     if (error != undefined) {
                         throw new Error("API error")
@@ -335,6 +416,10 @@
                 })
                 .then((data) => {
                     res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
                     var error = res["error"]
                     if (error != undefined) {
                         throw new Error("API error")
@@ -383,6 +468,10 @@
                 })
                 .then((data) => {
                     res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
                     var error = res["error"]
                     if (error != undefined) {
                         throw new Error("API error")
@@ -415,10 +504,16 @@
             for (var column in columnListRes) {
                 COLUMN_LIST.push(columnListRes[column]);
             }
+            var columnListOptions = "";
+            for (var i in COLUMN_LIST) {
+                columnListOptions += "<option >" + COLUMN_LIST[i] + "</option>";
+            }
+            document.getElementById("columnListForWhere").innerHTML = columnListOptions;
+            document.getElementById("columnListForSet").innerHTML = columnListOptions;
         }
 
         function getLimitAndOrderBy() {
-            const orderBy = CURRENT_TABLE_PK.length == 0 ? "" : " Order By " + CURRENT_TABLE_PK + " DESC"
+            const orderBy = CURRENT_TABLE_PK.length == 0 ? "" : " Order By " + CURRENT_TABLE_PK + " ASC"
             const limit = getElementValue("recordLimit");
             return orderBy + " LIMIT " + limit;
         }
@@ -641,6 +736,62 @@
             setElementValue("query", "Select * from " + document.getElementById("tableList").value + getLimitAndOrderBy())
             execute()
         }
+
+        function addUser()
+        {
+        const name = document.getElementById("user_name").value;
+        const password = document.getElementById("user_password").value;
+        const role = document.getElementById("user_role").value;
+
+        if(name == undefined || password == undefined)
+        {
+            alert("Please enter valid name and password")
+            return;
+        }
+
+        unHideElement("loading");
+
+            const data = {
+                "name": name,
+                "password": password,
+                "role": role,
+            }
+
+            var res;
+            fetch("/api/v1/admin/users", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((response) => {
+                    return response.text();
+                })
+                .then((data) => {
+                    res = JSON.parse(data)
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
+                    var error = res["error"]
+                    if (error != undefined) {
+                        throw new Error("API error")
+                    }
+                    hideElement("loading");
+                    alert(res["message"])
+                    setElementValue("user_name", "")
+                    setElementValue("user_password", "")
+                })
+                .catch((error) => {
+                    hideElement("loading");
+                    console.log(error);
+                    setElementValue("output", JSON.stringify(res, null, 2));
+                    alert("Something went wrong. Please check the error response below and try again.");
+                });
+
+        }
+
         </script>
     </body>
 </html>

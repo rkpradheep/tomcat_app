@@ -4,6 +4,7 @@
 <head>
 <meta  name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+<script src="js/common.js"></script>
     <style>
         button {
             background-color: #4caf50; /* Green */
@@ -141,7 +142,12 @@ function redirect()
       return response.text();
       }
       ).then(data=> {
-    window.open (data, "_self");
+const res = JSON.parse(data)
+if(handleRedirection(res))
+{
+   return;
+}
+    window.open (res["redirect_uri"], "_self");
       }).catch(error => {
          alert("Something went wrong. Server might be down");
       });
@@ -174,7 +180,12 @@ fetch( "/api/v1/oauth/tokens", {
 return response.text();
 }
 ).then(data=> {
-document.getElementById("output").value = JSON.stringify(JSON.parse(data), null, 2);
+const res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
+document.getElementById("output").value = JSON.stringify(res, null, 2);
 }).catch(error => {
 console.log(error)
 alert("Something went wrong. Server might be down");
@@ -232,6 +243,10 @@ return response.text();
 }
 ).then(data=> {
 const jsonData = JSON.parse(data);
+                    if(handleRedirection(jsonData))
+                    {
+                        return;
+                    }
 jsonData.refresh_token = refreshToken
 document.getElementById("output").value = JSON.stringify(jsonData, null, 2);
 }).catch(error => {

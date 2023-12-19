@@ -21,14 +21,16 @@ public class OauthHandler extends HttpServlet
 		try
 		{
 			JSONObject credentials = Util.getJSONObject(request);
+			String responseJSON;
 
 			if(request.getRequestURI().contains("/api/v1/oauth/code"))
 			{
-				response.getWriter().print(getURIForOauthCodeGeneration(credentials));
-				return;
+				responseJSON = getURIForOauthCodeGeneration(credentials);
 			}
-
-			String responseJSON = credentials.has("client_id") ? generateOauthTokens(credentials) : generateOauthTokensForDefaultCredentials(credentials);
+			else
+			{
+				responseJSON = credentials.has("client_id") ? generateOauthTokens(credentials) : generateOauthTokensForDefaultCredentials(credentials);
+			}
 
 			response.setContentType("application/json");
 			response.getWriter().println(responseJSON);
@@ -88,7 +90,7 @@ public class OauthHandler extends HttpServlet
 			.append("&response_type=code")
 			.append("&access_type=offline");
 
-		return queryString.toString();
+		return new JSONObject().put("redirect_uri", queryString.toString()).toString();
 	}
 
 	public String getDC(String url)

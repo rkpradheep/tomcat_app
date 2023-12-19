@@ -1,4 +1,4 @@
-package com.server.security;
+package com.server.user;
 
 public class User
 {
@@ -7,7 +7,7 @@ public class User
 	private String sessionId;
 	private Long expiryTime;
 
-	User(Long id, String name, String sessionId, long expiryTime)
+	public User(Long id, String name, String sessionId, long expiryTime)
 	{
 		this.id = id;
 		this.name = name;

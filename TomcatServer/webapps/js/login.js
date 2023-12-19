@@ -1,7 +1,6 @@
 
 document.getElementById('name').value = "test";
 document.getElementById('password').value = "test@123";
-login();
 
     function login() {
     const name = document.getElementById('name').value;
@@ -36,3 +35,9 @@ login();
              alert("Something went wrong. Server might be down");
           });
     }
+
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    login()
+  }
+});

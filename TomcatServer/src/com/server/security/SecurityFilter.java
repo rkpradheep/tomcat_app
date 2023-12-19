@@ -14,8 +14,13 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+
 import com.server.common.Configuration;
 import com.server.common.Util;
+import com.server.user.User;
+import com.server.user.UserUtil;
 
 public class SecurityFilter implements Filter
 {
@@ -40,7 +45,7 @@ public class SecurityFilter implements Filter
 
 			String sessionId = SecurityUtil.getSessionId(httpServletRequest);
 
-			CURRENT_USER_TL.set(LoginUtil.getUser(sessionId));
+			CURRENT_USER_TL.set(UserUtil.getUser(sessionId));
 
 			if(SecurityUtil.CAN_SKIP_AUTHENTICATION.apply(requestURI))
 			{
@@ -63,12 +68,15 @@ public class SecurityFilter implements Filter
 			{
 				if(SecurityUtil.IS_REST_API.apply(requestURI))
 				{
-					Util.writerErrorResponse((HttpServletResponse) servletResponse, "Invalid value passed for Authorization header");
+					String errorMessage = StringUtils.isNotEmpty(httpServletRequest.getHeader("Authorization")) ? "Invalid value passed for Authorization header" : "Session expired. Please login again and try.";
+					Util.writerErrorResponse(httpServletResponse, HttpStatus.SC_UNAUTHORIZED, "authentication_needed", errorMessage);
 				}
 				else
 				{
-					String loginPage = requestURI.contains("admin") ? "/adminlogin" : "/login";
-					httpServletResponse.sendRedirect(loginPage + "?redirect_uri=" + URLEncoder.encode(requestURL, StandardCharsets.UTF_8));
+					String loginPage = httpServletRequest.getRequestURI().contains("admin") ? "/adminlogin" : "/login";
+					loginPage += "?redirect_uri=" + URLEncoder.encode(httpServletRequest.getRequestURL().toString(), StandardCharsets.UTF_8);
+
+					httpServletResponse.sendRedirect(loginPage);
 				}
 			}
 		}

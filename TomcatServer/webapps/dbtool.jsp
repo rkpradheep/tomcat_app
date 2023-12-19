@@ -5,6 +5,7 @@
         <title>DB Tool</title>
         <!--<meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
     </head>
+    <script src="js/common.js"></script>
     <style>
     .loading {
       position: fixed;
@@ -273,7 +274,12 @@
                     return response.text();
                 })
                 .then((data) => {
-                    SAS_META = JSON.parse(data);
+                    var res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
+                    SAS_META = res;
                     getDBCredential(false);
                 })
                 .catch((error) => {
@@ -336,7 +342,12 @@
                 return response.text();
             })
             .then((data) => {
-                SERVICE_META = JSON.parse(data);
+                var res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
+                SERVICE_META = res;
                 var serviceListOptions = ""
                 for (var service in SERVICE_META) {
                     serviceListOptions += "<option value=" + service + ">" + SERVICE_META[service].display_name + "</option>";
@@ -385,6 +396,10 @@
                 })
                 .then((data) => {
                     res = JSON.parse(data)
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
                     var error = res["error"]
                     if (error != undefined) {
                         if (res["error"] == "key_expired") {
@@ -456,6 +471,10 @@
                 })
                 .then((data) => {
                     res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
                     var error = res["error"]
                     if (error != undefined) {
                         if (res["error"] == "key_expired") {
@@ -517,6 +536,10 @@
                 })
                 .then((data) => {
                     res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
                     var error = res["error"]
                     if (error != undefined) {
                         if (res["error"] == "key_expired") {
@@ -784,26 +807,6 @@
 
         function isValidColumn(criteriaColumn, currentColumn, value) {
             return criteriaColumn == currentColumn && value == Number(value);
-        }
-
-        function getElementValue(elementID) {
-            return document.getElementById(elementID).value;
-        }
-
-        function setElementValue(elementID, value) {
-            document.getElementById(elementID).value = value;;
-        }
-
-        function hideElement(elementID) {
-            document.getElementById(elementID).style.display = "none";
-        }
-
-        function unHideElement(elementID) {
-            document.getElementById(elementID).style.display = "block";
-        }
-
-        function setElementChecked(elementID, value) {
-            return document.getElementById(elementID).checked = value;
         }
 
         function getFilteredFromDB(criteriaColumn) {
