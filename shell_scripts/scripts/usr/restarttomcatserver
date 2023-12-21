@@ -20,4 +20,4 @@ fi
 
 echo $(date)" Going to start tomcat" >> output.txt
 
-sh TomcatBuild/run.sh >> output.txt 2>>output.txt
+sh tomcat_build/run.sh >> output.txt 2>>output.txt

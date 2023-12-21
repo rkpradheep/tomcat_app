@@ -1,7 +1,7 @@
 task installScripts {
     doLast {
-        copyWithSudo ("${home}/ShellScripts/scripts/usr", "/usr/local/bin")
-        copyWithSudo ("${home}/ShellScripts/scripts/network", "/etc/NetworkManager/dispatcher.d")
+        copyWithSudo ("${home}/shell_scripts/scripts/usr", "/usr/local/bin")
+        copyWithSudo ("${home}/shell_scripts/scripts/network", "/etc/NetworkManager/dispatcher.d")
         if (!new File ("${home}/ngrok/ngrok").exists ()) {
             new File ("${home}/ngrok").mkdirs ()
             copy {

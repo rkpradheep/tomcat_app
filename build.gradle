@@ -6,7 +6,7 @@ plugins {
 
 ext.home = System.getenv ("MY_HOME")
 
-apply from: 'TomcatServer/build.gradle'
-apply from: 'ShellScripts/build.gradle'
+apply from: 'tomcat_server/build.gradle'
+apply from: 'shell_scripts/build.gradle'
 
 // tasks : fullBuild, updateBuild, installScripts

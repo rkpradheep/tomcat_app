@@ -156,14 +156,14 @@ public class FileManager extends HttpServlet
 
 	public static void copyUploads()
 	{
-		new File(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads").mkdirs();
+		new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads").mkdirs();
 		for(File file : new File(Util.HOME_PATH + "/uploads").listFiles())
 		{
 			try
 			{
 				FileInputStream fileInputStream = new FileInputStream(file);
 				byte[] b = new byte[2048];
-				FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads/" + file.getName());
+				FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + file.getName());
 				int len = 0;
 				while((len = fileInputStream.read(b)) != -1)
 				{

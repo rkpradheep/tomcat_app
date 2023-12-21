@@ -1,4 +1,4 @@
-ext.serverPath = "${home}/TomcatServer"
+ext.serverPath = "${home}/tomcat_server"
 sourceSets {
     main {
         java {
@@ -18,33 +18,33 @@ ext.configureTaskDependencies = { task, dependentTasks ->
 
 task bundleResource {
     doLast {
-        new File ("${serverPath}/build/TomcatServer").mkdirs()
+        new File ("${serverPath}/build/tomcat_server").mkdirs()
 
         copy {
             from "${serverPath}/webapps/"
-            into "${serverPath}/build/TomcatServer"
+            into "${serverPath}/build/tomcat_server"
         }
 
          copy{
                 from "${serverPath}/../app.properties"
-                into "${serverPath}/build/TomcatServer/WEB-INF/conf"
+                into "${serverPath}/build/tomcat_server/WEB-INF/conf"
             }
 
         copy {
             from "${serverPath}/classes"
             exclude "com/server/tomcat"
-            into "${serverPath}/build/TomcatServer/WEB-INF/classes"
+            into "${serverPath}/build/tomcat_server/WEB-INF/classes"
         }
 
         copy {
             from "${serverPath}/resources"
-            into "${serverPath}/build/TomcatServer/WEB-INF/classes"
+            into "${serverPath}/build/tomcat_server/WEB-INF/classes"
         }
 
         copy {
             from "${serverPath}/lib"
             exclude 'servlet-api.jar', 'websocket-api.jar'
-            into "${serverPath}/build/TomcatServer/WEB-INF/lib"
+            into "${serverPath}/build/tomcat_server/WEB-INF/lib"
         }
 
         println "Resource bundle completed"
@@ -55,7 +55,7 @@ task bundleResource {
 
 task packRootWar(type: War) {
     archiveFileName = "ROOT.war"
-    from "${serverPath}/build/TomcatServer"
+    from "${serverPath}/build/tomcat_server"
     destinationDir = file("${serverPath}/build")
 }
 
@@ -63,7 +63,7 @@ task deployBuild{
     doLast{
         copy {
             from "${serverPath}/build/ROOT.war"
-            into "${home}/TomcatBuild/webapps"
+            into "${home}/tomcat_build/webapps"
         }
 
         println "deploy build completed"
@@ -72,15 +72,15 @@ task deployBuild{
 
 task setupTomcatContainer{
     doLast{
-        new File ("${home}/TomcatBuild").mkdirs()
-        delete "${home}/TomcatBuild/*"
+        new File ("${home}/tomcat_build").mkdirs()
+        delete "${home}/tomcat_build/*"
         copy{
             from "${serverPath}/tomcat/"
-            into "${home}/TomcatBuild"
+            into "${home}/tomcat_build"
         }
         copy{
             from "${serverPath}/build/CustomTomcatValves.jar"
-            into "${home}/TomcatBuild/lib"
+            into "${home}/tomcat_build/lib"
         }
         println "set up tomcat container completed"
     }
@@ -104,7 +104,7 @@ task cleanUp{
     doLast{
         delete "${serverPath}/build"
         delete "${serverPath}/classes"
-        delete "${home}/TomcatBuild/webapps/*"
+        delete "${home}/tomcat_build/webapps/*"
         println "clean up completed"
     }
 }

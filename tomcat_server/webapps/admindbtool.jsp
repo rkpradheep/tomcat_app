@@ -324,7 +324,7 @@
 
         function confirmAndExecute()
         {
-        if(confirm("Do you want to continue?\n Query to be executed : \n\n" + document.getElementById("query").value))
+        if(confirm("Do you want to continue?\n\nQuery to be executed : \n" + document.getElementById("query").value))
             execute();
         }
 

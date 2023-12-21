@@ -37,6 +37,6 @@ Step 5 : Enter
 Add this under .bashrc
 
 alias alog="tail -f $MY_HOME/output.txt"
-alias applog="tail -f $MY_HOME/TomcatBuild/logs/my_app_log.txt"
-alias clog="tail -f $MY_HOME/TomcatBuild/logs/my_catalina_log.txt"
+alias applog="tail -f $MY_HOME/tomcat_build/logs/my_app_log.txt"
+alias clog="tail -f $MY_HOME/tomcat_build/logs/my_catalina_log.txt"
 

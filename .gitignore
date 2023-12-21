@@ -1,4 +1,4 @@
-TomcatBuild/
+tomcat_build/
 output.txt
 .gradle/
 build/

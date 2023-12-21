@@ -40,7 +40,7 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 			else
 			{
 				LOGGER.log(Level.SEVERE, "TOMCAT ERROR REPORT VALVE :: Writing html response for request - {0}", request.getRequestURI()); //No I18N
-				InputStream inputStream = new FileInputStream(System.getenv("MY_HOME") + "/TomcatServer/webapps/WEB-INF/conf/errorPage.html");
+				InputStream inputStream = new FileInputStream(System.getenv("MY_HOME") + "/tomcat_server/webapps/WEB-INF/conf/errorPage.html");
 				IOUtils.copy(inputStream, response.getOutputStream());
 				response.setErrorReported();
 			}

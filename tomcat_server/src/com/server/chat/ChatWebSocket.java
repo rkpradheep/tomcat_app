@@ -171,8 +171,8 @@ public class ChatWebSocket
 		ByteBuffer byteBuffer = sessionIdVsChunkedData.get(session.getId());
 		byte[] byteArray = byteBuffer.array();
 
-		new File(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads").mkdirs();
-		FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/uploads/" + sessionIdVsFileName.get(session.getId()));
+		new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads").mkdirs();
+		FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + sessionIdVsFileName.get(session.getId()));
 		fileOutputStream.write(byteArray);
 		fileOutputStream.close();
 

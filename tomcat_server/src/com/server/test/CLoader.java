@@ -12,7 +12,7 @@ public class CLoader
 	public static String get() throws Exception
 	{
 
-		//URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new URL("file:" + com.server.common.Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/WEB-INF/lib/com.server.test.DynamicCP.jar")}, com.server.test.CLoader.class.getClassLoader());
+		//URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new URL("file:" + com.server.common.Util.HOME_PATH + "/tomcat_build/webapps/ROOT/WEB-INF/lib/com.server.test.DynamicCP.jar")}, com.server.test.CLoader.class.getClassLoader());
 		ClassLoader classLoader = new ClassLoader()
 		{
 			@Override
@@ -22,7 +22,7 @@ public class CLoader
 				{
 					return this.getClass().getClassLoader().loadClass(className);
 				}
-				String libPath = Util.HOME_PATH + "/TomcatBuild/webapps/ROOT/WEB-INF/lib/";
+				String libPath = Util.HOME_PATH + "/tomcat_build/webapps/ROOT/WEB-INF/lib/";
 				try(JarFile jarFile = new JarFile(libPath + "com.server.test.DynamicCP.jar"))
 				{
 					byte[] classData = IOUtils.toByteArray(jarFile.getInputStream(jarFile.getJarEntry("com.server.test.DynamicCP.class")));
