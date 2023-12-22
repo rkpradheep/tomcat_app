@@ -31,17 +31,17 @@ public class SecurityFilter implements Filter
 	{
 		try
 		{
-			if(!Boolean.parseBoolean(Configuration.getProperty("login.needed")))
-			{
-				filterChain.doFilter(servletRequest, servletResponse);
-				return;
-			}
-
 			HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
 			HttpServletResponse httpServletResponse = ((HttpServletResponse) servletResponse);
 
 			String requestURI = httpServletRequest.getRequestURI();
 			String requestURL = httpServletRequest.getRequestURL().toString();
+
+			if(!Util.isValidEndPoint(requestURI))
+			{
+				httpServletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
+				return;
+			}
 
 			String sessionId = SecurityUtil.getSessionId(httpServletRequest);
 
@@ -49,7 +49,7 @@ public class SecurityFilter implements Filter
 
 			if(SecurityUtil.CAN_SKIP_AUTHENTICATION.apply(requestURI))
 			{
-				if(requestURI.matches("/(admin)?login") && SecurityUtil.isLoggedIn())
+				if(requestURI.matches("/(admin/)?login") && SecurityUtil.isLoggedIn())
 				{
 					httpServletResponse.sendRedirect("/");
 					return;
@@ -73,8 +73,8 @@ public class SecurityFilter implements Filter
 				}
 				else
 				{
-					String loginPage = httpServletRequest.getRequestURI().contains("admin") ? "/adminlogin" : "/login";
-					loginPage += "?redirect_uri=" + URLEncoder.encode(httpServletRequest.getRequestURL().toString(), StandardCharsets.UTF_8);
+					String loginPage = requestURI.startsWith("/admin") ? "/admin/login" : "/login";
+					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, StandardCharsets.UTF_8);
 
 					httpServletResponse.sendRedirect(loginPage);
 				}

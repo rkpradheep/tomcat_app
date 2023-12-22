@@ -156,25 +156,32 @@ public class FileManager extends HttpServlet
 
 	public static void copyUploads()
 	{
-		new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads").mkdirs();
-		for(File file : new File(Util.HOME_PATH + "/uploads").listFiles())
+		try
 		{
-			try
+			new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads").mkdirs();
+			for(File file : new File(Util.HOME_PATH + "/uploads").listFiles())
 			{
-				FileInputStream fileInputStream = new FileInputStream(file);
-				byte[] b = new byte[2048];
-				FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + file.getName());
-				int len = 0;
-				while((len = fileInputStream.read(b)) != -1)
+				try
 				{
-					fileOutputStream.write(b, 0, len);
+					FileInputStream fileInputStream = new FileInputStream(file);
+					byte[] b = new byte[2048];
+					FileOutputStream fileOutputStream = new FileOutputStream(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + file.getName());
+					int len = 0;
+					while((len = fileInputStream.read(b)) != -1)
+					{
+						fileOutputStream.write(b, 0, len);
+					}
+					fileInputStream.close();
 				}
-				fileInputStream.close();
+				catch(Exception e)
+				{
+					LOGGER.log(Level.SEVERE, "Exception occurred", e);
+				}
 			}
-			catch(Exception e)
-			{
-				LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			}
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 		}
 	}
 

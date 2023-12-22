@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,17 +12,18 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class AdminDBUtil
 {
 	public static void handleQuery(Connection connection, String query, Map<String, Object> resultMap) throws SQLException
 	{
-		String pkName = null;
-		if(query == null || query.replaceAll(" ", "").length() == 0)
+		if(StringUtils.isBlank(StringUtils.deleteWhitespace(query)))
 		{
 			return;
 		}
-		query = query.replaceAll("\n", " ");
-		query = query.replaceAll("(\\.|;)$", "");
+		query = query.replaceAll("\n", StringUtils.SPACE);
+		query = query.replaceAll("([.;])$", StringUtils.EMPTY);
 
 		PreparedStatement preparedStatement;
 
@@ -67,10 +67,10 @@ public class AdminDBUtil
 		ResultSet resultSet = preparedStatement.getResultSet();
 		ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 
-		List queryOutput = new ArrayList();
+		List<Map<String, String>> queryOutput = new ArrayList<>();
 		while(resultSet.next())
 		{
-			Map row = new LinkedHashMap();
+			Map<String, String> row = new LinkedHashMap<>();
 			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
 			{
 				row.put(resultSetMetaData.getColumnName(i).toUpperCase(), resultSet.getString(i));
@@ -79,7 +79,7 @@ public class AdminDBUtil
 		}
 		if(queryOutput.isEmpty())
 		{
-			Map row = new LinkedHashMap();
+			Map<String, String> row = new LinkedHashMap<>();
 			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
 			{
 				row.put(resultSetMetaData.getColumnName(i).toUpperCase(), "<EMPTY>");

@@ -18,7 +18,7 @@ public class LoginHandler extends HttpServlet
 	{
 		JSONObject jsonObject = Util.getJSONObject(request);
 
-		boolean isAdminLogin = request.getRequestURI().contains("/admin");
+		boolean isAdminLogin = request.getRequestURI().startsWith("/api/v1/admin");
 		String tokenName = isAdminLogin ? "iam_admin_token" : "iam_token";
 
 		Long userID = LoginUtil.validateCredentials(jsonObject.getString("name"), jsonObject.getString("password"), isAdminLogin);

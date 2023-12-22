@@ -41,7 +41,7 @@ public class ContextListener implements ServletContextListener
 
 		FileManager.copyUploads();
 
-		Util.SERVLET_CONTEXT = sce.getServletContext();
+		Util.init(sce.getServletContext());
 
 		LOGGER.log(Level.INFO, "Context Initialised at {0}", Util.getFormattedCurrentTime());
 	}

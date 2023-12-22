@@ -124,7 +124,7 @@
 		<url-pattern>/internal</url-pattern>
 		<url-pattern>/index.jsp</url-pattern>
 		<url-pattern>/login</url-pattern>
-		<url-pattern>/adminlogin</url-pattern>
+		<url-pattern>/admin/login</url-pattern>
 	</servlet-mapping>
 
 

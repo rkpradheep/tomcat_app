@@ -70,8 +70,7 @@ public class ProxyServer
 
 			LOGGER.info("Input Stream Available size " + clientIn.available());
 
-			while(clientIn.available() == 0)
-				;
+			while(clientIn.available() == 0);
 
 			byte[] bytes = new byte[clientIn.available()];
 

@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -19,8 +20,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,16 +43,15 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletRegistration;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.server.security.LoginUtil;
 
 public class Util
 {
@@ -56,7 +59,19 @@ public class Util
 
 	private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
 
-	public static ServletContext SERVLET_CONTEXT;
+	private static ServletContext SERVLET_CONTEXT;
+	private static List<String> API_END_POINTS;
+
+	public static void init(ServletContext servletContext)
+	{
+		SERVLET_CONTEXT = servletContext;
+
+		API_END_POINTS = servletContext.getServletRegistrations().keySet().stream()
+			.map(SERVLET_CONTEXT::getServletRegistration)
+			.map(ServletRegistration::getMappings)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toList());
+	}
 
 	public static String encryptData(PublicKey publicKey, String plainText)
 	{
@@ -216,10 +231,10 @@ public class Util
 
 	public static String getFormattedCurrentTime()
 	{
-		return getFormattedCurrentTime(System.currentTimeMillis());
+		return getFormattedTime(System.currentTimeMillis());
 	}
 
-	public static String getFormattedCurrentTime(Long timeInMilliseconds)
+	public static String getFormattedTime(Long timeInMilliseconds)
 	{
 		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliseconds), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("hh : mm a"));
 	}
@@ -279,6 +294,11 @@ public class Util
 	public static long convertDateToMilliseconds(String date, String format) throws ParseException
 	{
 		return new SimpleDateFormat(format).parse(date).getTime();
+	}
+
+	public static boolean isValidEndPoint(String endPoint) throws MalformedURLException
+	{
+		return API_END_POINTS.contains(endPoint) || Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint));
 	}
 
 }

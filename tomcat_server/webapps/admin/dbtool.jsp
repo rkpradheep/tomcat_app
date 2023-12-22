@@ -5,7 +5,7 @@
         <title>Admin DB Tool</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </head>
-    <script src="js/common.js"></script>
+    <script src="/js/common.js"></script>
     <style>
     .loading {
       position: fixed;
