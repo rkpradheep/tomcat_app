@@ -40,3 +40,8 @@ alias alog="tail -n 500 -f $MY_HOME/output.txt"
 alias applog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/my_app_log.txt"
 alias clog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/my_catalina_log.txt"
 
+
+Docker commands:
+
+sudo docker build -t tomcat-app .
+sudo docker run -p 8090:8090 -p 8091:8091 -it tomcat-app:latest /bin/bash
