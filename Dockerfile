@@ -25,7 +25,6 @@ ENV PATH ${MY_HOME}/bin:${PATH}
 # Create a working directory
 WORKDIR /MyHome
 
-# Clone the Git repository
 RUN git clone https://github.com/rkpradheep/tomcat_app.git .
 
 COPY app.properties /MyHome/
@@ -33,3 +32,4 @@ COPY app.properties /MyHome/
 RUN sed 's/db.server.ip = 127.0.0.1/db.server.ip = 172.21.117.19/' /MyHome/app.properties >> /MyHome/app.properties
 
 RUN gradle fullBuild
+

@@ -98,12 +98,12 @@ public class SASUtil
 			if(server.equals("mysql"))
 			{
 				Class.forName("com.mysql.jdbc.Driver");
-				conn = DriverManager.getConnection(MessageFormat.format("jdbc:mysql://{0}:3306/{1}?connectTimeout=5000", ip, db), user, password);
+				conn = DriverManager.getConnection(MessageFormat.format("jdbc:mysql://{0}:3306/{1}?connectTimeout=5000&useSSL=false", ip, db), user, password);
 			}
 			else
 			{
 				Class.forName("org.postgresql.Driver");
-				conn = DriverManager.getConnection(MessageFormat.format("jdbc:postgresql://{0}:5432/sasdb?currentSchema={1}&connectTimeout=5000", ip, db), user, password);
+				conn = DriverManager.getConnection(MessageFormat.format("jdbc:postgresql://{0}:5432/sasdb?currentSchema={1}&connectTimeout=5000&useSSL=false", ip, db), user, password);
 			}
 			return conn;
 		}

@@ -1,3 +1,4 @@
+
 Unix setup : 
 
 To set environment variable MY_HOME, add below entry in /etc/profile
@@ -44,4 +45,4 @@ alias clog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/my_catalina_log.txt"
 Docker commands:
 
 sudo docker build -t tomcat-app .
-sudo docker run -p 8090:8090 -p 8091:8091 -it tomcat-app:latest /bin/bash
+sudo docker run -p 8093:8093 -p 8092:8092 -p 8091:8091 -it tomcat-app:latest /bin/bash
