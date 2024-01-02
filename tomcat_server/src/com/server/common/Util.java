@@ -49,6 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
+import org.apache.tomcat.websocket.server.WsServerContainer;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -298,7 +299,13 @@ public class Util
 
 	public static boolean isValidEndPoint(String endPoint) throws MalformedURLException
 	{
-		return API_END_POINTS.contains(endPoint) || Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint));
+		return API_END_POINTS.contains(endPoint) || isValidWebSocketEndPoint(endPoint) || Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint));
+	}
+
+	public static boolean isValidWebSocketEndPoint(String endPoint)
+	{
+		Object mappingResult = ((WsServerContainer) SERVLET_CONTEXT.getAttribute("javax.websocket.server.ServerContainer")).findMapping(endPoint);
+		return Objects.nonNull(mappingResult);
 	}
 
 }
