@@ -193,6 +193,18 @@
         <br/>
         <br/>
 
+        <div>
+            <b>Property Management</b>
+            <select name="propertyList" id="propertyList" onchange="getProperties(false)">
+                <option value="" disabled selected>Loading .. </option>
+            </select>
+            &nbsp;&nbsp;&nbsp;
+            <input type="text" id="propertyValue"/>
+             &nbsp;&nbsp;&nbsp<button onclick="updateProperty()">UPDATE</button> &nbsp;&nbsp;&nbsp
+        </div>
+        <br/>
+        <br/>
+        <br/>
         <div id="tableSelection" style="display: none;">
             <b>Quick Execution</b> (Select the table) &nbsp;&nbsp;&nbsp;
             <select name="tableList" id="tableList" onchange="getColumns()">
@@ -395,6 +407,79 @@
                 });
         }
 
+        function getProperties(isImport) {
+            unHideElement("loading");
+
+            var res;
+
+            fetch("/api/v1/admin/properties?property_name=" + (isImport ? "" : document.getElementById("propertyList").value), {
+                    method: "GET",
+                })
+                .then((response) => {
+                    return response.text();
+                })
+                .then((data) => {
+                    res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
+                    var error = res["error"]
+                    if (error != undefined) {
+                        throw new Error("API error")
+                    }
+                    hideElement("loading");
+                    if(isImport)
+                        populateProperties(res);
+                    else
+                    document.getElementById("propertyValue").value = res["property_value"]
+                })
+                .catch((error) => {
+                    hideElement("loading");
+                    console.log(error);
+                    alert("Something went wrong. Please check the error response below and try again.");
+                });
+        }
+
+        function updateProperty() {
+            unHideElement("loading");
+
+            var res;
+
+            const data = {
+            "property_name" : document.getElementById("propertyList").value,
+            "property_value" : document.getElementById("propertyValue").value
+            }
+            fetch("/api/v1/admin/properties", {
+                    method: "PUT",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((response) => {
+                    return response.text();
+                })
+                .then((data) => {
+                    res = JSON.parse(data);
+                    if(handleRedirection(res))
+                    {
+                        return;
+                    }
+                    var error = res["error"]
+                    if (error != undefined) {
+                        throw new Error("API error")
+                    }
+                    hideElement("loading");
+                    alert("Updated successfully")
+                })
+                .catch((error) => {
+                    hideElement("loading");
+                    console.log(error);
+                    alert("Something went wrong. Please check the error response below and try again.");
+                });
+        }
+
         function getTables() {
             TABLE_LIST = []
             unHideElement("loading");
@@ -487,6 +572,15 @@
                     console.log(error)
                     alert("Something went wrong. Please check the error response below and try again.");
                 });
+        }
+
+        function populateProperties(propertyList) {
+            var propertyListOptions = "";
+            for (var i in propertyList) {
+                propertyListOptions += "<option >" + propertyList[i] + "</option>";
+            }
+            document.getElementById("propertyList").innerHTML = propertyListOptions;
+            getProperties(false)
         }
 
         function populateTables() {
@@ -719,6 +813,8 @@
         }
 
         function populateNeededEntity() {
+            getProperties(true);
+
             if (TABLE_LIST.length == 0)
                 getTables();
             else if (COLUMN_LIST.length == 0)

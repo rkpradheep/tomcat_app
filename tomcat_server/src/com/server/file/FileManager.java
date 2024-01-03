@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import com.server.common.Util;
 
@@ -159,7 +160,8 @@ public class FileManager extends HttpServlet
 		try
 		{
 			new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads").mkdirs();
-			for(File file : new File(Util.HOME_PATH + "/uploads").listFiles())
+			File[] fileList = ObjectUtils.defaultIfNull(new File(Util.HOME_PATH + "/uploads").listFiles(), new File[0]);
+			for(File file : fileList)
 			{
 				try
 				{

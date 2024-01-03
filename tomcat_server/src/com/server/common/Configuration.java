@@ -2,7 +2,11 @@ package com.server.common;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -10,14 +14,31 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class Configuration
 {
-	private static final ConcurrentHashMap<String, String> appProps = new ConcurrentHashMap<>();
+	private static final Map<String, String> appProps = new ConcurrentHashMap<>();
 	private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
 
 	public static String getProperty(String key)
 	{
-		return appProps.getOrDefault(key, "").trim();
+		return appProps.getOrDefault(key.trim(), StringUtils.EMPTY).trim();
+	}
+
+	public static boolean getBoolean(String key)
+	{
+		return Boolean.parseBoolean(appProps.getOrDefault(key, "false"));
+	}
+
+	public static void setProperty(String key, String value)
+	{
+		appProps.put(key.trim(), value.trim());
+	}
+
+	public static List<String> getPropertyList()
+	{
+		return new ArrayList<>(appProps.keySet());
 	}
 
 	public static void load(ServletContext servletContext)

@@ -198,6 +198,14 @@
 		<url-pattern>/api/v1/admin/users</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+	<servlet-name>PropertyHandler</servlet-name>
+		<servlet-class>com.server.property.PropertyHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PropertyHandler</servlet-name>
+		<url-pattern>/api/v1/admin/properties</url-pattern>
+	</servlet-mapping>
 
 	<session-config>
 		<session-timeout>

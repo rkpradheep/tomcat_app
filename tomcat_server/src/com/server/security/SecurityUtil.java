@@ -13,11 +13,13 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.server.common.Configuration;
+
 public class SecurityUtil
 {
 	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = List.of("/_app/health", "/api/v1/(admin/)?authenticate", "/(admin/)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/run");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
-	public static final Function<String, Boolean> CAN_SKIP_AUTHENTICATION = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
+	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
 	public static String getSessionId(HttpServletRequest request)
 	{
@@ -34,7 +36,7 @@ public class SecurityUtil
 			return token;
 		}
 
-		String tokenName = requestURI.matches("^(/api/v1)?/admin(.*)") ? "iam_admin_token" : "iam_token";
+		String tokenName = isAdminCall(requestURI) ? "iam_admin_token" : "iam_token";
 
 		if(Objects.nonNull(cookies))
 		{
@@ -44,8 +46,19 @@ public class SecurityUtil
 		return StringUtils.EMPTY;
 	}
 
+	public static boolean isAdminCall(String requestURI)
+	{
+		return requestURI.matches("^(/api/v1)?/admin(.*)");
+	}
+
 	public static boolean isLoggedIn()
 	{
 		return Objects.nonNull(SecurityFilter.CURRENT_USER_TL.get());
+	}
+
+	public static boolean canSkipAuthentication(String requestURI)
+	{
+		return IS_SKIP_AUTHENTICATION_ENDPOINTS.apply(requestURI) ||
+			(!isAdminCall(requestURI) && Configuration.getBoolean("skip.authentication"));
 	}
 }

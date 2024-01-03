@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
-import com.server.common.Configuration;
 import com.server.common.Util;
 import com.server.user.User;
 import com.server.user.UserUtil;
@@ -47,7 +46,7 @@ public class SecurityFilter implements Filter
 
 			CURRENT_USER_TL.set(UserUtil.getUser(sessionId));
 
-			if(SecurityUtil.CAN_SKIP_AUTHENTICATION.apply(requestURI))
+			if(SecurityUtil.canSkipAuthentication(requestURI))
 			{
 				if(requestURI.matches("/(admin/)?login") && SecurityUtil.isLoggedIn())
 				{
