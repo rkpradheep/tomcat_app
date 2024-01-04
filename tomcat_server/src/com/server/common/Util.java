@@ -169,7 +169,7 @@ public class Util
 			}
 		}
 
-		LOGGER.log(Level.INFO, "Internal API Response received {0}", output.toString());
+		//LOGGER.log(Level.INFO, "Internal API Response received {0}", output.toString());
 		return output.toString();
 	}
 

@@ -23,7 +23,7 @@ public class LoginUtil
 			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
 			preparedStatement.setString(1, name.toUpperCase().trim());
 			preparedStatement.setString(2, password.trim());
-			preparedStatement.setInt(3, isAdmin? -1 : 0);
+			preparedStatement.setInt(3, isAdmin ? -1 : 0);
 
 			ResultSet resultSet = preparedStatement.executeQuery();
 			return resultSet.next() ? resultSet.getLong("id") : null;
@@ -35,16 +35,18 @@ public class LoginUtil
 		}
 	}
 
-	public static boolean addSession(String sessionId, Long userId)
+	public static boolean addSession(String sessionId, Long userId, boolean isAdminLogin)
 	{
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
+			long expiryTime = isAdminLogin ? (1000 * 60 * 30) : (1000 * 60 * 60 * 24);
+
 			String insertQuery = "INSERT INTO SessionManagement (id, user_id, expiry_time) VALUES (?,?,?)";
 
 			PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 			preparedStatement.setString(1, sessionId);
 			preparedStatement.setLong(2, userId);
-			preparedStatement.setLong(3, System.currentTimeMillis() + (1000 * 60 * 30));
+			preparedStatement.setLong(3, System.currentTimeMillis() + expiryTime);
 
 			preparedStatement.executeUpdate();
 			return true;

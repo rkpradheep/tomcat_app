@@ -23,14 +23,16 @@ public class LoginHandler extends HttpServlet
 
 		Long userID = LoginUtil.validateCredentials(jsonObject.getString("name"), jsonObject.getString("password"), isAdminLogin);
 		String sessionID = userID + String.valueOf(System.currentTimeMillis());
-		if(Objects.nonNull(userID) && LoginUtil.addSession(sessionID, userID))
+		if(Objects.nonNull(userID) && LoginUtil.addSession(sessionID, userID, isAdminLogin))
 		{
-			StringBuilder header = new StringBuilder();
-			header.append(tokenName + "=").append(sessionID);
-			header.append("; Secure");
-			header.append("; SameSite=None");
-			header.append("; Path=/");
-			header.append("; Max-Age=1800");
+			String maxAge = isAdminLogin ? "Max-Age=86400" : "Max-Age=1800";
+			StringBuilder header = new StringBuilder()
+				.append(tokenName + "=")
+				.append(sessionID)
+			    .append("; Secure")
+			    .append("; SameSite=None")
+			    .append("; Path=/;")
+			    .append(maxAge);
 
 			response.setHeader("Set-Cookie", header.toString());
 
