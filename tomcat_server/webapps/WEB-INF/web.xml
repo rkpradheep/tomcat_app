@@ -125,6 +125,7 @@
 		<url-pattern>/index.jsp</url-pattern>
 		<url-pattern>/login</url-pattern>
 		<url-pattern>/admin/login</url-pattern>
+		<url-pattern>/csv</url-pattern>
 	</servlet-mapping>
 
 
@@ -205,6 +206,15 @@
 	<servlet-mapping>
 		<servlet-name>PropertyHandler</servlet-name>
 		<url-pattern>/api/v1/admin/properties</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>CSVParser</servlet-name>
+		<servlet-class>com.server.file.CSVParser</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CSVParser</servlet-name>
+		<url-pattern>/api/v1/csv/parse</url-pattern>
 	</servlet-mapping>
 
 	<session-config>

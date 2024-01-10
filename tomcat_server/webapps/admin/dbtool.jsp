@@ -4,125 +4,10 @@
     <head>
         <title>Admin DB Tool</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="css/loading.css" />
     </head>
     <script src="/js/common.js"></script>
     <style>
-    .loading {
-      position: fixed;
-      z-index: 999;
-      overflow: show;
-      margin: auto;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      width: 50px;
-      height: 50px;
-    }
-
-    /* Transparent Overlay */
-    .loading:before {
-      content: '';
-      display: block;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255,255,255,0.5);
-    }
-
-    .loading:not(:required) {
-      /* hide "loading..." text */
-      font: 0/0 a;
-      color: transparent;
-      text-shadow: none;
-      background-color: transparent;
-      border: 0;
-    }
-
-    .loading:not(:required):after {
-      content: '';
-      display: block;
-      font-size: 10px;
-      width: 50px;
-      height: 50px;
-      margin-top: -0.5em;
-
-      border: 15px solid rgba(33, 150, 243, 1.0);
-      border-radius: 100%;
-      border-bottom-color: transparent;
-      -webkit-animation: spinner 1s linear 0s infinite;
-      animation: spinner 1s linear 0s infinite;
-
-
-    }
-
-
-    @-webkit-keyframes spinner {
-      0% {
-        -webkit-transform: rotate(0deg);
-        -moz-transform: rotate(0deg);
-        -ms-transform: rotate(0deg);
-        -o-transform: rotate(0deg);
-        transform: rotate(0deg);
-      }
-      100% {
-        -webkit-transform: rotate(360deg);
-        -moz-transform: rotate(360deg);
-        -ms-transform: rotate(360deg);
-        -o-transform: rotate(360deg);
-        transform: rotate(360deg);
-      }
-    }
-    @-moz-keyframes spinner {
-      0% {
-        -webkit-transform: rotate(0deg);
-        -moz-transform: rotate(0deg);
-        -ms-transform: rotate(0deg);
-        -o-transform: rotate(0deg);
-        transform: rotate(0deg);
-      }
-      100% {
-        -webkit-transform: rotate(360deg);
-        -moz-transform: rotate(360deg);
-        -ms-transform: rotate(360deg);
-        -o-transform: rotate(360deg);
-        transform: rotate(360deg);
-      }
-    }
-    @-o-keyframes spinner {
-      0% {
-        -webkit-transform: rotate(0deg);
-        -moz-transform: rotate(0deg);
-        -ms-transform: rotate(0deg);
-        -o-transform: rotate(0deg);
-        transform: rotate(0deg);
-      }
-      100% {
-        -webkit-transform: rotate(360deg);
-        -moz-transform: rotate(360deg);
-        -ms-transform: rotate(360deg);
-        -o-transform: rotate(360deg);
-        transform: rotate(360deg);
-      }
-    }
-    @keyframes spinner {
-      0% {
-        -webkit-transform: rotate(0deg);
-        -moz-transform: rotate(0deg);
-        -ms-transform: rotate(0deg);
-        -o-transform: rotate(0deg);
-        transform: rotate(0deg);
-      }
-      100% {
-        -webkit-transform: rotate(360deg);
-        -moz-transform: rotate(360deg);
-        -ms-transform: rotate(360deg);
-        -o-transform: rotate(360deg);
-        transform: rotate(360deg);
-      }
-    }
         body {
             margin: 0;
         }
@@ -387,6 +272,7 @@
                     res = JSON.parse(data)
                     if(handleRedirection(res))
                     {
+                        hideElement("loading");
                         return;
                     }
                     var error = res["error"]
@@ -422,6 +308,7 @@
                     res = JSON.parse(data);
                     if(handleRedirection(res))
                     {
+                        hideElement("loading");
                         return;
                     }
                     var error = res["error"]
@@ -464,6 +351,7 @@
                     res = JSON.parse(data);
                     if(handleRedirection(res))
                     {
+                        hideElement("loading");
                         return;
                     }
                     var error = res["error"]
@@ -503,6 +391,7 @@
                     res = JSON.parse(data);
                     if(handleRedirection(res))
                     {
+                        hideElement("loading");
                         return;
                     }
                     var error = res["error"]
@@ -555,6 +444,7 @@
                     res = JSON.parse(data);
                     if(handleRedirection(res))
                     {
+                        hideElement("loading");
                         return;
                     }
                     var error = res["error"]
@@ -763,22 +653,6 @@
             return criteriaColumn == currentColumn && value == Number(value);
         }
 
-        function getElementValue(elementID) {
-            return document.getElementById(elementID).value;
-        }
-
-        function setElementValue(elementID, value) {
-            document.getElementById(elementID).value = value;;
-        }
-
-        function hideElement(elementID) {
-            document.getElementById(elementID).style.display = "none";
-        }
-
-        function unHideElement(elementID) {
-            document.getElementById(elementID).style.display = "block";
-        }
-
         function setElementChecked(elementID, value) {
             return document.getElementById(elementID).checked = value;
         }
@@ -868,6 +742,7 @@
                     res = JSON.parse(data)
                     if(handleRedirection(res))
                     {
+                        hideElement("loading");
                         return;
                     }
                     var error = res["error"]

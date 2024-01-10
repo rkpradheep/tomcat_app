@@ -4,9 +4,11 @@
      {
         return false;
      }
+  var popupOptions = "width=650,height=750,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no";
+  window.open(errorResponse['redirect_uri'], "Re-Auth", popupOptions);
 
-      location.reload();
-      return true;
+      //location.reload();
+    return true;
  }
 
          function getElementValue(elementID) {

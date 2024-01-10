@@ -61,4 +61,10 @@ public class SecurityUtil
 		return IS_SKIP_AUTHENTICATION_ENDPOINTS.apply(requestURI) ||
 			(!isAdminCall(requestURI) && Configuration.getBoolean("skip.authentication"));
 	}
+
+	public static String getRedirectURI(HttpServletRequest request)
+	{
+		String url = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+		return (!isAdminCall(request.getRequestURI()) ? url + "/login" : url + "/admin/login") + "?post=true";
+	}
 }

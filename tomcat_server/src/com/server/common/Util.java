@@ -229,6 +229,17 @@ public class Util
 
 		writeJSONResponse(response, responseMap);
 	}
+	public static void writerErrorResponse(HttpServletResponse response, int statusCode, String code, String message, Map<String, String> additionalData) throws IOException
+	{
+		response.setStatus(statusCode);
+
+		Map<String, String> responseMap = new HashMap<>();
+		responseMap.put("error", message);
+		responseMap.put("code", code);
+		responseMap.putAll(additionalData);
+
+		writeJSONResponse(response, responseMap);
+	}
 
 	public static String getFormattedCurrentTime()
 	{

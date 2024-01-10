@@ -28,6 +28,10 @@ document.getElementById('password').value = "test@123";
                 alert("Invalid credentials")
                 return;
             }
+            if(new URLSearchParams(window.location.search).get('post'))
+            {
+                window.close();
+            }
             const redirectURI =  new URLSearchParams(window.location.search).get('redirect_uri');
             window.open (redirectURI, "_self");
 

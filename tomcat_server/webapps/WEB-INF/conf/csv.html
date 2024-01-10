@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CSV Parser</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/loading.css" />
+</head>
+<script src="/js/common.js"></script>
+<script src="/js/csv.js"></script>
+<style>
+        body {
+            margin: 0;
+        }
+        html {
+            overflow-y: scroll;
+        }
+
+        .fixTableHead {
+            overflow: auto;
+            max-height: 1000px;
+            width: 100%;
+        }
+        .fixTableHead thead th {
+            position: sticky;
+            top: 0;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        th,
+        td {
+            padding: 8px 15px;
+            border: 2px solid #529432;
+        }
+        th {
+            background: #abdd93;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+<body>
+<input type="file" id="fileInput" style="margin-left: 500px;margin-top: 100px;">
+<div class="loading" id="loading" style="display:none">Loading&#8230;</div>
+<br />
+<p id="total"></p></br>
+<div id="queryOutputContainer" class="fixTableHead"><table id="queryOutput"></table></div>
+<script>
+</script>
+
+</body>
+</html>

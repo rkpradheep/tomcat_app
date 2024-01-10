@@ -3,6 +3,8 @@ package com.server.security;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,7 +70,9 @@ public class SecurityFilter implements Filter
 				if(SecurityUtil.IS_REST_API.apply(requestURI))
 				{
 					String errorMessage = StringUtils.isNotEmpty(httpServletRequest.getHeader("Authorization")) ? "Invalid value passed for Authorization header" : "Session expired. Please login again and try.";
-					Util.writerErrorResponse(httpServletResponse, HttpStatus.SC_UNAUTHORIZED, "authentication_needed", errorMessage);
+					Map<String, String> additionalData = new HashMap<>();
+					additionalData.put("redirect_uri", SecurityUtil.getRedirectURI(httpServletRequest));
+					Util.writerErrorResponse(httpServletResponse, HttpStatus.SC_UNAUTHORIZED, "authentication_needed", errorMessage, additionalData);
 				}
 				else
 				{
