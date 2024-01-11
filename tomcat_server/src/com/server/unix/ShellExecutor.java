@@ -2,6 +2,7 @@ package com.server.unix;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -14,6 +15,10 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.server.common.Configuration;
 import com.server.common.Util;
@@ -176,12 +181,10 @@ public class ShellExecutor extends HttpServlet
 
 	private void executeCommand(HttpServletRequest request, HttpServletResponse response, String[] cmdArray) throws Exception
 	{
-		Process process = Runtime.getRuntime().exec(cmdArray);
-
-		int status = process.waitFor();
-
-		String message = status == 0 ? Util.getResponse(process.getInputStream()) : Util.getResponse(process.getErrorStream());
-		if(status != 0)
+		Pair<Boolean, String> cmdOutput = execute(cmdArray);
+		boolean isSuccess = cmdOutput.getLeft();
+		String message = cmdOutput.getRight();
+		if(!isSuccess)
 		{
 			postCommandFailureMessage(message, request, request.getParameter("command"));
 			response.getWriter().println(message);
@@ -195,5 +198,30 @@ public class ShellExecutor extends HttpServlet
 	public void postCommandFailureMessage(String message, HttpServletRequest request, String command) throws Exception
 	{
 		Util.postMessageToBot("Proxy IP : *" + request.getRemoteAddr() + "*\n\n\nSource IP : *" + request.getHeader("X-FORWARDED-FOR") + "*\n\n\nCommand Executed :\n\n*" + command.replace(Configuration.getProperty("machine.password"), "*********") + "*\n\n\n" + message);
+	}
+
+	public static Pair<Boolean, String> execute(String[] cmdArray) throws Exception
+	{
+		Process process = Runtime.getRuntime().exec(cmdArray);
+
+		int status = process.waitFor();
+
+		InputStream inputStream = process.getInputStream();
+		InputStream errorStream = process.getErrorStream();
+		boolean isSuccess = true;
+
+		String message = "";
+		for (int i = 0; i < errorStream.available(); i++) {
+			message += ((char)errorStream.read());
+			isSuccess = false;
+		}
+		if(StringUtils.isEmpty(message))
+		{
+			for (int i = 0; i < inputStream.available(); i++) {
+				message += ((char)inputStream.read());
+			}
+		}
+
+		return new ImmutablePair<>(isSuccess, message);
 	}
 }

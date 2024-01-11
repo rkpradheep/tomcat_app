@@ -1,0 +1,90 @@
+<html>
+<head>
+    <title>HotSwap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<script src="/js/common.js"></script>
+<style>
+        body {
+            margin: 0;
+        }
+        html {
+            overflow-y: scroll;
+        }
+        button {
+            background-color: #4caf50; /* Green */
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            -webkit-transition-duration: 0.4s; /* Safari */
+            transition-duration: 0.4s;
+        }
+
+        button:hover {
+            box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+        }
+
+        option:hover {
+            cursor: pointer;
+            background-color: #d3d3d3;
+        }
+    </style>
+<body>
+<b>HotSwap : </b> <br>
+<input type="text" id="host" placeholder="Host Name"/>
+&nbsp;&nbsp;<input type="text" id="port" placeholder="Port" /> <br>
+
+<input type="text" id="class_name" placeholder="FullyClass Name"/>
+&nbsp;&nbsp;<input type="text" id="path" placeholder="Class Path" />
+&nbsp;&nbsp;<button onclick="run()">RUN</button> &nbsp;&nbsp;&nbsp
+<br/>
+<script>
+            function run(){
+               const hostSwapDetails = {
+            }
+            hostSwapDetails[getElementValue("class_name")] = getElementValue("path");
+            const data = {
+                "host": getElementValue("host"),
+                "port": getElementValue("port"),
+                "hotswap_details": hostSwapDetails,
+            }
+
+            var res;
+            fetch("/api/v1/hotswap", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((response) => {
+                    return response.text();
+                })
+                .then((data) => {
+                    res = JSON.parse(data)
+                    if(handleRedirection(res))
+                    {
+                        hideElement("loading");
+                        return;
+                    }
+                    var error = res["error"]
+                    if (error != undefined) {
+                        throw new Error("API error")
+                    }
+                    alert(res["message"])
+                })
+                .catch((error) => {
+                    console.log(error);
+                    alert("Something went wrong. Please check the console and try again.");
+                });
+        }
+
+        </script>
+</body>
+</html>
