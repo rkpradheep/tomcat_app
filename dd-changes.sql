@@ -61,6 +61,7 @@ CREATE TABLE `Users`(
 	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
 	`name` VarChar( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
 	`password` VarChar( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`role_type` int NOT NULL,
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8
 COLLATE = utf8_general_ci
@@ -117,3 +118,20 @@ ALTER TABLE `SessionManagement`
 -- ---------------------------------------------------------
 
 
+
+
+INSERT INTO `tomcatserver`.`users`
+(
+`name`,
+`password`, `role_type`)
+VALUES(
+'admin',
+'admin@123', -1);
+
+INSERT INTO `tomcatserver`.`users`
+(
+`name`,
+`password`, `role_type`)
+VALUES(
+'test',
+'test@123', 0);

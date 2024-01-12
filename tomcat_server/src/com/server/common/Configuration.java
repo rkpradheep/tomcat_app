@@ -58,8 +58,7 @@ public class Configuration
 
 	private static void load(InputStream is) throws IOException
 	{
-		try(is)
-		{
+		
 			Properties props = new Properties();
 			props.load(is);
 			Enumeration<?> elements = props.propertyNames();
@@ -72,7 +71,7 @@ public class Configuration
 			}
 
 			LOGGER.log(Level.INFO, "Properties file has been loaded.");
-		}
+		
 
 	}
 }

@@ -22,6 +22,7 @@ function uploadFile() {
      if(handleRedirection(data))
      {
          hideElement("loading");
+         fileInput.value = "";
          return;
      }
     document.getElementById("queryOutput").innerHTML = data.table_data;

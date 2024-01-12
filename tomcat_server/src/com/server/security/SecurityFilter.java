@@ -77,7 +77,7 @@ public class SecurityFilter implements Filter
 				else
 				{
 					String loginPage = requestURI.startsWith("/admin") ? "/admin/login" : "/login";
-					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, StandardCharsets.UTF_8);
+					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, "UTF-8");
 
 					httpServletResponse.sendRedirect(loginPage);
 				}

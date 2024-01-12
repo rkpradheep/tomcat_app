@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Arrays;
 
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
@@ -110,7 +111,7 @@ public class ChatWebSocket
 		{
 			return;
 		}
-		String leftOrDisconnected = List.of(CloseReason.CloseCodes.CLOSED_ABNORMALLY, CloseReason.CloseCodes.GOING_AWAY).contains(closeReason.getCloseCode()) ? " Disconnected!" : " Left!";
+		String leftOrDisconnected = Arrays.asList(CloseReason.CloseCodes.CLOSED_ABNORMALLY, CloseReason.CloseCodes.GOING_AWAY).contains(closeReason.getCloseCode()) ? " Disconnected!" : " Left!";
 
 		String messageForSender = "<b style='color:red;margin: 140px'>You" + leftOrDisconnected + " [ " + Util.getFormattedCurrentTime() + " ]</b></br></br>";
 		messageForSender = leftOrDisconnected.equals(" Disconnected!") ? messageForSender.replace("You", "") : messageForSender;
