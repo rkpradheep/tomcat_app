@@ -34,7 +34,7 @@ public class HotSwap extends HttpServlet
 		String host = jsonObject.optString("host");
 		String port = jsonObject.optString("port");
 		host = StringUtils.defaultIfEmpty(host, "localhost");
-		port = StringUtils.defaultIfEmpty(host, "8001");
+		port = StringUtils.defaultIfEmpty(port, "8001");
 
 		FileWriter fileWriter = new FileWriter(tempFile);
 		for(String className : classNames)
