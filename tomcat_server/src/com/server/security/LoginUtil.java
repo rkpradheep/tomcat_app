@@ -39,7 +39,7 @@ public class LoginUtil
 	{
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
-			long expiryTime = isAdminLogin ? (1000 * 60 * 30) : (1000 * 60 * 60 * 24);
+			long expiryTime = isAdminLogin ? (1000 * 60 * 60 * 24) : (1000 * 60 * 30);
 
 			String insertQuery = "INSERT INTO SessionManagement (id, user_id, expiry_time) VALUES (?,?,?)";
 
