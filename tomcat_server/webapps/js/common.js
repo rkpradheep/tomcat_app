@@ -4,7 +4,9 @@
      {
         return false;
      }
-  var popupOptions = "width=650,height=750,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no";
+  let screenX = screen.width / 2 - 325;
+  let screenY = screen.height / 2 - 400;
+  var popupOptions = `width=650,height=750,top=${screenY},left=${screenX}`;
   window.open(errorResponse['redirect_uri'], "Re-Auth", popupOptions);
 
       //location.reload();
