@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/network.css">
+    <title>API Tool</title>
+</head>
+<body>
+
+<div class="container">
+    <h1>Online API Tool</h1>
+    <label for="apiUrl">API URL:</label>
+    <input type="text" id="apiUrl" placeholder="Enter API URL" required>
+
+    <label for="apiMethod">HTTP Method:</label>
+    <select id="apiMethod">
+        <option value="GET">GET</option>
+        <option value="PUT">PUT</option>
+        <option value="POST">POST</option>
+        <option value="DELETE">DELETE</option>
+    </select>
+
+    <label for="apiParams">Parameters:</label>
+    <textarea id="apiParams" placeholder="organization_id=1234&status=active"></textarea>
+
+    <label for="headers">Headers:</label>
+    <textarea id="headers" placeholder="Key an Value should be separated by :  User new line for multiple headers" rows="5"></textarea>
+
+    <label for="payload">Payload:</label>
+    <textarea id="payload" placeholder="Enter json" rows="5"></textarea>
+
+    <label for="concurrencyCalls">Concurrency Calls :</label>
+    <input type="text" id="concurrencyCalls" value="1">
+
+    <button type="button" onclick="makeApiRequest()">Make Request</button>
+    <textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black "></textarea>
+</div>
+
+<script src="/js/network.js"></script>
+<script src="/js/common.js"></script>
+</body>
+</html>

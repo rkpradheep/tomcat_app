@@ -127,6 +127,7 @@
 		<url-pattern>/admin/login</url-pattern>
 		<url-pattern>/csv</url-pattern>
 		<url-pattern>/hotswap</url-pattern>
+		<url-pattern>/network</url-pattern>
 	</servlet-mapping>
 
 
@@ -223,6 +224,15 @@
 	<servlet-mapping>
 		<servlet-name>CSVParser</servlet-name>
 		<url-pattern>/api/v1/csv/parse</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>ConcurrencyHandler</servlet-name>
+		<servlet-class>com.server.concurrency.ConcurrencyAPIHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ConcurrencyHandler</servlet-name>
+		<url-pattern>/api/v1/concurrency</url-pattern>
 	</servlet-mapping>
 
 	<session-config>

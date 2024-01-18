@@ -319,4 +319,17 @@ public class Util
 		return Objects.nonNull(mappingResult);
 	}
 
+	public static boolean isValidJSON(String value)
+	{
+		try
+		{
+			new JSONObject(value);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+
 }
