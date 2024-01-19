@@ -47,12 +47,18 @@ import javax.servlet.ServletRegistration;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.apache.tomcat.websocket.server.WsServerContainer;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.http.FormData;
 
 public class Util
 {
@@ -229,6 +235,7 @@ public class Util
 
 		writeJSONResponse(response, responseMap);
 	}
+
 	public static void writerErrorResponse(HttpServletResponse response, int statusCode, String code, String message, Map<String, String> additionalData) throws IOException
 	{
 		response.setStatus(statusCode);
@@ -265,6 +272,52 @@ public class Util
 	public static JSONObject getJSONObject(HttpServletRequest request) throws IOException
 	{
 		return new JSONObject(request.getReader().lines().collect(Collectors.joining()));
+	}
+
+	public static Map<String, FormData> parserMultiPartFormData(HttpServletRequest request) throws IOException
+	{
+		List<FileItem> items;
+
+		DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
+		try
+		{
+			items = new ServletFileUpload(diskFileItemFactory).parseRequest(request);
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			return new HashMap<>();
+		}
+
+		Map<String, FormData> formDataMap = new HashMap<>();
+		for(FileItem item : items)
+		{
+			if(item.isFormField())
+			{
+				String fieldName = item.getFieldName();
+				String fieldValue = item.getString();
+
+				FormData formData = new FormData();
+				formData.setValue(fieldValue);
+				formDataMap.put(fieldName, formData);
+			}
+			else
+			{
+				String fieldName = item.getFieldName();
+
+				FormData formData = formDataMap.getOrDefault(fieldName, new FormData());
+				formData.setIsFile(true);
+
+				List<FormData.FileData> fileDataList = formData.getFileDataList();
+
+				FormData.FileData fileData = new FormData.FileData(item.getName(), item.getInputStream().readAllBytes());
+				fileDataList.add(fileData);
+
+				formDataMap.put(item.getFieldName(), formData);
+			}
+		}
+
+		return formDataMap;
 	}
 
 	public static void writeJSONResponse(HttpServletResponse response, Object responseObject) throws IOException
@@ -319,17 +372,19 @@ public class Util
 		return Objects.nonNull(mappingResult);
 	}
 
-	public static boolean isValidJSON(String value)
+	public static Object getJSONFromString(String value)
 	{
 		try
 		{
-			new JSONObject(value);
-			return true;
+			return new JSONObject(value);
+		}
+		catch(JSONException e)
+		{
+			return new JSONArray(value);
 		}
 		catch(Exception e)
 		{
-			return false;
+			return null;
 		}
 	}
-
 }

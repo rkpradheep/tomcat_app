@@ -1,17 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/network.css">
+    <link rel="stylesheet" href="css/loading.css">
     <title>API Tool</title>
 </head>
 <body>
-
+<div class="loading" id="loading" style="display:none">Loading…</div>
 <div class="container">
     <h1>Online API Tool</h1>
     <label for="apiUrl">API URL:</label>
-    <input type="text" id="apiUrl" placeholder="Enter API URL" required>
+    <input type="text" id="apiUrl" placeholder="Enter API URL" required="">
 
     <label for="apiMethod">HTTP Method:</label>
     <select id="apiMethod">
@@ -22,22 +21,51 @@
     </select>
 
     <label for="apiParams">Parameters:</label>
-    <textarea id="apiParams" placeholder="organization_id=1234&status=active"></textarea>
+    <textarea id="apiParams" placeholder="organization_id=1234&amp;status=active"></textarea>
 
     <label for="headers">Headers:</label>
-    <textarea id="headers" placeholder="Key an Value should be separated by :  User new line for multiple headers" rows="5"></textarea>
+    <textarea id="headers" placeholder="Key and Value should be separated by :&#10;Use new line for multiple headers" rows="5"></textarea>
 
-    <label for="payload">Payload:</label>
-    <textarea id="payload" placeholder="Enter json" rows="5"></textarea>
+    <label for="bodyEnable"> Enable Body</label>
+    <input type="checkbox" id="bodyEnable" onchange="enableBody()" style="width:10px;cursor:pointer">
 
-    <label for="concurrencyCalls">Concurrency Calls :</label>
+    <div id="showBody" style="display: none;">
+        <label for="body">Body</label>
+        <select id="body" onchange="changeBody()">
+            <option value="json">RAW JSON</option>
+            <option value="form">FORM DATA</option>
+        </select>
+
+        <label for="jsonPayload" id="jsonLabel">JSON Payload:</label>
+        <textarea id="jsonPayload" placeholder="Enter json" rows="5"></textarea>
+
+        <label for="formData" id="formLabel" style="display:none">Form Data:</label>
+        <div id="formData" style="display:none">
+            <label for="textData">Text :</label>
+            <textarea id="textData" placeholder="Key and Value should be separated by :&#10;Use new line for multiple keys" rows="5"></textarea>
+            <label for="fileData">File :</label>
+            <div id="fileData">
+                <input type="text" id="fileKey1" style="width:100px" placeholder="Key Name">
+                <input type="file" id="fileValue1" style="width:250px" name="files" multiple=""><br>
+                <input type="text" id="fileKey2" style="width:100px" placeholder="Key Name">
+                <input type="file" id="fileValue2" style="width:250px" multiple=""><br>
+            </div>
+        </div>
+    </div>
+
+    <label for="concurrencyCalls">Concurrent Calls :</label>
     <input type="text" id="concurrencyCalls" value="1">
 
-    <button type="button" onclick="makeApiRequest()">Make Request</button>
-    <textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black "></textarea>
+    <button type="button" onclick="makeApiRequest()">Make Request</button> <br>
+    <div style="text-align:right">
+        <button onclick="copyAll()"> Copy Response </button>
+        <button onclick="downloadResponse()"> Download Response </button>
+    </div>
+    <textarea readonly="" id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black "></textarea>
 </div>
 
 <script src="/js/network.js"></script>
 <script src="/js/common.js"></script>
-</body>
-</html>
+
+
+</body></html>

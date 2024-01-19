@@ -235,6 +235,15 @@
 		<url-pattern>/api/v1/concurrency</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+	<servlet-name>DownloadText</servlet-name>
+		<servlet-class>com.server.file.DownloadText</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DownloadText</servlet-name>
+		<url-pattern>/api/v1/download/text</url-pattern>
+	</servlet-mapping>
+
 	<session-config>
 		<session-timeout>
 			30

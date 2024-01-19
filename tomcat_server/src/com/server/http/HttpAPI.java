@@ -7,6 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +46,7 @@ public class HttpAPI
 
 		httpURLConnection.setDoInput(true);
 
-		if(inputStream.available() > 0 && !method.equals(HttpGet.METHOD_NAME))
+		if(Objects.nonNull(inputStream) && inputStream.available() > 0 && !method.equals(HttpGet.METHOD_NAME))
 		{
 			httpURLConnection.setDoOutput(true);
 			copyInputStreamToOutputStream(inputStream, httpURLConnection.getOutputStream());
