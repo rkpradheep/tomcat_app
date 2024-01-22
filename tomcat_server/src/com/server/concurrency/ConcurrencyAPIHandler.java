@@ -95,7 +95,10 @@ public class ConcurrencyAPIHandler extends HttpServlet
 				JSONObject responseJSON = new JSONObject();
 				Object responseObject = ObjectUtils.defaultIfNull(Util.getJSONFromString(stringWriter.toString()), stringWriter.toString());
 				responseJSON.put("Response " + atomicInteger.incrementAndGet(), responseObject);
-				responseList.add(responseJSON.toMap());
+				synchronized(responseList)
+				{
+					responseList.add(responseJSON.toMap());
+				}
 			}
 			catch(Exception e)
 			{
@@ -120,6 +123,9 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		}
 
 		executorService.shutdown();
+
+		LOGGER.log(Level.INFO, "Response list size {0}", futureList.size());
+
 		Util.writeJSONResponse(response, responseList);
 	}
 

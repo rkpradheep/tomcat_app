@@ -69,5 +69,9 @@ public class LoginUtil
 
 			preparedStatement.executeUpdate();
 		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+		}
 	}
 }
