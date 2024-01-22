@@ -13,7 +13,7 @@
     <input type="text" id="apiUrl" placeholder="Enter API URL" required="">
 
     <label for="apiMethod">HTTP Method:</label>
-    <select id="apiMethod">
+    <select id="apiMethod" onchange="changeMethod()">
         <option value="GET">GET</option>
         <option value="PUT">PUT</option>
         <option value="POST">POST</option>
@@ -21,7 +21,7 @@
     </select>
 
     <label for="apiParams">Parameters:</label>
-    <textarea id="apiParams" placeholder="organization_id=1234&amp;status=active"></textarea>
+    <textarea id="apiParams" placeholder="Key and Value should be separated by :&#10;Use new line for multiple headers" rows="5"></textarea>
 
     <label for="headers">Headers:</label>
     <textarea id="headers" placeholder="Key and Value should be separated by :&#10;Use new line for multiple headers" rows="5"></textarea>
@@ -34,10 +34,16 @@
         <select id="body" onchange="changeBody()">
             <option value="json">RAW JSON</option>
             <option value="form">FORM DATA</option>
+            <option value="formUrlEncoded">FORM URL-ENCODED</option>
         </select>
 
         <label for="jsonPayload" id="jsonLabel">JSON Payload:</label>
         <textarea id="jsonPayload" placeholder="Enter json" rows="5"></textarea>
+
+        <label for="formUrlEncodedData" id="formUrlEncodedDataLabel" style="display:none">Form Data:</label>
+        <div id="formUrlEncodedData" style="display:none">
+            <textarea id="formUrlEncodedValues" placeholder="Key and Value should be separated by :&#10;Use new line for multiple keys" rows="5"></textarea>
+        </div>
 
         <label for="formData" id="formLabel" style="display:none">Form Data:</label>
         <div id="formData" style="display:none">

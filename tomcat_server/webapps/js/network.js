@@ -6,12 +6,26 @@ function makeApiRequest() {
   const jsonPayload = document.getElementById('jsonPayload').value || null;
   const headers = document.getElementById('headers').value;
   const formTextFields = getElementValue('textData');
+  const formUrlEncodedValues = getElementValue('formUrlEncodedValues');
 
    if(!(concurrencyCalls >=1 && concurrencyCalls <= 100))
    {
     alert("Concurrency call range should be between 1 and 100");
     return;
    }
+
+   const paramsJson = {};
+   const paramsSplit = apiParams.split("\n")  || [];
+   for(let i = 0; i< paramsSplit.length ; i++)
+   {
+    if(paramsSplit[i].trim().length > 0)
+    {
+    const paramSplit = paramsSplit[i].split(":");
+    paramsJson[paramSplit[0].trim()] = paramSplit.slice(1).join(':').trim().trim()
+    }
+   }
+
+
    const headerJson = {};
    const headersSplit = headers.split("\n")  || [];
    for(let i = 0; i< headersSplit.length ; i++)
@@ -28,7 +42,7 @@ function makeApiRequest() {
                    "method": apiMethod,
                    "headers": headerJson,
                    "concurrency_calls": concurrencyCalls,
-                   "query_string": apiParams,
+                   "params": paramsJson,
                }
 
 const formData = new FormData();
@@ -40,7 +54,7 @@ if(getElementValue("body") == "json")
 {
 formData.append("json_payload", jsonPayload);
 }
-else
+else if(getElementValue("body") == "form")
 {
    const formTextFieldsSplit = formTextFields.split("\n")  || [];
    for(let i = 0; i< formTextFieldsSplit.length ; i++)
@@ -72,6 +86,20 @@ else
        }
     }
 }
+else if(getElementValue("body") == "formUrlEncoded")
+{
+   const formUrlEncodedJson = {};
+   const formUrlEncodedValuesSplit = formUrlEncodedValues.split("\n")  || [];
+   for(let i = 0; i< formUrlEncodedValuesSplit.length ; i++)
+   {
+    if(formUrlEncodedValuesSplit[i].trim().length > 0)
+    {
+    const formUrlEncodedValueSplit = formUrlEncodedValuesSplit[i].split(":");
+    formUrlEncodedJson[formUrlEncodedValueSplit[0].trim()] = formUrlEncodedValueSplit.slice(1).join(':').trim().trim()
+    }
+   }
+   formData.append("form_urlencoded", formUrlEncodedJson.toString());
+}
 }
   const requestOptions = {
     method: "POST",
@@ -102,17 +130,32 @@ function changeBody()
    {
     hideElement("jsonPayload");
     hideElement("jsonLabel");
+    hideElement("formUrlEncodedData");
+    hideElement("formUrlEncodedDataLabel");
 
     unHideElement("formData");
     unHideElement("formLabel");
    }
+   else if(getElementValue("body") == "formUrlEncoded")
+   {
+    hideElement("jsonPayload");
+    hideElement("jsonLabel");
+    hideElement("formData");
+    hideElement("formLabel");
+
+    unHideElement("formUrlEncodedData");
+    unHideElement("formUrlEncodedDataLabel");
+   }
    else
    {
+    hideElement("formUrlEncodedData");
+    hideElement("formUrlEncodedDataLabel");
+    hideElement("formData");
+    hideElement("formLabel");
+
     unHideElement("jsonPayload");
     unHideElement("jsonLabel");
 
-    hideElement("formData");
-    hideElement("formLabel");
    }
 }
 
@@ -125,6 +168,21 @@ unHideElement("showBody");
 else
 {
 hideElement("showBody")
+}
+}
+
+
+function changeMethod()
+{
+if(getElementValue("apiMethod") == "GET")
+{
+document.getElementById("bodyEnable").checked = false;
+enableBody();
+document.getElementById("bodyEnable").disabled = true;
+}
+else
+{
+document.getElementById("bodyEnable").disabled = false;
 }
 }
 

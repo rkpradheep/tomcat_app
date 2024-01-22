@@ -56,16 +56,25 @@ public class ConcurrencyAPIHandler extends HttpServlet
 			Util.writerErrorResponse(response, "Concurrency calls range should be between 0 and 100");
 		}
 
+		JSONObject params = jsonObject.getJSONObject("params");
+
+		Pattern urlParamsPatters = Pattern.compile("(.*)\\?(.*)");
+		Matcher urlParamsMatcher = urlParamsPatters.matcher(jsonObject.getString("url"));
+		if(urlParamsMatcher.matches())
+		{
+			for(String queryParam : urlParamsMatcher.group(2).split("&"))
+			{
+				String[] queryParamSplit = queryParam.split("=");
+				params.put(queryParamSplit[0].trim(), queryParamSplit[1].trim());
+			}
+			jsonObject.put("url", urlParamsMatcher.group(1));
+		}
+
 		String url = jsonObject.getString("url");
 		String method = jsonObject.getString("method");
 		JSONObject headers = jsonObject.getJSONObject("headers");
 
-		if(StringUtils.isNotEmpty(jsonObject.optString("query_string")))
-		{
-			jsonObject.put("query_string", parseQueryString(jsonObject.optString("query_string")));
-		}
-
-		String queryString = jsonObject.optString("query_string");
+		String queryString = parseQueryString(params);
 
 		formDataMap.remove("meta_json");
 
@@ -120,7 +129,15 @@ public class ConcurrencyAPIHandler extends HttpServlet
 
 		if(StringUtils.isNotEmpty(jsonObjectString))
 		{
+			headersMap.put("Content-Type", "application/json");
 			return new ByteArrayInputStream(jsonObjectString.getBytes());
+		}
+
+		String formUrlEncodedJSONString = formDataMap.getOrDefault("form_urlencoded", new FormData()).getValue();
+		if(StringUtils.isNotEmpty(formUrlEncodedJSONString))
+		{
+			headersMap.put("Content-Type", "x-www-form-urlencoded");
+			return new ByteArrayInputStream(parseQueryString(new JSONObject(formUrlEncodedJSONString)).getBytes());
 		}
 
 		if(formDataMap.size() < 1)
@@ -159,22 +176,15 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
 	}
 
-	static String parseQueryString(String queryString)
+	static String parseQueryString(JSONObject params)
 	{
 		String parsedQueryString = StringUtils.EMPTY;
 
-		Pattern pattern = Pattern.compile("(\\w+)\\s*=\\s*([\\w\\s]+)");
-		for(String param : queryString.split("&"))
+		for(String param : params.keySet())
 		{
-			Matcher matcher = pattern.matcher(param);
-			if(matcher.matches())
-			{
-				String prefix = StringUtils.isNotEmpty(parsedQueryString) ? "&" : StringUtils.EMPTY;
-				parsedQueryString += prefix + URLEncoder.encode(matcher.group(1).trim()) + "=" + URLEncoder.encode(matcher.group(2).trim());
-			}
+			parsedQueryString += URLEncoder.encode(param.trim()) + "=" + URLEncoder.encode(params.getString(param)) + "&";
 		}
-
-		return parsedQueryString;
+		return parsedQueryString.replaceAll("&$", StringUtils.EMPTY);
 	}
 
 }
