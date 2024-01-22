@@ -18,7 +18,7 @@ function makeApiRequest() {
    const paramsSplit = apiParams.split("\n")  || [];
    for(let i = 0; i< paramsSplit.length ; i++)
    {
-    if(paramsSplit[i].trim().length > 0)
+    if(paramsSplit[i].trim().length > 0 && paramsSplit[i].indexOf(":") != -1)
     {
     const paramSplit = paramsSplit[i].split(":");
     paramsJson[paramSplit[0].trim()] = paramSplit.slice(1).join(':').trim().trim()
@@ -30,7 +30,7 @@ function makeApiRequest() {
    const headersSplit = headers.split("\n")  || [];
    for(let i = 0; i< headersSplit.length ; i++)
    {
-    if(headersSplit[i].trim().length > 0)
+    if(headersSplit[i].trim().length > 0 && headersSplit[i].indexOf(":") != -1)
     {
     const headerSplit = headersSplit[i].split(":");
     headerJson[headerSplit[0].trim()] = headerSplit.slice(1).join(':').trim().trim()
@@ -66,25 +66,19 @@ else if(getElementValue("body") == "form")
     }
    }
 
-    const fileKey1 = getElementValue('fileKey1') || "";
-    if(fileKey1.length > 0)
+var fileKeysSize = (document.getElementById("fileData").children.length /3) + 1;
+for(let i = 0; i< fileKeysSize ; i++)
+{
+    const fileKey = getElementValue(`fileKey${i}`) || "";
+    if(fileKey.length > 0)
     {
-    const files1 = document.getElementById('fileValue1').files;
-       for(let i = 0; i< files1.length ; i++)
+    const files = document.getElementById(`fileValue${i}`).files;
+       for(let i = 0; i< files.length ; i++)
        {
-        formData.append(fileKey1, files1[i]);
+        formData.append(fileKey, files1[i]);
        }
     }
-
-    const fileKey2 = getElementValue('fileKey2') || "";
-    if(fileKey2.length > 0)
-    {
-    const files2 = document.getElementById('fileValue2').files;
-       for(let i = 0; i< files2.length ; i++)
-       {
-        formData.append(fileKey2, files2[i]);
-       }
-    }
+}
 }
 else if(getElementValue("body") == "formUrlEncoded")
 {
@@ -92,13 +86,13 @@ else if(getElementValue("body") == "formUrlEncoded")
    const formUrlEncodedValuesSplit = formUrlEncodedValues.split("\n")  || [];
    for(let i = 0; i< formUrlEncodedValuesSplit.length ; i++)
    {
-    if(formUrlEncodedValuesSplit[i].trim().length > 0)
+    if(formUrlEncodedValuesSplit[i].trim().length > 0 && formUrlEncodedValuesSplit[i].indexOf(":") != -1)
     {
     const formUrlEncodedValueSplit = formUrlEncodedValuesSplit[i].split(":");
     formUrlEncodedJson[formUrlEncodedValueSplit[0].trim()] = formUrlEncodedValueSplit.slice(1).join(':').trim().trim()
     }
    }
-   formData.append("form_urlencoded", formUrlEncodedJson.toString());
+   formData.append("form_urlencoded", JSON.stringify(formUrlEncodedJson));
 }
 }
   const requestOptions = {
@@ -229,4 +223,23 @@ window.open(`/api/v1/download/text?file_name=${res.file_name}`, "_self")
 }).catch(error => {
    console.log("Something went wrong. Server might be down");
 });
+}
+
+function addFile()
+{
+var index = (document.getElementById("fileData").children.length /3) + 1;
+var input = document.createElement("input");
+input.type = "text";
+input.id = `fileKey${index}`;
+input.style="width:100px";
+input.placeholder = "Key Name";
+document.getElementById("fileData").append(input);
+
+input = document.createElement("input");
+input.type = "file";
+input.id = `fileValue${index}`;
+input.style="width:250px";
+input.setAttribute('multiple','');
+document.getElementById("fileData").append(input);
+document.getElementById("fileData").append(document.createElement("br"));
 }

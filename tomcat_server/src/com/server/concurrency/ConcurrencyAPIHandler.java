@@ -46,7 +46,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 	@Override
 	public void service(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		Map<String, FormData> formDataMap = Util.parserMultiPartFormData(request);
+		Map<String, FormData> formDataMap = Util.parseMultiPartFormData(request);
 
 		JSONObject jsonObject = new JSONObject(formDataMap.get("meta_json").getValue());
 		int concurrencyCalls = jsonObject.getInt("concurrency_calls");
@@ -79,6 +79,8 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		formDataMap.remove("meta_json");
 
 		Map<String, String> headersMap = headers.keySet().stream().collect(Collectors.toMap(key -> key, headers::getString));
+		headersMap.remove("Content-Type");
+		headersMap.remove("Content-Length");
 
 		List<Map> responseList = new ArrayList<>();
 		List<Future<?>> futureList = new ArrayList<>();
@@ -142,7 +144,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		String formUrlEncodedJSONString = formDataMap.getOrDefault("form_urlencoded", new FormData()).getValue();
 		if(StringUtils.isNotEmpty(formUrlEncodedJSONString))
 		{
-			headersMap.put("Content-Type", "x-www-form-urlencoded");
+			headersMap.put("Content-Type", "application/x-www-form-urlencoded");
 			return new ByteArrayInputStream(parseQueryString(new JSONObject(formUrlEncodedJSONString)).getBytes());
 		}
 

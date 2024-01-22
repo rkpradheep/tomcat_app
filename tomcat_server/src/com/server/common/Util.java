@@ -54,7 +54,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -274,7 +273,7 @@ public class Util
 		return new JSONObject(request.getReader().lines().collect(Collectors.joining()));
 	}
 
-	public static Map<String, FormData> parserMultiPartFormData(HttpServletRequest request) throws IOException
+	public static Map<String, FormData> parseMultiPartFormData(HttpServletRequest request) throws IOException
 	{
 		List<FileItem> items;
 
@@ -378,13 +377,16 @@ public class Util
 		{
 			return new JSONObject(value);
 		}
-		catch(JSONException e)
-		{
-			return new JSONArray(value);
-		}
 		catch(Exception e)
 		{
-			return null;
+			try
+			{
+				return new JSONArray(value);
+			}
+			catch(Exception e1)
+			{
+				return null;
+			}
 		}
 	}
 }
