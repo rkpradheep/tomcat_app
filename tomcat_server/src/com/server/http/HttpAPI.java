@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +16,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 
 public class HttpAPI
 {
@@ -77,6 +82,27 @@ public class HttpAPI
 		catch(IOException e)
 		{
 			return httpURLConnection.getErrorStream();
+		}
+	}
+
+	public static boolean isValidURL(String url)
+	{
+		try
+		{
+			URL urlObject = new URL(url);
+			String host = urlObject.getHost();
+			int port = urlObject.getPort() != -1 ? urlObject.getPort() : urlObject.getDefaultPort();
+			try(Socket socket = new Socket())
+			{
+				SocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName(host), port);
+				socket.connect(socketAddress);
+			}
+
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
 		}
 	}
 }

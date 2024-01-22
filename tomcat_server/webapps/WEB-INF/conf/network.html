@@ -21,10 +21,10 @@
     </select>
 
     <label for="apiParams">Parameters:</label>
-    <textarea id="apiParams" placeholder="Key and Value should be separated by :&#10;Use new line for multiple parameters" rows="5"></textarea>
+    <textarea id="apiParams" placeholder="Key and Value should be separated by :&#10;Use new line for multiple parameters&#10;&#10;Example : &#10;param_name1:param_value1&#10;param_name2:param_value2" rows="5"></textarea>
 
     <label for="headers">Headers:</label>
-    <textarea id="headers" placeholder="Key and Value should be separated by :&#10;Use new line for multiple headers" rows="5"></textarea>
+    <textarea id="headers" placeholder="Key and Value should be separated by :&#10;Use new line for multiple headers&#10;&#10;Example : &#10;key1:value1&#10;key2:value2" rows="5"></textarea>
 
     <label for="bodyEnable"> Enable Body</label>
     <input type="checkbox" id="bodyEnable" onchange="enableBody()" style="width:10px;cursor:pointer" disabled="true">
@@ -33,25 +33,26 @@
         <label for="body">Body</label>
         <select id="body" onchange="changeBody()">
             <option value="json">RAW JSON</option>
-            <option value="form">FORM DATA</option>
+            <option value="form">MULTIPART FORM DATA</option>
             <option value="formUrlEncoded">FORM URL-ENCODED</option>
         </select>
 
         <label for="jsonPayload" id="jsonLabel">JSON Payload:</label>
         <textarea id="jsonPayload" placeholder="Enter json" rows="5"></textarea>
 
-        <label for="formUrlEncodedData" id="formUrlEncodedDataLabel" style="display:none">Form Url-Encoded:</label>
+        <p id="formUrlEncodedDataLabel" style="display:none">Form Url-Encoded:</p>
         <div id="formUrlEncodedData" style="display:none">
-            <textarea id="formUrlEncodedValues" placeholder="Key and Value should be separated by :&#10;Use new line for multiple keys" rows="5"></textarea>
+            <textarea id="formUrlEncodedValues" placeholder="Key and Value should be separated by :&#10;Use new line for multiple keys&#10;&#10;Example : &#10;key1:value1&#10;key2:value2" rows="5"></textarea>
         </div>
 
-        <label for="formData" id="formLabel" style="display:none">Form Data:</label>
+        <p id="formLabel" style="display:none">Multipart Form Data:</p><br>
         <div id="formData" style="display:none">
             <label for="textData">Text :</label>
-            <textarea id="textData" placeholder="Key and Value should be separated by :&#10;Use new line for multiple keys" rows="5"></textarea>
-            <label for="fileData">File :</label>
+            <textarea id="textData" placeholder="Key and Value should be separated by :&#10;Use new line for multiple keys&#10;&#10;Example : &#10;key1:value1&#10;key2:value2" rows="5"></textarea>
+            <p>File :</p>
             <div style="text-align:right">
-                <button type="button" onclick="addFile()">ADD ANOTHER FILE</button>
+                <button type="button" onclick="addFile()">ADD</button>
+                <button type="button" onclick="removeFile()">REMOVE</button>
             </div>
             <div id="fileData">
                 <input type="text" id="fileKey1" style="width:100px" placeholder="Key Name">
@@ -60,8 +61,8 @@
         </div>
     </div>
 
-    <label for="concurrencyCalls">Concurrent Calls :</label>
-    <input type="text" id="concurrencyCalls" value="1">
+    <label for="concurrencyCalls">Concurrent Call(s) :</label>
+    <input type="text" id="concurrencyCalls" value="1" style="width:50px">
 
     <button type="button" onclick="makeApiRequest()">Make Request</button> <br>
     <div style="text-align:right">

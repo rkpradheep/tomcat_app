@@ -7,11 +7,27 @@ function makeApiRequest() {
   const headers = document.getElementById('headers').value;
   const formTextFields = getElementValue('textData');
   const formUrlEncodedValues = getElementValue('formUrlEncodedValues');
+  var password = ""
 
-   if(!(concurrencyCalls >=1 && concurrencyCalls <= 100))
+  if(apiUrl.length < 1)
+  {
+    alert("Please enter valid API URL");
+    return;
+  }
+
+   if(!(concurrencyCalls >=1))
    {
     alert("Concurrency call range should be between 1 and 100");
     return;
+   }
+   if(!(concurrencyCalls >=1 && concurrencyCalls <= 100))
+   {
+    password = prompt("For Concurrent calls value above 100, password is mandatory. Please enter password.");
+    if(password.length < 1)
+    {
+    alert("Password not provided!");
+    return;
+    }
    }
 
    const paramsJson = {};
@@ -26,7 +42,13 @@ function makeApiRequest() {
    }
 
 
-   const headerJson = {};
+   var headerJson = {};
+   if(headers.startsWith(":"))
+   {
+    headerJson = headers;
+   }
+   else
+   {
    const headersSplit = headers.split("\n")  || [];
    for(let i = 0; i< headersSplit.length ; i++)
    {
@@ -36,6 +58,7 @@ function makeApiRequest() {
     headerJson[headerSplit[0].trim()] = headerSplit.slice(1).join(':').trim().trim()
     }
    }
+   }
 
   const json = {
                    "url": apiUrl,
@@ -43,6 +66,7 @@ function makeApiRequest() {
                    "headers": headerJson,
                    "concurrency_calls": concurrencyCalls,
                    "params": paramsJson,
+                   "password" : password
                }
 
 const formData = new FormData();
@@ -66,8 +90,8 @@ else if(getElementValue("body") == "form")
     }
    }
 
-var fileKeysSize = (document.getElementById("fileData").children.length /3) + 1;
-for(let i = 0; i< fileKeysSize ; i++)
+var fileKeysSize = document.getElementById("fileData").children.length /3;
+for(let i = 1; i<= fileKeysSize ; i++)
 {
     const fileKey = getElementValue(`fileKey${i}`) || "";
     if(fileKey.length > 0)
@@ -75,7 +99,7 @@ for(let i = 0; i< fileKeysSize ; i++)
     const files = document.getElementById(`fileValue${i}`).files;
        for(let i = 0; i< files.length ; i++)
        {
-        formData.append(fileKey, files1[i]);
+        formData.append(fileKey, files[i]);
        }
     }
 }
@@ -242,4 +266,40 @@ input.style="width:250px";
 input.setAttribute('multiple','');
 document.getElementById("fileData").append(input);
 document.getElementById("fileData").append(document.createElement("br"));
+}
+
+
+function addFile()
+{
+var index = (document.getElementById("fileData").children.length /3) + 1;
+var input = document.createElement("input");
+input.type = "text";
+input.id = `fileKey${index}`;
+input.style="width:100px";
+input.placeholder = "Key Name";
+document.getElementById("fileData").append(input);
+
+input = document.createElement("input");
+input.type = "file";
+input.id = `fileValue${index}`;
+input.style="width:250px";
+input.setAttribute('multiple','');
+document.getElementById("fileData").append(input);
+
+document.getElementById("fileData").append(document.createElement("br"));
+
+}
+
+
+function removeFile()
+{
+var childLength = document.getElementById("fileData").children.length;
+if(childLength == 3)
+{
+return;
+}
+document.getElementById("fileData").children[childLength-1].remove();
+var index = childLength/3;
+document.getElementById(`fileValue${index}`).remove();
+document.getElementById(`fileKey${index}`).remove();
 }

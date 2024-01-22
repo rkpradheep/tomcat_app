@@ -1,9 +1,11 @@
 package com.server.concurrency;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -12,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -51,9 +54,10 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		JSONObject jsonObject = new JSONObject(formDataMap.get("meta_json").getValue());
 		int concurrencyCalls = jsonObject.getInt("concurrency_calls");
 
-		if(concurrencyCalls < 0 || concurrencyCalls > 100)
+		if(concurrencyCalls > 100 && !StringUtils.equals(jsonObject.getString("password"), "1155"))
 		{
-			Util.writerErrorResponse(response, "Concurrency calls range should be between 0 and 100");
+			Util.writerErrorResponse(response, "Concurrent call value is above 100 and password provided is invalid.");
+			return;
 		}
 
 		JSONObject params = jsonObject.getJSONObject("params");
@@ -72,15 +76,23 @@ public class ConcurrencyAPIHandler extends HttpServlet
 
 		String url = jsonObject.getString("url");
 		String method = jsonObject.getString("method");
-		JSONObject headers = jsonObject.getJSONObject("headers");
+		String headersFromRequest = jsonObject.opt("headers").toString();
+		JSONObject headers = Objects.nonNull(Util.getJSONFromString(headersFromRequest)) ? new JSONObject(headersFromRequest) : parseChromeHeaders(headersFromRequest);
 
 		String queryString = parseQueryString(params);
 
 		formDataMap.remove("meta_json");
 
-		Map<String, String> headersMap = headers.keySet().stream().collect(Collectors.toMap(key -> key, headers::getString));
+		Map<String, String> headersMap = new TreeMap<>(headers.keySet().stream().collect(Collectors.toMap(key -> key, headers::getString)));
 		headersMap.remove("Content-Type");
 		headersMap.remove("Content-Length");
+		headersMap.remove("Accept-Encoding");
+
+		if(!HttpAPI.isValidURL(url))
+		{
+			Util.writerErrorResponse(response, "API URL provided is invalid. Please check and try again.");
+			return;
+		}
 
 		List<Map> responseList = new ArrayList<>();
 		List<Future<?>> futureList = new ArrayList<>();
@@ -126,7 +138,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 
 		executorService.shutdown();
 
-		LOGGER.log(Level.INFO, "Response list size {0}", futureList.size());
+		LOGGER.log(Level.INFO, "Response list size {0}", responseList.size());
 
 		Util.writeJSONResponse(response, responseList);
 	}
@@ -193,6 +205,28 @@ public class ConcurrencyAPIHandler extends HttpServlet
 			parsedQueryString += URLEncoder.encode(param.trim()) + "=" + URLEncoder.encode(params.getString(param)) + "&";
 		}
 		return parsedQueryString.replaceAll("&$", StringUtils.EMPTY);
+	}
+
+	static JSONObject parseChromeHeaders(String chromeHeaders)
+	{
+		BufferedReader bufferedReader = new BufferedReader(new StringReader(chromeHeaders));
+		List<String> headersList = bufferedReader.lines().collect(Collectors.toList());
+		JSONObject parsedHeader = new JSONObject();
+		for(int i = 0; i < headersList.size(); i += 2)
+		{
+			String key = headersList.get(i).trim();
+			if(key.startsWith(":"))
+			{
+				key = headersList.get(i).replaceFirst(":", "");
+			}
+			if(key.endsWith(":"))
+			{
+				key = key.replaceAll(":$", "");
+			}
+
+			parsedHeader.put(key, headersList.get(i + 1).trim());
+		}
+		return parsedHeader;
 	}
 
 }
