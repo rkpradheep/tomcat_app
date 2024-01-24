@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.server.common.Util;
+import com.server.security.ThrottleHandler;
 
 public class AdminDBUtil
 {
@@ -24,6 +28,26 @@ public class AdminDBUtil
 		}
 		query = query.replaceAll("\n", StringUtils.SPACE);
 		query = query.replaceAll("([.;])$", StringUtils.EMPTY);
+
+		if(StringUtils.contains(query, "Throttle"))
+		{
+			List<Map<String, String>> queryOutput = new ArrayList<>();
+			for(Map.Entry<String, ThrottleHandler.ThrottleMeta> throttleMetaEntry : ThrottleHandler.ipThrottleMeta.entrySet())
+			{
+				Map<String, String> rowMap = new LinkedHashMap<>();
+				ThrottleHandler.ThrottleMeta throttleMeta = throttleMetaEntry.getValue();
+
+				String[] ipUri = throttleMetaEntry.getKey().split("-");
+				rowMap.put("IP", ipUri[0]);
+				rowMap.put("URI", ipUri[1]);
+				rowMap.put("REQUEST_COUNT", throttleMeta.getCount() + "");
+				rowMap.put("TIME_FRAME_START", Util.getFormattedTime(throttleMeta.getTime()));
+
+				queryOutput.add(rowMap);
+			}
+			resultMap.put("query_output", queryOutput);
+			return;
+		}
 
 		PreparedStatement preparedStatement;
 

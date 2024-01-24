@@ -6,6 +6,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.common.Util;
@@ -81,6 +84,7 @@ public class AdminDBHandler extends HttpServlet
 				{
 				}
 			}
+			tableList.add("Throttle");
 			Util.writeJSONResponse(response, tableList);
 			return;
 		}
@@ -90,6 +94,15 @@ public class AdminDBHandler extends HttpServlet
 
 	private void handleColumnMeta(Connection connection, HttpServletResponse response, String table) throws Exception
 	{
+		if(StringUtils.equals(table, "Throttle"))
+		{
+			Map<String, Object> result = new HashMap<>();
+			result.put("columns", Arrays.asList("IP", "URI", "REQUEST_COUNT", "TIME_FRAME_START"));
+			result.put("pk", StringUtils.EMPTY);
+
+			Util.writeJSONResponse(response, result);
+			return;
+		}
 		DatabaseMetaData databaseMetaData = connection.getMetaData();
 
 		Map<String, Object> result = new LinkedHashMap<>();

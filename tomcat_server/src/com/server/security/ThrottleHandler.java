@@ -8,16 +8,14 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.server.common.Util;
 
 public class ThrottleHandler
 {
-	private static final Map<String, ThrottleMeta> ipThrottleMeta = new ConcurrentHashMap<>();
+	public static final Map<String, ThrottleMeta> ipThrottleMeta = new ConcurrentHashMap<>();
 	private static final Map<String, Long> ipLockTimeMap = new ConcurrentHashMap<>();
 
-	static class ThrottleMeta
+	public static class ThrottleMeta
 	{
 		int count;
 		Long time;
@@ -46,33 +44,38 @@ public class ThrottleHandler
 
 	static boolean handleThrottling(HttpServletRequest request)
 	{
-		String ip = Util.getUserIP(request);
-		if(Objects.nonNull(ipLockTimeMap.get(ip)))
+		synchronized(ipLockTimeMap)
 		{
-			return false;
-		}
+			String ip = Util.getUserIP(request);
+			String key = ip + "-" + request.getRequestURI();
 
-		ThrottleMeta throttleMeta = ipThrottleMeta.getOrDefault(ip, new ThrottleMeta());
-		int count = throttleMeta.incrementCount();
-		long time = throttleMeta.getTime();
-		long currentTime = System.currentTimeMillis();
-		long timeFrameStart = currentTime - (1000 * 60 * 5);
+			if(Objects.nonNull(ipLockTimeMap.get(key)))
+			{
+				return false;
+			}
 
-		if(time < timeFrameStart)
-		{
-			ipThrottleMeta.put(ip, new ThrottleMeta());
+			ThrottleMeta throttleMeta = ipThrottleMeta.getOrDefault(key, new ThrottleMeta());
+			int count = throttleMeta.incrementCount();
+			long time = throttleMeta.getTime();
+			long currentTime = System.currentTimeMillis();
+			long timeFrameStart = currentTime - (1000 * 60 * 5);
+
+			if(time < timeFrameStart)
+			{
+				ipThrottleMeta.put(key, new ThrottleMeta());
+				return true;
+			}
+
+			if(count > 100)
+			{
+				ipLockTimeMap.put(key, System.currentTimeMillis() + (1000 * 60 * 5));
+				return false;
+			}
+
+			ipThrottleMeta.put(key, throttleMeta);
+
 			return true;
 		}
-
-		if(count > 100)
-		{
-			ipLockTimeMap.put(ip, System.currentTimeMillis() + (1000 * 60 * 5));
-			return false;
-		}
-
-		ipThrottleMeta.put(ip, throttleMeta);
-
-		return true;
 
 	}
 

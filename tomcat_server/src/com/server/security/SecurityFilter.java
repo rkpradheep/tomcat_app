@@ -44,7 +44,7 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
-			if(!ThrottleHandler.handleThrottling(httpServletRequest))
+			if(!Util.isResourceUri(requestURI) && !ThrottleHandler.handleThrottling(httpServletRequest))
 			{
 				httpServletResponse.sendError(429);
 				return;

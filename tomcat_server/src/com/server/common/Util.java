@@ -365,6 +365,11 @@ public class Util
 	{
 		return API_END_POINTS.contains(endPoint) || isValidWebSocketEndPoint(endPoint) || Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint));
 	}
+	public static boolean isResourceUri(String endPoint) throws MalformedURLException
+	{
+		return Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint)) && !endPoint.endsWith(".jsp") && !endPoint.endsWith(".html");
+	}
+
 
 	public static boolean isValidWebSocketEndPoint(String endPoint)
 	{

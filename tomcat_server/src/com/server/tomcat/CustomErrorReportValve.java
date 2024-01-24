@@ -80,6 +80,7 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 
 		errorHtml = errorHtml.replace("${code}", code + "");
 		errorHtml = errorHtml.replace("${message}", getErrorMessage(uri, code));
+		errorHtml = errorHtml.replace("${canShowHomePage}", code == 404 ? "inline-block" : "none");
 
 		return new ByteArrayInputStream(errorHtml.getBytes());
 	}
