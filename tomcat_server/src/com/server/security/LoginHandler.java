@@ -29,8 +29,8 @@ public class LoginHandler extends HttpServlet
 			StringBuilder header = new StringBuilder()
 				.append(tokenName + "=")
 				.append(sessionID)
-			    .append("; Secure")
-			    .append("; SameSite=None")
+			    //.append("; Secure")
+			    //.append("; SameSite=None")
 			    .append("; Path=/;")
 			    .append(maxAge);
 

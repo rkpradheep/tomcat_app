@@ -44,6 +44,12 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
+			if(!ThrottleHandler.handleThrottling(httpServletRequest))
+			{
+				httpServletResponse.sendError(429);
+				return;
+			}
+
 			String sessionId = SecurityUtil.getSessionId(httpServletRequest);
 
 			CURRENT_USER_TL.set(UserUtil.getUser(sessionId));
@@ -62,7 +68,7 @@ public class SecurityFilter implements Filter
 
 			if(SecurityUtil.isLoggedIn())
 			{
-				LOGGER.log(Level.INFO, "Request received for uri {0} for session {1}", new Object[] {requestURI, CURRENT_USER_TL.get().getSessionId()});
+				LOGGER.log(Level.INFO, "Request received for uri {0}  Session {1} IP {2}", new Object[] {requestURI, CURRENT_USER_TL.get().getSessionId(), Util.getUserIP(httpServletRequest)});
 				filterChain.doFilter(servletRequest, servletResponse);
 			}
 			else

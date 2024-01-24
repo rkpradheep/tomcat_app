@@ -88,6 +88,8 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		headersMap.remove("Content-Length");
 		headersMap.remove("Accept-Encoding");
 
+		headersMap.put("x-forwarded-for", Util.getUserIP(request));
+
 		if(!HttpAPI.isValidURL(url))
 		{
 			Util.writerErrorResponse(response, "API URL provided is invalid. Please check and try again.");

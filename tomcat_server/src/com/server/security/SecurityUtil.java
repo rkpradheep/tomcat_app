@@ -1,5 +1,7 @@
 package com.server.security;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -62,9 +64,11 @@ public class SecurityUtil
 			(!isAdminCall(requestURI) && Configuration.getBoolean("skip.authentication"));
 	}
 
-	public static String getRedirectURI(HttpServletRequest request)
+	public static String getRedirectURI(HttpServletRequest request) throws MalformedURLException
 	{
-		String url = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+		URL urlObject = new URL(request.getRequestURL().toString());
+		int port = urlObject.getPort() != -1 ? urlObject.getPort() : urlObject.getDefaultPort();
+		String url = urlObject.getProtocol() + "://" + urlObject.getHost() + ":" + port;
 		return (!isAdminCall(request.getRequestURI()) ? url + "/login" : url + "/admin/login") + "?post=true";
 	}
 }

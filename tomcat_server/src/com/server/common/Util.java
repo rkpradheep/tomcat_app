@@ -51,6 +51,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 import org.json.JSONArray;
@@ -388,5 +389,10 @@ public class Util
 				return null;
 			}
 		}
+	}
+
+	public static String getUserIP(HttpServletRequest request)
+	{
+		return  StringUtils.defaultIfEmpty(request.getHeader("x-forwarded-for"), request.getRemoteAddr());
 	}
 }
