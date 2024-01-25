@@ -10,6 +10,10 @@ import java.io.StringReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -18,11 +22,28 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 
 import com.server.common.Util;
+import com.server.job.RefreshManager;
 
 public class ProxyServer
 {
 	private static final Logger LOGGER = Logger.getLogger(ProxyServer.class.getName());
 
+	private static ExecutorService executorService;
+	public static void init()
+	{
+		ThreadFactory tf = run -> {
+			Thread thread = new Thread(run, "proxy-server");
+			thread.setDaemon(true);
+			return thread;
+		};
+
+		executorService = Executors.newFixedThreadPool(1, tf);
+		executorService.submit(ProxyServer::start);
+	}
+	public static void shutDown()
+	{
+		executorService.shutdownNow();
+	}
 	public static void start()
 	{
 		try

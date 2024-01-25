@@ -27,6 +27,10 @@ public class RefreshManager
 
 		addJobInQueue(-1L, JobDispatcher::new, null, 1);
 	}
+	public static void shutDown()
+	{
+		executor.shutdownNow();
+	}
 
 	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, int seconds)
 	{

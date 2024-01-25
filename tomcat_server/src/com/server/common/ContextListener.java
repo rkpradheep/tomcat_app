@@ -33,7 +33,7 @@ public class ContextListener implements ServletContextListener
 
 		Configuration.load(sce.getServletContext());
 
-		new Thread(ProxyServer::start).start();
+		ProxyServer.init();
 
 		DBUtil.initialiseDataSource();
 
@@ -49,6 +49,10 @@ public class ContextListener implements ServletContextListener
 	@Override
 	public void contextDestroyed(ServletContextEvent sce)
 	{
+		RefreshManager.shutDown();
+
+		ProxyServer.shutDown();
+
 		LOGGER.log(Level.INFO, "Context Destroyed at {0}", Util.getFormattedCurrentTime());
 	}
 }

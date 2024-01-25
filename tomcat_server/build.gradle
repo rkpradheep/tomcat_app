@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 ext.serverPath = "${home}/tomcat_server"
 sourceSets {
     main {
@@ -109,13 +111,53 @@ task cleanUp{
     }
 }
 
+task startTomcat{
+    doLast{
+        def response = new ByteArrayOutputStream()
+        def error = new ByteArrayOutputStream()
+        exec {
+            workingDir "${home}/tomcat_build"
+            commandLine "sh", "run.${getScriptExtension ()}", "start"
+            standardOutput = response
+            errorOutput = error
+        }
+        println "tomcat started"
+    }
+}
+
+task stopTomcat{
+    doLast{
+        try {
+            def response = new ByteArrayOutputStream()
+            def error = new ByteArrayOutputStream()
+            exec {
+                workingDir "${home}/tomcat_build"
+                commandLine "sh", "run.${getScriptExtension ()}", "stop"
+                standardOutput = response
+                errorOutput = error
+            }
+            sleep(3 * 1000)
+            println "tomcat stopped"
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+}
+
 task updateBuild{
     doLast{
         println "update completed"
     }
 }
 
+def getScriptExtension()
+{
+    return OperatingSystem.current().isWindows() ? "bat" : "sh"
+}
+
 configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, deployBuild, cleanUp])
-configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, deployBuild, cleanUp])
+configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, stopTomcat, deployBuild, cleanUp, startTomcat])
 
 defaultTasks 'updateBuild'
