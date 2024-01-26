@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,7 +62,7 @@ public class RequestForwarder extends HttpServlet
 
 		Enumeration<String> requestHeaderEnumeration = request.getHeaderNames();
 
-		Map<String, String> headersMap = new HashMap<>();
+		Map<String, String> headersMap = new TreeMap<>();
 		while(requestHeaderEnumeration.hasMoreElements())
 		{
 			String headerName = requestHeaderEnumeration.nextElement();
@@ -72,7 +73,7 @@ public class RequestForwarder extends HttpServlet
 			headersMap.put(headerName, request.getHeader(headerName));
 		}
 
-		HttpResponse httpResponse = HttpAPI.makeNetworkCall(url, method, request.getQueryString(), headersMap, request.getInputStream());
+		HttpResponse httpResponse = HttpAPI.makeNetworkCall(url, method, request.getQueryString(), headersMap, request.getInputStream(), null);
 
 		for(String headerName : httpResponse.getResponseHeaders().keySet())
 		{

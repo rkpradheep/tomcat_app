@@ -28,7 +28,7 @@ public class DownloadText extends HttpServlet
 
 		try(OutputStream outputStream = response.getOutputStream())
 		{
-			outputStream.write(fileInputStream.readAllBytes());
+			outputStream.write(Util.readAllBytes(fileInputStream));
 		}
 		catch(IOException e)
 		{
@@ -49,7 +49,7 @@ public class DownloadText extends HttpServlet
 		{
 			String fileName = "text_" + System.currentTimeMillis() + ".txt";
 			FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-			fileOutputStream.write(byteArrayInputStream.readAllBytes());
+			fileOutputStream.write(Util.readAllBytes(byteArrayInputStream));
 
 			Map<String, String> responseMap = new HashMap<>();
 			responseMap.put("file_name", fileName);

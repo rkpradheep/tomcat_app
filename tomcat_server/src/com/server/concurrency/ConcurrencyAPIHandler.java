@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.Authenticator;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -77,6 +81,10 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		String url = jsonObject.getString("url");
 		String method = jsonObject.getString("method");
 		String headersFromRequest = jsonObject.opt("headers").toString();
+
+		JSONObject proxyDetails = jsonObject.optJSONObject("proxy_meta");
+		Proxy proxy = getProxy(proxyDetails);
+
 		JSONObject headers = Objects.nonNull(Util.getJSONFromString(headersFromRequest)) ? new JSONObject(headersFromRequest) : parseChromeHeaders(headersFromRequest);
 
 		String queryString = parseQueryString(params);
@@ -88,7 +96,10 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		headersMap.remove("Content-Length");
 		headersMap.remove("Accept-Encoding");
 
-		headersMap.put("x-forwarded-for", Util.getUserIP(request));
+		String previousForwardedFor = headersMap.getOrDefault("x-forwarded-for", StringUtils.EMPTY);
+		previousForwardedFor = StringUtils.isNotEmpty(previousForwardedFor) ? previousForwardedFor.concat(",") : StringUtils.EMPTY;
+
+		headersMap.put("x-forwarded-for", previousForwardedFor.concat(Util.getUserIP(request)));
 
 		if(!HttpAPI.isValidURL(url))
 		{
@@ -105,7 +116,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 			try
 			{
 				Map<String, String> finalHeadersMap = new HashMap<>(headersMap);
-				HttpResponse httpResponse = HttpAPI.makeNetworkCall(url, method, queryString, finalHeadersMap, getInputStream(formDataMap, finalHeadersMap));
+				HttpResponse httpResponse = HttpAPI.makeNetworkCall(url, method, queryString, finalHeadersMap, getInputStream(formDataMap, finalHeadersMap), proxy);
 				StringWriter stringWriter = new StringWriter();
 				IOUtils.copy(httpResponse.getInputStream(), stringWriter);
 				JSONObject responseJSON = new JSONObject();
@@ -229,6 +240,35 @@ public class ConcurrencyAPIHandler extends HttpServlet
 			parsedHeader.put(key, headersList.get(i + 1).trim());
 		}
 		return parsedHeader;
+	}
+
+	static Proxy getProxy(JSONObject proxyDetails)
+	{
+		if(!(Objects.nonNull(proxyDetails) && StringUtils.isNotEmpty(proxyDetails.optString("ip"))))
+		{
+			return null;
+		}
+		String proxyUserName = proxyDetails.optString("user_name");
+		String proxyPassword = proxyDetails.optString("password");
+		String ip = proxyDetails.getString("ip");
+		int port = proxyDetails.optInt("port", 3128);
+
+		if(StringUtils.isNotEmpty(proxyUserName) && StringUtils.isNotEmpty(proxyPassword))
+		{
+			Authenticator.setDefault(new Authenticator()
+			{
+				@Override
+				protected PasswordAuthentication getPasswordAuthentication()
+				{
+					return new PasswordAuthentication(proxyUserName, proxyPassword.toCharArray());
+				}
+			});
+		}
+		else
+		{
+			Authenticator.setDefault(null);
+		}
+		return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ip, port));
 	}
 
 }

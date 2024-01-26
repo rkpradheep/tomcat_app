@@ -21,11 +21,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -274,6 +276,14 @@ public class Util
 		return new JSONObject(request.getReader().lines().collect(Collectors.joining()));
 	}
 
+	public static byte[] readAllBytes(InputStream inputStream) throws IOException
+	{
+
+		byte[] bytes = new byte[inputStream.available()];
+		inputStream.read(bytes);
+		return bytes;
+	}
+
 	public static Map<String, FormData> parseMultiPartFormData(HttpServletRequest request) throws IOException
 	{
 		List<FileItem> items;
@@ -310,7 +320,7 @@ public class Util
 
 				List<FormData.FileData> fileDataList = formData.getFileDataList();
 
-				FormData.FileData fileData = new FormData.FileData(item.getName(), item.getInputStream().readAllBytes());
+				FormData.FileData fileData = new FormData.FileData(item.getName(), readAllBytes(item.getInputStream()));
 				fileDataList.add(fileData);
 
 				formDataMap.put(item.getFieldName(), formData);
@@ -365,11 +375,11 @@ public class Util
 	{
 		return API_END_POINTS.contains(endPoint) || isValidWebSocketEndPoint(endPoint) || Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint));
 	}
+
 	public static boolean isResourceUri(String endPoint) throws MalformedURLException
 	{
 		return Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint)) && !endPoint.endsWith(".jsp") && !endPoint.endsWith(".html");
 	}
-
 
 	public static boolean isValidWebSocketEndPoint(String endPoint)
 	{
@@ -398,6 +408,16 @@ public class Util
 
 	public static String getUserIP(HttpServletRequest request)
 	{
-		return  StringUtils.defaultIfEmpty(request.getHeader("x-forwarded-for"), request.getRemoteAddr());
+		return StringUtils.defaultIfEmpty(Util.getHeader(request.getHeaders("x-forwarded-for")), request.getRemoteAddr());
+	}
+
+	public static String getHeader(Enumeration<String> headersEnumeration)
+	{
+		String headerValue = StringUtils.EMPTY;
+		while(headersEnumeration.hasMoreElements())
+		{
+			headerValue += headersEnumeration.nextElement() + ",";
+		}
+		return headerValue.replaceAll(",$", StringUtils.EMPTY);
 	}
 }

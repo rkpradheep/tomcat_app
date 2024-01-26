@@ -48,16 +48,13 @@ public class ProxyServer
 	{
 		try
 		{
-			Process process = Runtime.getRuntime().exec(new String[] {"bash", "-c", "netstat -nlp | grep 8092"});
-			int status = process.waitFor();
-			String message = status == 0 ? Util.getResponse(process.getInputStream()) : Util.getResponse(process.getErrorStream());
-			if(message.contains("LISTEN"))
+		if(isProxyAlreadyRunning())
 			{
-				LOGGER.log(Level.INFO, "Proxy is already running " + message);
+				LOGGER.log(Level.INFO, "Proxy is already running ");
 				return;
 			}
 			ServerSocket serverSocket = new ServerSocket(8092);
-
+			LOGGER.info("Proxy started");
 			while(true)
 			{
 				Socket clientSocket = serverSocket.accept();
@@ -76,9 +73,22 @@ public class ProxyServer
 		}
 		catch(Exception e)
 		{
-			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			LOGGER.log(Level.SEVERE, "Exception occurred", e.getMessage());
 		}
 	}
+	private static boolean isProxyAlreadyRunning()
+	{
+		try {
+			new Socket("127.0.0.1", 8092);
+			return true;
+		}
+		catch (Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Proxy is not running. Exception message : {0}", e.getMessage());
+			return false;
+		}
+	}
+
 
 	private static void handleClientRequest(Socket clientSocket) throws IOException
 	{

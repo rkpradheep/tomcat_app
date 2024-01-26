@@ -60,13 +60,36 @@ function makeApiRequest() {
    }
    }
 
+ var proxyDetails = {}
+ if(document.getElementById("proxyEnable").checked)
+ {
+   const userName = getElementValue('proxy_user_name');
+   const password = getElementValue('proxy_password');
+   const ip = getElementValue('proxy_ip') || "";
+   const port = getElementValue('proxy_port');
+
+   if(ip.length < 1)
+   {
+   alert("Please provide valid Proxy IP")
+   return
+   }
+
+    proxyDetails = {
+    "user_name" : userName,
+    "password" : password,
+    "ip" : ip,
+    "port" : port
+    }
+ }
+
   const json = {
                    "url": apiUrl,
                    "method": apiMethod,
                    "headers": headerJson,
                    "concurrency_calls": concurrencyCalls,
                    "params": paramsJson,
-                   "password" : password
+                   "password" : password,
+                   "proxy_meta" : proxyDetails
                }
 
 const formData = new FormData();
@@ -186,6 +209,18 @@ unHideElement("showBody");
 else
 {
 hideElement("showBody")
+}
+}
+
+function enableProxy()
+{
+if(document.getElementById("proxyEnable").checked)
+{
+unHideElement("showProxy");
+}
+else
+{
+hideElement("showProxy")
 }
 }
 

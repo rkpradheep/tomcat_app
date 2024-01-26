@@ -63,6 +63,7 @@ task packRootWar(type: War) {
 
 task deployBuild{
     doLast{
+        delete file("${home}/tomcat_build/webapps").listFiles()
         copy {
             from "${serverPath}/build/ROOT.war"
             into "${home}/tomcat_build/webapps"
@@ -106,7 +107,6 @@ task cleanUp{
     doLast{
         delete "${serverPath}/build"
         delete "${serverPath}/classes"
-        delete "${home}/tomcat_build/webapps/*"
         println "clean up completed"
     }
 }
@@ -117,7 +117,7 @@ task startTomcat{
         def error = new ByteArrayOutputStream()
         exec {
             workingDir "${home}/tomcat_build"
-            commandLine "sh", "run.${getScriptExtension ()}", "start"
+            commandLine getTomcatCommand(true)
             standardOutput = response
             errorOutput = error
         }
@@ -132,7 +132,7 @@ task stopTomcat{
             def error = new ByteArrayOutputStream()
             exec {
                 workingDir "${home}/tomcat_build"
-                commandLine "sh", "run.${getScriptExtension ()}", "stop"
+                commandLine getTomcatCommand(false)
                 standardOutput = response
                 errorOutput = error
             }
@@ -152,12 +152,19 @@ task updateBuild{
     }
 }
 
-def getScriptExtension()
+def getTomcatCommand(isStart)
 {
-    return OperatingSystem.current().isWindows() ? "bat" : "sh"
+    def isWindows = OperatingSystem.current().isWindows()
+    if (isWindows)
+    {
+        return isStart ? ["cmd","/c","run.bat", "start"] :  ["cmd","/c","run.bat", "stop"]
+    }
+    else {
+        return isStart ? ["sh","run.sh","start"] :  ["sh","run.sh","stop"]
+    }
 }
 
-configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, deployBuild, cleanUp])
+configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, stopTomcat, deployBuild, cleanUp, startTomcat])
 configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, stopTomcat, deployBuild, cleanUp, startTomcat])
 
 defaultTasks 'updateBuild'

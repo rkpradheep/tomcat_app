@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URL;
@@ -33,14 +34,14 @@ public class HttpAPI
 		outputStream.flush();
 	}
 
-	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream) throws IOException
+	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream, Proxy proxy) throws IOException
 	{
 		if(StringUtils.isNotEmpty(queryString))
 		{
 			url = url.concat("?").concat(queryString);
 		}
 
-		HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection();
+		HttpURLConnection httpURLConnection = (HttpURLConnection) (Objects.nonNull(proxy) ? new URL(url).openConnection(proxy) : new URL(url).openConnection());
 		httpURLConnection.setRequestMethod(method);
 		httpURLConnection.setConnectTimeout(5000);
 

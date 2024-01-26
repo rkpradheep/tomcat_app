@@ -26,8 +26,22 @@
     <label for="headers">Headers:</label>
     <textarea id="headers" placeholder="Key and Value should be separated by :&#10;Use new line for multiple headers&#10;&#10;Example : &#10;key1:value1&#10;key2:value2" rows="5"></textarea>
 
-    <label for="bodyEnable"> Enable Body</label>
+
+    <input type="checkbox" id="proxyEnable" onchange="enableProxy()" style="width:10px;cursor:pointer">
+    <label for="proxyEnable" style="display: inline-block"> Enable Proxy</label> <br>
+
+    <div id="showProxy" style="display: none;">
+        <p>Proxy Details : </p>
+        <input type="text" id="proxy_ip" style="width:150px" placeholder="Proxy IP">
+        <input type="text" id="proxy_port" style="width:150px" placeholder="Proxy Port"><br>
+        <input type="text" id="proxy_user_name" style="width:150px" placeholder="Proxy User Name">
+        <input type="password" id="proxy_password" style="width:150px" placeholder="Proxy Password"><br>
+    </div>
+
+
+
     <input type="checkbox" id="bodyEnable" onchange="enableBody()" style="width:10px;cursor:pointer" disabled="true">
+    <label for="bodyEnable" style="display:inline-block"> Enable Body</label> <br>
 
     <div id="showBody" style="display: none;">
         <label for="body">Body</label>

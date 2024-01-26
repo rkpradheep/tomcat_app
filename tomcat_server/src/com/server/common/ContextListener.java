@@ -29,6 +29,8 @@ public class ContextListener implements ServletContextListener
 	@Override
 	public void contextInitialized(ServletContextEvent sce)
 	{
+		LOGGER.log(Level.INFO, "Initializing Context at {0}", Util.getFormattedCurrentTime());
+
 		ProxySelector.setDefault(new ProxySelectorExtension());
 
 		Configuration.load(sce.getServletContext());
