@@ -63,7 +63,10 @@ task packRootWar(type: War) {
 
 task deployBuild{
     doLast{
-        delete file("${home}/tomcat_build/webapps").listFiles()
+        if(file("${home}/tomcat_build/webapps").listFiles() != null)
+        {
+            delete file("${home}/tomcat_build/webapps").listFiles()
+        }
         copy {
             from "${serverPath}/build/ROOT.war"
             into "${home}/tomcat_build/webapps"
@@ -164,7 +167,7 @@ def getTomcatCommand(isStart)
     }
 }
 
-configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, stopTomcat, deployBuild, cleanUp, startTomcat])
+configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, deployBuild, cleanUp])
 configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, stopTomcat, deployBuild, cleanUp, startTomcat])
 
 defaultTasks 'updateBuild'
