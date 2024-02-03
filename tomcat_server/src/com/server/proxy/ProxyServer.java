@@ -12,8 +12,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -29,6 +31,7 @@ public class ProxyServer
 	private static final Logger LOGGER = Logger.getLogger(ProxyServer.class.getName());
 
 	private static ExecutorService executorService;
+
 	public static void init()
 	{
 		ThreadFactory tf = run -> {
@@ -40,15 +43,17 @@ public class ProxyServer
 		executorService = Executors.newFixedThreadPool(1, tf);
 		executorService.submit(ProxyServer::start);
 	}
+
 	public static void shutDown()
 	{
 		executorService.shutdownNow();
 	}
+
 	public static void start()
 	{
 		try
 		{
-		if(isProxyAlreadyRunning())
+			if(isProxyAlreadyRunning())
 			{
 				LOGGER.log(Level.INFO, "Proxy is already running ");
 				return;
@@ -59,16 +64,7 @@ public class ProxyServer
 			{
 				Socket clientSocket = serverSocket.accept();
 				LOGGER.info("Got proxy request");
-				new Thread(() -> {
-					try
-					{
-						handleClientRequest(clientSocket);
-					}
-					catch(Exception e)
-					{
-						LOGGER.log(Level.SEVERE, "Exception occurred ", e);
-					}
-				}).start();
+				handleClientRequest(clientSocket);
 			}
 		}
 		catch(Exception e)
@@ -76,19 +72,20 @@ public class ProxyServer
 			LOGGER.log(Level.SEVERE, "Exception occurred", e.getMessage());
 		}
 	}
+
 	private static boolean isProxyAlreadyRunning()
 	{
-		try {
+		try
+		{
 			new Socket("127.0.0.1", 8092);
 			return true;
 		}
-		catch (Exception e)
+		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Proxy is not running. Exception message : {0}", e.getMessage());
 			return false;
 		}
 	}
-
 
 	private static void handleClientRequest(Socket clientSocket) throws IOException
 	{
@@ -120,9 +117,6 @@ public class ProxyServer
 			Socket targetSocket = new Socket();
 			targetSocket.connect(new InetSocketAddress(hostAndPort[0], Integer.parseInt(hostAndPort[1])), 5000);
 
-			Thread t1 = new Thread(() -> forwardData(new ByteArrayInputStream(bytes, 0, read), targetSocket));
-			Thread t2 = new Thread(() -> forwardData(targetSocket, clientSocket));
-
 			if(new String(bytes, 0, read).contains("CONNECT"))
 			{
 				outputStreamWriter.write("HTTP/1.0" + " 200 Connection established\r\n");
@@ -130,15 +124,18 @@ public class ProxyServer
 				outputStreamWriter.write("\r\n");
 				outputStreamWriter.flush();
 
-				t1 = new Thread(() -> forwardData(clientSocket, targetSocket));
+				ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+				Future<?> clientThread = executorService.submit(()-> forwardData(clientSocket, targetSocket, "Proxy's Client Socket"));
+				Future<?> targetThread = executorService.submit(()-> forwardData(targetSocket, clientSocket, "Proxy's Client's Target Socket"));
+
+				clientThread.get();
+				targetSocket.shutdownOutput();
+				clientSocket.shutdownInput();
+				targetThread.get();
+
+				executorService.shutdownNow();
 			}
-
-			t1.start();
-			t2.start();
-
-			t1.join();
-			t2.join();
-
 			targetSocket.close();
 		}
 		catch(Exception e)
@@ -165,11 +162,12 @@ public class ProxyServer
 
 	}
 
-	private static void forwardData(Socket inputSocket, Socket outputSocket)
+	private static void forwardData(Socket inputSocket, Socket outputSocket, String partyName)
 	{
 		try
 		{
 			forwardData(inputSocket.getInputStream(), outputSocket);
+			LOGGER.info(partyName + " Stream Closed");
 		}
 		catch(IOException e)
 		{
