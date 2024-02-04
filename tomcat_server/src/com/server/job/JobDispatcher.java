@@ -40,7 +40,7 @@ public class JobDispatcher implements Task
 		}
 		finally
 		{
-			RefreshManager.addJobInQueue(-1L, JobDispatcher::new, null, 5);
+			//RefreshManager.addJobInQueue(-1L, JobDispatcher::new, null, 5);
 		}
 	}
 }

@@ -21,7 +21,7 @@ public class DBUtil
 		BasicDataSource basicDataSource = new BasicDataSource();
 
 		basicDataSource.setDriverClassName("com.mysql.jdbc.Driver");
-		basicDataSource.setUrl(MessageFormat.format("jdbc:mysql://{0}:{1}/{2}?connectTimeout=5000&useSSL=false", Configuration.getProperty("db.server.ip"), Configuration.getProperty("db.server.port"), DBUtil.schemaName));
+		basicDataSource.setUrl(MessageFormat.format("jdbc:mysql://{0}:{1}/{2}?connectTimeout=5000&useSSL=false&allowPublicKeyRetrieval=True", Configuration.getProperty("db.server.ip"), Configuration.getProperty("db.server.port"), DBUtil.schemaName));
 		basicDataSource.setUsername(Configuration.getProperty("db.server.user"));
 		basicDataSource.setPassword(Configuration.getProperty("db.server.password"));
 		basicDataSource.setMaxIdle(10);

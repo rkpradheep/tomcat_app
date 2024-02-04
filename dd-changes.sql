@@ -120,7 +120,7 @@ ALTER TABLE `SessionManagement`
 
 
 
-INSERT INTO `tomcatserver`.`users`
+INSERT INTO `tomcatserver`.`Users`
 (
 `name`,
 `password`, `role_type`)
@@ -128,7 +128,7 @@ VALUES(
 'admin',
 'admin@123', -1);
 
-INSERT INTO `tomcatserver`.`users`
+INSERT INTO `tomcatserver`.`Users`
 (
 `name`,
 `password`, `role_type`)

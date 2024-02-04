@@ -78,6 +78,8 @@ task deployBuild{
 
 task setupTomcatContainer{
     doLast{
+        println "Tomcat deployment path ${home}/tomcat_build"
+
         new File ("${home}/tomcat_build").mkdirs()
         delete "${home}/tomcat_build/*"
         copy{

@@ -35,7 +35,7 @@ public class ContextListener implements ServletContextListener
 
 		Configuration.load(sce.getServletContext());
 
-		ProxyServer.init();
+		//ProxyServer.init();
 
 		DBUtil.initialiseDataSource();
 
