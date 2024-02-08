@@ -22,7 +22,7 @@ public class RefreshManager
 	{
 		ThreadFactory tf = run -> new Thread(run, "refresh-manager-" + RefreshManager.threadNumber++);
 		queue = new DelayQueue();
-		executor = new ThreadPoolExecutor(1, 5, 1L, TimeUnit.MINUTES, queue, tf, new ThreadPoolExecutor.CallerRunsPolicy());
+		executor = new ThreadPoolExecutor(1, 2, 1L, TimeUnit.MINUTES, queue, tf, new ThreadPoolExecutor.CallerRunsPolicy());
 		executor.prestartAllCoreThreads();
 
 		addJobInQueue(-1L, JobDispatcher::new, null, 1);

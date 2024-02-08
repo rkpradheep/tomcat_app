@@ -67,6 +67,9 @@
         <div class="loading" id="loading" style="display:none">Loading&#8230;</div>
         <br />
 
+        <a target="_blank" href="/files">File Manager</a><br/><br/><br/>
+        <a target="_blank" href="/commandExecutor.jsp">Terminal Command Executor</a><br/><br/></br>
+
         <b>Add User : </b> <input type="text" id="user_name" placeholder="Name"/>
         &nbsp;&nbsp;<input type="password" id="user_password" placeholder="Password" />
         &nbsp;&nbsp;<select name="role" id="user_role">

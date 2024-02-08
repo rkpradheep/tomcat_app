@@ -16,10 +16,12 @@ public class DBUtil
 	private static DataSource dataSource;
 	public static String schemaName;
 
+	public static boolean isMysql;
+
 	public static void initialiseDataSource()
 	{
 		String server =  Configuration.getProperty("db.server");
-		boolean isMysql = StringUtils.equals("mysql", server);
+		isMysql = StringUtils.equals("mysql", server);
 
 		schemaName = Configuration.getProperty("db.server.schema");
 		BasicDataSource basicDataSource = new BasicDataSource();

@@ -1,13 +1,13 @@
 package com.server.page;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.server.common.Util;
+import com.server.db.DBUtil;
 
 public class PageHandler extends HttpServlet
 {
@@ -16,7 +16,7 @@ public class PageHandler extends HttpServlet
 	{
 		if(request.getRequestURI().equals("/"))
 		{
-			response.sendRedirect("/zoho");
+			response.sendRedirect(DBUtil.isMysql? "/zoho" : "/app");
 			return;
 		}
 		response.setContentType("text/html; charset=UTF-8");

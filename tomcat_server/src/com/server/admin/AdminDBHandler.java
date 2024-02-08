@@ -72,18 +72,18 @@ public class AdminDBHandler extends HttpServlet
 			DatabaseMetaData databaseMetaData = connection.getMetaData();
 			//new Thread(() -> com.server.common.Util.postMessageToBot("Visitor Alert. \nIP : " + request.getServerName() + "\nSession ID : " + request.getSession().getId())).start();
 			List<String> tableList = new ArrayList<>();
-			ResultSet tableResultSet = databaseMetaData.getTables(null, DBUtil.schemaName, "%", new String[] {"TABLE"});
-			while(tableResultSet.next())
+			try
 			{
-				try
+				ResultSet rs = connection.createStatement().executeQuery("Show tables");
+				while(rs.next())
 				{
-					if(!tableResultSet.getString("TABLE_NAME").equalsIgnoreCase("Table"))
-						tableList.add(tableResultSet.getString("TABLE_NAME"));
-				}
-				catch(Exception e)
-				{
+					tableList.add(rs.getString(1));
 				}
 			}
+			catch(Exception e)
+			{
+			}
+
 			tableList.add("Throttle");
 			Util.writeJSONResponse(response, tableList);
 			return;

@@ -53,7 +53,7 @@ public class ContextListener implements ServletContextListener
 	{
 		RefreshManager.shutDown();
 
-		ProxyServer.shutDown();
+		//ProxyServer.shutDown();
 
 		LOGGER.log(Level.INFO, "Context Destroyed at {0}", Util.getFormattedCurrentTime());
 	}
