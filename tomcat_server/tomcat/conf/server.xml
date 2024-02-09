@@ -19,8 +19,8 @@
 
 
   <Service name="Catalina">
-    <Connector port="8080" protocol="HTTP/1.1" maxThreads="150" minSpareThreads="25"  maxSpareThreads="75" enableLookups="false" acceptCount="100" bindOnInit="false" debug="4" connectionTimeout="20000" disableUploadTimeout="true" useBodyEncodingForURI="true" compression="off" compressionMinSize="2048" noCompressionUserAgents="gozilla, traviata" server="ZGS" parseBodyMethods="POST,PUT" compressableMimeType="text/html,text/xml,text/plain,application/javascript,application/json,text/css,image/gif,text/javascript,application/x-javascript"/>
-    <Connector port="8443" secure="true" maxThreads="150" minSpareThreads="25" maxSpareThreads="75" enableLookups="false" scheme="https" connectionTimeout="20000" clientAuth="false" sslProtocol="TLS" SSLEnabled="true" keystoreFile="conf/sas.keystore" keystorePass="Uwqxh9h11" keystoreType="JKS" />
+    <Connector port="80" protocol="HTTP/1.1" maxThreads="150" minSpareThreads="25"  maxSpareThreads="75" enableLookups="false" acceptCount="100" bindOnInit="false" debug="4" connectionTimeout="20000" disableUploadTimeout="true" useBodyEncodingForURI="true" compression="off" compressionMinSize="2048" noCompressionUserAgents="gozilla, traviata" server="ZGS" parseBodyMethods="POST,PUT" compressableMimeType="text/html,text/xml,text/plain,application/javascript,application/json,text/css,image/gif,text/javascript,application/x-javascript"/>
+    <Connector port="443" secure="true" maxThreads="150" minSpareThreads="25" maxSpareThreads="75" enableLookups="false" scheme="https" connectionTimeout="20000" clientAuth="false" sslProtocol="TLS" SSLEnabled="true" keystoreFile="conf/sas.keystore" keystorePass="Uwqxh9h11" keystoreType="JKS" />
     <Engine name="Catalina" defaultHost="localhost">
       <Realm className="org.apache.catalina.realm.LockOutRealm">
         <Realm className="org.apache.catalina.realm.UserDatabaseRealm"

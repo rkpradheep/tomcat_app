@@ -106,7 +106,7 @@ public class ChatWebSocket
 	public void onClose(Session session, CloseReason closeReason)
 	{
 		LOGGER.info("Session closed " + session.getId());
-		String name = activeSessions.get(session);
+		String name = activeSessions.remove(session);
 		if(Objects.isNull(name))
 		{
 			return;

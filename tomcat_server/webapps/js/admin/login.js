@@ -12,6 +12,7 @@
         "name" : name,
         "password" : password
         }
+        unHideElement("loading");
           fetch( "/api/v1/admin/authenticate", {
                method: "POST",
                 headers: {
@@ -24,6 +25,7 @@
           return response.text();
           }
           ).then(data=> {
+            hideElement("loading");
             const res = JSON.parse(data);
             if(res["message"] != "success")
             {

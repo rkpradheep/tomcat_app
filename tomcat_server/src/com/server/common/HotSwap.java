@@ -44,26 +44,18 @@ public class HotSwap extends HttpServlet
 		}
 		fileWriter.close();
 		String[] command = new String[] {"bash", "-c", "jdb -attach " + host + ":" + port + "< " + fileName};
-		boolean isSuccess = true;
 		String message = "Something went wrong!";
 		try
 		{
-			Pair<Boolean, String> pair = ShellExecutor.execute(command);
-			isSuccess = pair.getLeft();
-			message = pair.getRight();
+			message = ShellExecutor.execute(command);
 		}
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 		}
 		tempFile.delete();
-		if(!isSuccess)
-		{
-			Util.writerErrorResponse(httpServletResponse, message);
-		}
-		else
-		{
-			Util.writeSuccessJSONResponse(httpServletResponse, message);
-		}
+
+		Util.writeSuccessJSONResponse(httpServletResponse, message);
+
 	}
 }

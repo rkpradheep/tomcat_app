@@ -6,6 +6,8 @@ document.getElementById('password').value = "test@123";
     const name = document.getElementById('name').value;
     const password = document.getElementById('password').value;
 
+     unHideElement("loading");
+
         var payload = {
         "name" : name,
         "password" : password
@@ -22,6 +24,7 @@ document.getElementById('password').value = "test@123";
           return response.text();
           }
           ).then(data=> {
+            hideElement("loading");
             const res = JSON.parse(data);
             if(res["message"] != "success")
             {
