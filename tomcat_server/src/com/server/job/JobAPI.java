@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 
 import com.server.common.Util;
+import com.server.security.SecurityUtil;
 
 public class JobAPI extends HttpServlet
 {
@@ -25,7 +26,7 @@ public class JobAPI extends HttpServlet
 		try
 		{
 
-			JSONObject payload = Util.getJSONObject(request);
+			JSONObject payload = SecurityUtil.getJSONObject(request);
 			long millSeconds = payload.optLong("seconds", -1) != -1 ? payload.getLong("seconds") * 1000L : Util.convertDateToMilliseconds(payload.getString("date_time"), "yyyy-MM-dd HH:mm") - System.currentTimeMillis();
 			if(millSeconds < -60 * 1000)
 			{
@@ -36,12 +37,12 @@ public class JobAPI extends HttpServlet
 
 			Long jobID = JobUtil.scheduleJob(payload.getString("task"), payload.optString("data"), millSeconds);
 
-			Util.writeSuccessJSONResponse(response, "Job has been scheduled successfully with ID " + jobID.toString());
+			SecurityUtil.writeSuccessJSONResponse(response, "Job has been scheduled successfully with ID " + jobID.toString());
 		}
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			Util.writerErrorResponse(response, e.getMessage());
+			SecurityUtil.writerErrorResponse(response, e.getMessage());
 		}
 
 	}
@@ -49,7 +50,7 @@ public class JobAPI extends HttpServlet
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		Map<String, String> jobList = Arrays.stream(TaskEnum.values()).collect(Collectors.toMap(TaskEnum::getTaskName, TaskEnum::getTaskDisplayName));
-		Util.writeJSONResponse(response, jobList);
+		Map<String, String> jobList = Arrays.stream(TaskEnum.values()).filter(taskEnum -> request.getRequestURL().toString().contains("pradheep") || !taskEnum.getTaskName().equals(TaskEnum.REMINDER.getTaskName())).collect(Collectors.toMap(TaskEnum::getTaskName, TaskEnum::getTaskDisplayName));
+		SecurityUtil.writeJSONResponse(response, jobList);
 	}
 }

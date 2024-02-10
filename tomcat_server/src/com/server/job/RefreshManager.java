@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.server.common.Util;
+import com.server.security.SecurityUtil;
 
 public class RefreshManager
 {
@@ -60,7 +60,7 @@ public class RefreshManager
 
 				if(jobId != -1)
 				{
-					LOGGER.log(Level.INFO, "Executing task {0} with ID {1} at {2}", new Object[] {task.getClass().getName(), jobId, Util.getFormattedCurrentTime()});
+					LOGGER.log(Level.INFO, "Executing task {0} with ID {1} at {2}", new Object[] {task.getClass().getName(), jobId, SecurityUtil.getFormattedCurrentTime()});
 				}
 
 				task.run(data);

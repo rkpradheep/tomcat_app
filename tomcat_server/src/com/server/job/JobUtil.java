@@ -7,8 +7,8 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.server.common.Util;
-import com.server.db.DBUtil;
+import com.server.security.DBUtil;
+import com.server.security.SecurityUtil;
 
 public class JobUtil
 {
@@ -33,7 +33,7 @@ public class JobUtil
 			id = resultSet.getLong(1);
 		}
 
-		LOGGER.log(Level.INFO, "Job added with ID {0} for task {1} with delay {2} seconds at {3}", new Object[] {Long.toString(id), taskName, milliSeconds / 1000, Util.getFormattedCurrentTime()});
+		LOGGER.log(Level.INFO, "Job added with ID {0} for task {1} with delay {2} seconds at {3}", new Object[] {Long.toString(id), taskName, milliSeconds / 1000, SecurityUtil.getFormattedCurrentTime()});
 		return id;
 	}
 

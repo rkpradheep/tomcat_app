@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import com.server.db.DBUtil;
+import com.server.security.DBUtil;
 import com.server.security.LoginUtil;
 import com.server.security.ThrottleHandler;
 

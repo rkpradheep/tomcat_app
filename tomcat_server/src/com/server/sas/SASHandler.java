@@ -25,9 +25,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
-import com.server.common.Configuration;
+import com.server.security.Configuration;
 import com.server.common.Util;
-import com.server.security.SecurityFilter;
+import com.server.security.SecurityUtil;
 
 public class SASHandler extends HttpServlet
 {
@@ -62,7 +62,7 @@ public class SASHandler extends HttpServlet
 					responseMap.put("lower_limit", limits[0]);
 					responseMap.put("upper_limit", limits[1]);
 
-					Util.writeJSONResponse(response, responseMap);
+					SecurityUtil.writeJSONResponse(response, responseMap);
 				}
 				else
 				{
@@ -73,13 +73,13 @@ public class SASHandler extends HttpServlet
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			Util.writerErrorResponse(response, e.getMessage());
+			SecurityUtil.writerErrorResponse(response, e.getMessage());
 		}
 	}
 
 	private void handleSasRequest(HttpServletRequest request, HttpServletResponse response) throws Exception
 	{
-		JSONObject credentials = Util.getJSONObject(request);
+		JSONObject credentials = SecurityUtil.getJSONObject(request);
 
 		boolean is_encrypted = credentials.optBoolean("is_encrypted");
 
@@ -113,7 +113,7 @@ public class SASHandler extends HttpServlet
 			boolean exist = resultSet.next();
 			if(!exist)
 			{
-				Util.writerErrorResponse(response, "Invalid zsid or pk");
+				SecurityUtil.writerErrorResponse(response, "Invalid zsid or pk");
 				return;
 			}
 			long[] limits = SASUtil.getLimits(Long.valueOf(resultSet.getString("ID")));
@@ -139,7 +139,7 @@ public class SASHandler extends HttpServlet
 			Map<String, Object> finalResponse = new LinkedHashMap<>();
 			finalResponse.put("sas_meta", responseMap);
 			SASUtil.handleQuery(query, server, clusterIP, schema, user, password, finalResponse, limits[0], limits[1]);
-			Util.writeJSONResponse(response, finalResponse);
+			SecurityUtil.writeJSONResponse(response, finalResponse);
 		}
 	}
 
@@ -163,7 +163,7 @@ public class SASHandler extends HttpServlet
 				{
 				}
 			}
-			Util.writeJSONResponse(response, tableList);
+			SecurityUtil.writeJSONResponse(response, tableList);
 			return;
 		}
 
@@ -206,7 +206,7 @@ public class SASHandler extends HttpServlet
 		result.put("columns", columnList);
 		result.put("pk", pkName);
 
-		Util.writeJSONResponse(response, result);
+		SecurityUtil.writeJSONResponse(response, result);
 	}
 
 	private void getSasMeta(HttpServletRequest request, HttpServletResponse response) throws Exception
@@ -252,7 +252,7 @@ public class SASHandler extends HttpServlet
 			map.put(service, serviceCredentials);
 		}
 
-		Util.writeJSONResponse(response, map);
+		SecurityUtil.writeJSONResponse(response, map);
 
 	}
 
@@ -270,7 +270,7 @@ public class SASHandler extends HttpServlet
 
 			responseMap.put(service, serviceDetails);
 		}
-		Util.writeJSONResponse(response, responseMap);
+		SecurityUtil.writeJSONResponse(response, responseMap);
 	}
 
 }

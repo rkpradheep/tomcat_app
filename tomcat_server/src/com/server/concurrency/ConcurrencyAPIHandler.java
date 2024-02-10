@@ -42,9 +42,10 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.json.JSONObject;
 
 import com.server.common.Util;
-import com.server.http.FormData;
-import com.server.http.HttpAPI;
-import com.server.http.HttpResponse;
+import com.server.security.http.FormData;
+import com.server.security.http.HttpAPI;
+import com.server.security.http.HttpResponse;
+import com.server.security.SecurityUtil;
 
 public class ConcurrencyAPIHandler extends HttpServlet
 {
@@ -53,14 +54,14 @@ public class ConcurrencyAPIHandler extends HttpServlet
 	@Override
 	public void service(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		Map<String, FormData> formDataMap = Util.parseMultiPartFormData(request);
+		Map<String, FormData> formDataMap = SecurityUtil.parseMultiPartFormData(request);
 
 		JSONObject jsonObject = new JSONObject(formDataMap.get("meta_json").getValue());
 		int concurrencyCalls = jsonObject.getInt("concurrency_calls");
 
 		if(concurrencyCalls > 100 && !StringUtils.equals(jsonObject.getString("password"), "1155"))
 		{
-			Util.writerErrorResponse(response, "Concurrent call value is above 100 and password provided is invalid.");
+			SecurityUtil.writerErrorResponse(response, "Concurrent call value is above 100 and password provided is invalid.");
 			return;
 		}
 
@@ -99,11 +100,11 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		String previousForwardedFor = headersMap.getOrDefault("x-forwarded-for", StringUtils.EMPTY);
 		previousForwardedFor = StringUtils.isNotEmpty(previousForwardedFor) ? previousForwardedFor.concat(",") : StringUtils.EMPTY;
 
-		headersMap.put("x-forwarded-for", previousForwardedFor.concat(Util.getUserIP(request)));
+		headersMap.put("x-forwarded-for", previousForwardedFor.concat(SecurityUtil.getUserIP(request)));
 
 		if(!HttpAPI.isValidURL(url))
 		{
-			Util.writerErrorResponse(response, "API URL provided is invalid. Please check and try again.");
+			SecurityUtil.writerErrorResponse(response, "API URL provided is invalid. Please check and try again.");
 			return;
 		}
 
@@ -153,7 +154,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 
 		LOGGER.log(Level.INFO, "Response list size {0}", responseList.size());
 
-		Util.writeJSONResponse(response, responseList);
+		SecurityUtil.writeJSONResponse(response, responseList);
 	}
 
 	static InputStream getInputStream(Map<String, FormData> formDataMap, Map<String, String> headersMap) throws IOException

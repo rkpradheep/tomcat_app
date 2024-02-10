@@ -15,7 +15,7 @@ rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
 rem ---------------------------------------------------------------------------
-rem com.server.common.Configuration test script for the CATALINA Server
+rem Configuration test script for the CATALINA Server
 rem ---------------------------------------------------------------------------
 
 setlocal

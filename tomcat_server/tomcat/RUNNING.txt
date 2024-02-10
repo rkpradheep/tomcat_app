@@ -119,7 +119,7 @@ additional options for the java command that starts Tomcat.
 See the Java documentation for the options that affect the Java Runtime
 Environment.
 
-See the "System Properties" page in the Tomcat com.server.common.Configuration Reference for
+See the "System Properties" page in the Tomcat Configuration Reference for
 the system properties that are specific to Tomcat.
 
 A similar variable is JAVA_OPTS. It is used less frequently. It allows
@@ -132,8 +132,8 @@ belong to CATALINA_OPTS.
 
 Another frequently used variable is CATALINA_PID (on *nix only). It
 specifies the location of the file where process id of the forked Tomcat
-java process will be written. This setting is optional. It will enable the
-following features:
+java process will be written. This setting is optional. It will activate
+the following features:
 
  *  better protection against duplicate start attempts and
  *  allows forceful termination of Tomcat process when it does not react to
@@ -227,7 +227,7 @@ launches Java directly and does not use the script files.
       $CATALINA_HOME/bin/catalina.sh stop
 
 ==================================================
-Advanced com.server.common.Configuration - Multiple Tomcat Instances
+Advanced Configuration - Multiple Tomcat Instances
 ==================================================
 
 In many circumstances, it is desirable to have a single copy of a Tomcat
@@ -316,7 +316,7 @@ The file will look like the following:
   </Context>
 
 See Deployer chapter in User Guide and Context and Host chapters in the
-com.server.common.Configuration Reference for more information on contexts and web
+Configuration Reference for more information on contexts and web
 application deployment.
 
 
@@ -397,7 +397,7 @@ For further reading:
       https://tomcat.apache.org/tomcat-9.0-doc/apr.html
 
     * Documentation for the HTTP and AJP protocol connectors in the Tomcat
-      com.server.common.Configuration Reference
+      Configuration Reference
 
       https://tomcat.apache.org/tomcat-9.0-doc/config/http.html
 
@@ -421,9 +421,9 @@ For further reading:
 
       https://httpd.apache.org/
 
-To disable Apache Tomcat Native library:
+To deactivate Apache Tomcat Native library:
 
- - To disable Apache Tomcat Native library when it is installed, or
+ - To deactivate Apache Tomcat Native library when it is installed, or
  - To remove the warning that is logged during Tomcat startup when the
    library is not installed:
 

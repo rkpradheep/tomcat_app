@@ -19,8 +19,8 @@
             Building The Apache Tomcat 9.0 Servlet/JSP Container
             ====================================================
 
-This subproject contains the source code for Tomcat 9.0, a container that
-implements the Servlet 4.0, JSP 2.3, EL 3.0, com.server.chat.ChatWebSocket 1.1 and JASPIC 1.1
+This project contains the source code for Tomcat 9.0, a container that
+implements the Servlet 4.0, JSP 2.3, EL 3.0, WebSocket 1.1 and JASPIC 1.1
 specifications from the Java Community Process <https://www.jcp.org/>.
 
 Note: If you just need to run Apache Tomcat, it is not necessary to build
@@ -35,7 +35,7 @@ source distribution, do the following:
 
  1. If the JDK is already installed, skip to (2).
 
- 2. Download a version 11 or later of Java Development Kit (JDK) release (use
+ 2. Download a version 17 or later of Java Development Kit (JDK) release (use
     the latest update available for your chosen version) from one of:
 
         http://www.oracle.com/technetwork/java/javase/downloads/index.html
@@ -64,9 +64,9 @@ source distribution, do the following:
     into which you installed the JDK release.
 
 
-(2) Install Apache Ant version 1.9.10 or later on your computer.
+(2) Install Apache Ant version 1.10.2 or later on your computer.
 
- 1. If Apache Ant version 1.9.10 or later is already installed on your
+ 1. If Apache Ant version 1.10.2 or later is already installed on your
     computer, skip to (3).
 
  2. Download a binary distribution of Ant from:
@@ -94,7 +94,7 @@ source distribution, do the following:
 (3.1) Checkout or obtain the source code for Tomcat 9.0
 
 Clone the source using git, then checkout a specific major branch or
-master for the latest code development, or download and unpack a source
+main for the latest code development, or download and unpack a source
 package.
 
  *  Tomcat GitHub repository URL:
@@ -272,7 +272,7 @@ You can build them by using the following commands:
     You do not need it if you do not plan to sign the release.
 
     If "gpg.exec" property does not point to an existing file, it will be
-    ignored and this feature will be disabled.
+    ignored and this feature will be deactivated.
 
     You will be prompted for the GPG passphrase when the release build
     starts, unless "gpg.passphrase" property is set.
@@ -301,8 +301,35 @@ You can build them by using the following commands:
 
  4. Build the release:
 
+    Apache Tomcat releases are fully reproducible.
+
+    Release managers producing release builds must follow the following
+    procedure:
+
+    cd ${tomcat.source}
+    ant pre-release
+    ant release
+    git commit -a -m "Tag <version-number>"
+    git tag <vesion-number>
+    git push origin <version-number>
+    ant release
+    git reset --hard HEAD~1
+
+    The output from either 'ant release' call may be uploaded as the official
+    release since they will be identical. It is recommended that the output from
+    the second call is used.
+
+    Anyone wishing to reproduce an official build must do so from an official
+    source release. The build tool chain defined in build.properties.release
+    must be used to reproduce an official build. Once unpacked to
+    ${tomcat.source}, the following steps must be followed
+
     cd ${tomcat.source}
     ant release
+
+    Following the same steps without using the defined build tool chain will
+    create a release that is functionally the same as an official release but
+    not bit for bit identical.
 
 
 (7) Tests
@@ -330,7 +357,7 @@ implementations of Tomcat connectors: NIO, NIO2 and APR. (If you are not
 familiar with Tomcat connectors, see config/http.html in documentation for
 details).
 
-The 3 runs are enabled and disabled individually by the following
+The 3 runs are activated and deactivated individually by the following
 properties, which all are "true" by default:
 
     execute.test.nio=true
@@ -343,10 +370,10 @@ where the library binaries are located.
 
 By default the "test.apr.loc" property specifies the following location:
 
-    output/build/bin/native/
+    output/build/bin/
 
 If you are on Windows and want to test the APR connector you can put the
-tcnative-1.dll file into ${tomcat.source}/bin/native/ and it will be copied
+tcnative-1.dll file into ${tomcat.source}/bin/ and it will be copied
 into the above directory when the build runs.
 
 The unit tests include tests of the clustering functionality which require
@@ -427,10 +454,10 @@ as for the property "test.name".
         output/test-tmp/logs
 
  4. It is possible to configure formatter used by JUnit reports.
- com.server.common.Configuration properties are "junit.formatter.type",
+ Configuration properties are "junit.formatter.type",
  "junit.formatter.extension" and "junit.formatter.usefile".
 
- For example the following property disables generation of separate report
+ For example the following property deactivates generation of separate report
  files:
 
         junit.formatter.usefile=false
@@ -454,36 +481,43 @@ NOTE: Cobertura is licensed under GPL v2 with parts of it being under
 
  Using Cobertura currently requires setting test.threads configuration
  property to the value of 1. Setting that property to a different value
- will disable code coverage.
+ will deactivate code coverage.
 
  The report files by default are written to
 
         output/coverage
 
- 7. The performance tests are written to run reasonably powerful machines (such
-    as a developer may use day to day) assuming no other resource hungry
+ 7. The performance tests are written to run on reasonably powerful machines
+    (such as a developer may use day to day) assuming no other resource hungry
     processes are running.
 
     These assumptions are not always true (e.g. on CI systems running in a
-    virtual machine) so the performance tests may be disabled by using the
+    virtual machine) so the performance tests may be deactivated by using the
     following property:
 
         test.excludePerformance=true
 
- 8. Some tests include checks that the access log valve entries are as expected.
+ 8. Some tests are require large heaps (e.g. 8GB). The CI systems used by the
+    project either cannot support heaps of this size or do not support them by
+    default. These tests are therefore disabled by default and may be enabled by
+    using the following property:
+
+        test.includeLargeHeap=true
+
+ 9. Some tests include checks that the access log valve entries are as expected.
     These checks include timings. On slower / loaded systems these checks will
     often fail. The checks may be relaxed by using the following property:
 
         test.relaxTiming=true
 
- 9. It is known that some platforms (e.g. OSX El Capitan) require IPv4 to
-    be the default for the multicast tests to work. This is configured by
-    the following property:
+ 10. It is known that some platforms (e.g. OSX El Capitan) require IPv4 to
+     be the default for the multicast tests to work. This is configured by
+     the following property:
 
         java.net.preferIPv4Stack=true
 
- 10. By default the output of unit tests is sent to the console and can be
-     quite verbose. The output can be disabled by setting the property:
+ 11. By default the output of unit tests is sent to the console and can be
+     quite verbose. The output can be deactivated by setting the property:
 
         test.verbose=false
 

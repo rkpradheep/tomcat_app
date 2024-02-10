@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONObject;
 
+import com.server.security.SecurityUtil;
 import com.server.unix.ShellExecutor;
 
 public class HotSwap extends HttpServlet
@@ -25,7 +25,7 @@ public class HotSwap extends HttpServlet
 	@Override
 	protected void doPost(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException
 	{
-		JSONObject jsonObject = Util.getJSONObject(httpServletRequest);
+		JSONObject jsonObject = SecurityUtil.getJSONObject(httpServletRequest);
 		JSONObject hotswapDetails = jsonObject.getJSONObject("hotswap_details");
 		List<String> classNames = hotswapDetails.keySet().stream().collect(Collectors.toList());
 
@@ -55,7 +55,7 @@ public class HotSwap extends HttpServlet
 		}
 		tempFile.delete();
 
-		Util.writeSuccessJSONResponse(httpServletResponse, message);
+		SecurityUtil.writeSuccessJSONResponse(httpServletResponse, message);
 
 	}
 }

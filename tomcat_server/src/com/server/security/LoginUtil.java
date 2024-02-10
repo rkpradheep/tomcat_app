@@ -6,8 +6,6 @@ import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.server.db.DBUtil;
-
 public class LoginUtil
 {
 	private static final Logger LOGGER = Logger.getLogger(LoginUtil.class.getName());

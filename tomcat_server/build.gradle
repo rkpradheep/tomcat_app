@@ -11,6 +11,26 @@ sourceSets {
     }
 }
 
+ext.replaceToken = { filePath, entries ->
+
+    if(entries) {
+        File file = new File(filePath)
+        if(file.exists ()) {
+            String contents = file.getText ('UTF-8')
+            entries.each() {
+                if(it.to.contains('$')) {
+                    contents = contents.replace(it.from, it.to)
+                }
+                else {
+                    contents = contents.replaceAll(it.from, it.to)
+                }
+            }
+            new File(filePath).write( contents, 'UTF-8' )
+        }
+    }
+
+}
+
 ext.configureTaskDependencies = { task, dependentTasks ->
     task.dependsOn (dependentTasks)
     for (int i = 0; i < dependentTasks.size () - 1; i++) {
@@ -27,20 +47,20 @@ task bundleResource {
             into "${serverPath}/build/tomcat_server"
         }
 
-         copy{
-                from "${serverPath}/../app.properties"
-                into "${serverPath}/build/tomcat_server/WEB-INF/conf"
-            }
-
         copy {
             from "${serverPath}/classes"
-            exclude "com/server/tomcat"
+            exclude "com/server/tomcat", "com/server/security"
             into "${serverPath}/build/tomcat_server/WEB-INF/classes"
         }
 
         copy {
             from "${serverPath}/resources"
             into "${serverPath}/build/tomcat_server/WEB-INF/classes"
+        }
+
+        copy {
+            from "${home}/app.properties"
+            into "${serverPath}/classes/com/server/security"
         }
 
         copy {
@@ -63,9 +83,9 @@ task packRootWar(type: War) {
 
 task deployBuild{
     doLast{
-        if(file("${home}/tomcat_build/webapps").listFiles() != null)
+        if(file("${home}/tomcat_build/webapps/ROOT").listFiles() != null)
         {
-            delete file("${home}/tomcat_build/webapps").listFiles()
+            delete file("${home}/tomcat_build/webapps/ROOT")
         }
         copy {
             from "${serverPath}/build/ROOT.war"
@@ -86,10 +106,20 @@ task setupTomcatContainer{
             from "${serverPath}/tomcat/"
             into "${home}/tomcat_build"
         }
+        replaceToken("${home}/tomcat_build/bin/setenv.sh", [
+                [from: "MY_HOME=",
+                 to: "MY_HOME=${home}"
+                ]
+        ])
         copy{
             from "${serverPath}/build/CustomTomcatValves.jar"
             into "${home}/tomcat_build/lib"
         }
+        copy{
+            from "${serverPath}/build/security.jar"
+            into "${home}/tomcat_build/lib"
+        }
+
         println "set up tomcat container completed"
     }
 }
@@ -102,6 +132,13 @@ task buildTomcatValvesJar(type: Jar) {
     destinationDir = file("${serverPath}/build")
 }
 
+task buildSecurityJar(type: Jar) {
+    archiveFileName = "security.jar"
+    from "${serverPath}/classes"
+    include 'com/server/security/**'
+    destinationDir = file("${serverPath}/build")
+}
+
 task fullBuild{
     doLast{
         println "Full build completed"
@@ -110,6 +147,7 @@ task fullBuild{
 
 task cleanUp{
     doLast{
+        delete "${home}/build"
         delete "${serverPath}/build"
         delete "${serverPath}/classes"
         println "clean up completed"
@@ -169,7 +207,7 @@ def getTomcatCommand(isStart)
     }
 }
 
-configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, deployBuild, cleanUp])
+configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, buildSecurityJar, setupTomcatContainer, deployBuild, cleanUp])
 configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, stopTomcat, deployBuild, cleanUp, startTomcat])
 
 defaultTasks 'updateBuild'

@@ -54,16 +54,6 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-
-	<filter>
-		<filter-name>SecurityFilter</filter-name>
-		<filter-class>com.server.security.SecurityFilter</filter-class>
-	</filter>
-	<filter-mapping>
-		<filter-name>SecurityFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
 	<listener>
 		<listener-class>com.server.common.ContextListener</listener-class>
 	</listener>
@@ -201,7 +191,7 @@
 
 	<servlet>
 	<servlet-name>UserHandler</servlet-name>
-		<servlet-class>com.server.user.UserHandler</servlet-class>
+		<servlet-class>com.server.security.user.UserHandler</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>UserHandler</servlet-name>

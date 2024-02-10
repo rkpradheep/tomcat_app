@@ -9,14 +9,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
-import com.server.common.Util;
-
 public class LoginHandler extends HttpServlet
 {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		JSONObject jsonObject = Util.getJSONObject(request);
+		JSONObject jsonObject = SecurityUtil.getJSONObject(request);
 
 		boolean isAdminLogin = SecurityUtil.isAdminCall(request.getRequestURI());
 		String tokenName = isAdminLogin ? "iam_admin_token" : "iam_token";
@@ -36,10 +34,10 @@ public class LoginHandler extends HttpServlet
 
 			response.setHeader("Set-Cookie", header.toString());
 
-			Util.writeSuccessJSONResponse(response, "success");
+			SecurityUtil.writeSuccessJSONResponse(response, "success");
 			return;
 		}
-		Util.writerErrorResponse(response, "failed");
+		SecurityUtil.writerErrorResponse(response, "failed");
 	}
 
 }

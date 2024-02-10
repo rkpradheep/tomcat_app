@@ -47,3 +47,9 @@ Docker without sudo
 sudo groupadd docker
 sudo usermod -aG docker $USER
 su - $USER
+
+
+
+To generate self signed certificate
+
+keytool -genkeypair -v  -keystore tomcat.jks   -keyalg RSA   -keysize 2048   -validity 365   -storepass tomcat   -keypass tomcat

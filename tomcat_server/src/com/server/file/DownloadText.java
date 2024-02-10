@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.server.common.Util;
+import com.server.security.SecurityUtil;
 
 public class DownloadText extends HttpServlet
 {
@@ -28,7 +28,7 @@ public class DownloadText extends HttpServlet
 
 		try(OutputStream outputStream = response.getOutputStream())
 		{
-			outputStream.write(Util.readAllBytes(fileInputStream));
+			outputStream.write(SecurityUtil.readAllBytes(fileInputStream));
 		}
 		catch(IOException e)
 		{
@@ -43,17 +43,17 @@ public class DownloadText extends HttpServlet
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
 
-		String text = Util.getJSONObject(request).getString("text");
+		String text = SecurityUtil.getJSONObject(request).getString("text");
 
 		try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(text.getBytes());)
 		{
 			String fileName = "text_" + System.currentTimeMillis() + ".txt";
 			FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-			fileOutputStream.write(Util.readAllBytes(byteArrayInputStream));
+			fileOutputStream.write(SecurityUtil.readAllBytes(byteArrayInputStream));
 
 			Map<String, String> responseMap = new HashMap<>();
 			responseMap.put("file_name", fileName);
-			Util.writeJSONResponse(response, responseMap);
+			SecurityUtil.writeJSONResponse(response, responseMap);
 		}
 		catch(IOException e)
 		{

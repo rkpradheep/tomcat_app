@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.server.common.Configuration;
+import com.server.security.Configuration;
 import com.server.common.Util;
 
 public class ShellExecutor extends HttpServlet

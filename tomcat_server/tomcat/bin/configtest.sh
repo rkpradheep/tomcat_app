@@ -16,7 +16,7 @@
 # limitations under the License.
 
 # -----------------------------------------------------------------------------
-# com.server.common.Configuration Test Script for the CATALINA Server
+# Configuration Test Script for the CATALINA Server
 # -----------------------------------------------------------------------------
 
 # Better OS/400 detection: see Bugzilla 31132

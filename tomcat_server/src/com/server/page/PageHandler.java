@@ -6,8 +6,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.server.common.Util;
-import com.server.db.DBUtil;
+import com.server.security.DBUtil;
+import com.server.security.SecurityUtil;
 
 public class PageHandler extends HttpServlet
 {
@@ -20,7 +20,7 @@ public class PageHandler extends HttpServlet
 			return;
 		}
 		response.setContentType("text/html; charset=UTF-8");
-		String outputHtml = Util.readFileAsString(request.getRequestURI() + ".html");
+		String outputHtml = SecurityUtil.readFileAsString(request.getRequestURI() + ".html");
 		response.getWriter().println(outputHtml);
 	}
 }

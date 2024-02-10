@@ -1,26 +1,15 @@
 package com.server.common;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.FilterOutputStream;
 import java.net.ProxySelector;
-import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
-
-import com.server.db.DBUtil;
 import com.server.file.FileManager;
 import com.server.job.RefreshManager;
-import com.server.proxy.ProxyServer;
+import com.server.security.SecurityUtil;
 
 public class ContextListener implements ServletContextListener
 {
@@ -29,23 +18,17 @@ public class ContextListener implements ServletContextListener
 	@Override
 	public void contextInitialized(ServletContextEvent sce)
 	{
-		LOGGER.log(Level.INFO, "Initializing Context at {0}", Util.getFormattedCurrentTime());
+		LOGGER.log(Level.INFO, "Initializing Context at {0}", SecurityUtil.getFormattedCurrentTime());
 
 		ProxySelector.setDefault(new ProxySelectorExtension());
 
-		Configuration.load(sce.getServletContext());
-
 		//ProxyServer.init();
-
-		DBUtil.initialiseDataSource();
 
 		RefreshManager.init();
 
 		FileManager.copyUploads();
 
-		Util.init(sce.getServletContext());
-
-		LOGGER.log(Level.INFO, "Context Initialised at {0}", Util.getFormattedCurrentTime());
+		LOGGER.log(Level.INFO, "Context Initialised at {0}", SecurityUtil.getFormattedCurrentTime());
 	}
 
 	@Override
@@ -55,6 +38,6 @@ public class ContextListener implements ServletContextListener
 
 		//ProxyServer.shutDown();
 
-		LOGGER.log(Level.INFO, "Context Destroyed at {0}", Util.getFormattedCurrentTime());
+		LOGGER.log(Level.INFO, "Context Destroyed at {0}", SecurityUtil.getFormattedCurrentTime());
 	}
 }

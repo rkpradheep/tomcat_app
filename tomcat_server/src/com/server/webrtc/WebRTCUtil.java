@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.server.common.Configuration;
-import com.server.common.Util;
+import com.server.security.Configuration;
+import com.server.security.SecurityUtil;
 
 public class WebRTCUtil extends HttpServlet
 {
@@ -36,6 +36,6 @@ public class WebRTCUtil extends HttpServlet
 			iceServers.add(iceServer);
 		}
 
-		Util.writeJSONResponse(response, iceServers);
+		SecurityUtil.writeJSONResponse(response, iceServers);
 	}
 }

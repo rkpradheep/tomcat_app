@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.server.common.Util;
+import com.server.security.SecurityUtil;
 
 public class CSVParser extends HttpServlet
 {
@@ -76,7 +76,7 @@ public class CSVParser extends HttpServlet
 					responseMap.put("table_data", tableData.toString());
 					responseMap.put("total", String.valueOf(counter.decrementAndGet()));
 					item.delete();
-					Util.writeJSONResponse(httpServletResponse, responseMap);
+					SecurityUtil.writeJSONResponse(httpServletResponse, responseMap);
 				}
 				break;
 			}
@@ -84,7 +84,7 @@ public class CSVParser extends HttpServlet
 		}
 		catch(Exception e)
 		{
-			Util.writerErrorResponse(httpServletResponse, e.getMessage());
+			SecurityUtil.writerErrorResponse(httpServletResponse, e.getMessage());
 		}
 	}
 

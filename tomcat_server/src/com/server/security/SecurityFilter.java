@@ -2,7 +2,6 @@ package com.server.security;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -10,6 +9,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -19,32 +20,34 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
-import com.server.common.Util;
-import com.server.user.User;
-import com.server.user.UserUtil;
+import com.server.security.user.User;
+import com.server.security.user.UserUtil;
 
 public class SecurityFilter implements Filter
 {
 	public static final ThreadLocal<User> CURRENT_USER_TL = new ThreadLocal<>();
+	public static final ThreadLocal<ServletContext> SERVLET_CONTEXT_TL = new ThreadLocal<>();
 	private static final Logger LOGGER = Logger.getLogger(SecurityFilter.class.getName());
 
 	@Override public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException
 	{
 		try
 		{
+			SERVLET_CONTEXT_TL.set(servletRequest.getServletContext());
+
 			HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
 			HttpServletResponse httpServletResponse = ((HttpServletResponse) servletResponse);
 
 			String requestURI = httpServletRequest.getRequestURI();
 			String requestURL = httpServletRequest.getRequestURL().toString();
 
-			if(!Util.isValidEndPoint(requestURI))
+			if(!SecurityUtil.isValidEndPoint(requestURI))
 			{
 				httpServletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
 				return;
 			}
 
-			if(!Util.isResourceUri(requestURI) && !ThrottleHandler.handleThrottling(httpServletRequest))
+			if(!SecurityUtil.isResourceUri(servletRequest.getServletContext(), requestURI) && !ThrottleHandler.handleThrottling(httpServletRequest))
 			{
 				httpServletResponse.sendError(429);
 				return;
@@ -68,7 +71,7 @@ public class SecurityFilter implements Filter
 
 			if(SecurityUtil.isLoggedIn())
 			{
-				LOGGER.log(Level.INFO, "Request received for uri {0}  Session {1} IP {2}", new Object[] {requestURI, CURRENT_USER_TL.get().getSessionId(), Util.getUserIP(httpServletRequest)});
+				LOGGER.log(Level.INFO, "Request received for uri {0}  Session {1} IP {2}", new Object[] {requestURI, CURRENT_USER_TL.get().getSessionId(), SecurityUtil.getUserIP(httpServletRequest)});
 				filterChain.doFilter(servletRequest, servletResponse);
 			}
 			else
@@ -78,11 +81,11 @@ public class SecurityFilter implements Filter
 					String errorMessage = StringUtils.isNotEmpty(httpServletRequest.getHeader("Authorization")) ? "Invalid value passed for Authorization header" : "Session expired. Please login again and try.";
 					Map<String, String> additionalData = new HashMap<>();
 					additionalData.put("redirect_uri", SecurityUtil.getRedirectURI(httpServletRequest));
-					Util.writerErrorResponse(httpServletResponse, HttpStatus.SC_UNAUTHORIZED, "authentication_needed", errorMessage, additionalData);
+					SecurityUtil.writerErrorResponse(httpServletResponse, HttpStatus.SC_UNAUTHORIZED, "authentication_needed", errorMessage, additionalData);
 				}
 				else
 				{
-					String loginPage = requestURI.startsWith("/admin") ? "/admin/login" : "/login";
+					String loginPage = SecurityUtil.isAdminCall(requestURI) ? "/admin/login" : "/login";
 					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, "UTF-8");
 
 					httpServletResponse.sendRedirect(loginPage);
@@ -92,6 +95,7 @@ public class SecurityFilter implements Filter
 		finally
 		{
 			CURRENT_USER_TL.remove();
+			SERVLET_CONTEXT_TL.remove();
 		}
 	}
 

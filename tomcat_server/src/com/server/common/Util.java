@@ -8,29 +8,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.crypto.Cipher;
 import javax.mail.Authenticator;
@@ -44,43 +31,18 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.tomcat.websocket.server.WsServerContainer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.server.http.FormData;
+import com.server.security.Configuration;
 
 public class Util
 {
 	public static final String HOME_PATH = System.getenv("MY_HOME");
 
 	private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
-
-	private static ServletContext SERVLET_CONTEXT;
-	private static List<String> API_END_POINTS;
-
-	public static void init(ServletContext servletContext)
-	{
-		SERVLET_CONTEXT = servletContext;
-
-		API_END_POINTS = servletContext.getServletRegistrations().keySet().stream()
-			.map(SERVLET_CONTEXT::getServletRegistration)
-			.map(ServletRegistration::getMappings)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
-	}
 
 	public static String encryptData(PublicKey publicKey, String plainText)
 	{
@@ -222,44 +184,6 @@ public class Util
 		}
 	}
 
-	public static void writerErrorResponse(HttpServletResponse response, String message) throws IOException
-	{
-		writerErrorResponse(response, HttpStatus.SC_BAD_REQUEST, null, message);
-	}
-
-	public static void writerErrorResponse(HttpServletResponse response, int statusCode, String code, String message) throws IOException
-	{
-		response.setStatus(statusCode);
-
-		Map<String, String> responseMap = new HashMap<>();
-		responseMap.put("error", message);
-		responseMap.put("code", code);
-
-		writeJSONResponse(response, responseMap);
-	}
-
-	public static void writerErrorResponse(HttpServletResponse response, int statusCode, String code, String message, Map<String, String> additionalData) throws IOException
-	{
-		response.setStatus(statusCode);
-
-		Map<String, String> responseMap = new HashMap<>();
-		responseMap.put("error", message);
-		responseMap.put("code", code);
-		responseMap.putAll(additionalData);
-
-		writeJSONResponse(response, responseMap);
-	}
-
-	public static String getFormattedCurrentTime()
-	{
-		return getFormattedTime(System.currentTimeMillis());
-	}
-
-	public static String getFormattedTime(Long timeInMilliseconds)
-	{
-		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliseconds), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("hh : mm a"));
-	}
-
 	public static JSONObject getZohoSecrets(String dc)
 	{
 		JSONObject oauthCredentials = new JSONObject();
@@ -269,80 +193,6 @@ public class Util
 		oauthCredentials.put("redirect_uri", Configuration.getProperty("oauth.$.client.redirecturi".replace("$", dc)));
 
 		return oauthCredentials;
-	}
-
-	public static JSONObject getJSONObject(HttpServletRequest request) throws IOException
-	{
-		return new JSONObject(request.getReader().lines().collect(Collectors.joining()));
-	}
-
-	public static byte[] readAllBytes(InputStream inputStream) throws IOException
-	{
-
-		byte[] bytes = new byte[inputStream.available()];
-		inputStream.read(bytes);
-		return bytes;
-	}
-
-	public static Map<String, FormData> parseMultiPartFormData(HttpServletRequest request) throws IOException
-	{
-		List<FileItem> items;
-
-		DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
-		try
-		{
-			items = new ServletFileUpload(diskFileItemFactory).parseRequest(request);
-		}
-		catch(Exception e)
-		{
-			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			return new HashMap<>();
-		}
-
-		Map<String, FormData> formDataMap = new HashMap<>();
-		for(FileItem item : items)
-		{
-			if(item.isFormField())
-			{
-				String fieldName = item.getFieldName();
-				String fieldValue = item.getString();
-
-				FormData formData = new FormData();
-				formData.setValue(fieldValue);
-				formDataMap.put(fieldName, formData);
-			}
-			else
-			{
-				String fieldName = item.getFieldName();
-
-				FormData formData = formDataMap.getOrDefault(fieldName, new FormData());
-				formData.setIsFile(true);
-
-				List<FormData.FileData> fileDataList = formData.getFileDataList();
-
-				FormData.FileData fileData = new FormData.FileData(item.getName(), readAllBytes(item.getInputStream()));
-				fileDataList.add(fileData);
-
-				formDataMap.put(item.getFieldName(), formData);
-			}
-		}
-
-		return formDataMap;
-	}
-
-	public static void writeJSONResponse(HttpServletResponse response, Object responseObject) throws IOException
-	{
-		response.setContentType("application/json");
-
-		ObjectMapper objectMapper = new ObjectMapper();
-		response.getWriter().print(objectMapper.writeValueAsString(responseObject));
-	}
-
-	public static void writeSuccessJSONResponse(HttpServletResponse response, String responseMessage) throws IOException
-	{
-		Map<String, String> responseMap = new HashMap<>();
-		responseMap.put("message", responseMessage);
-		writeJSONResponse(response, responseMap);
 	}
 
 	public static String readFileAsString(File file) throws IOException
@@ -355,36 +205,9 @@ public class Util
 		return stringWriter.toString();
 	}
 
-	public static String readFileAsString(String fileName) throws IOException
-	{
-		InputStream inputStream = SERVLET_CONTEXT.getResourceAsStream("/WEB-INF/conf/".concat(fileName));
-
-		StringWriter stringWriter = new StringWriter();
-
-		IOUtils.copy(inputStream, stringWriter);
-
-		return stringWriter.toString();
-	}
-
 	public static long convertDateToMilliseconds(String date, String format) throws ParseException
 	{
 		return new SimpleDateFormat(format).parse(date).getTime();
-	}
-
-	public static boolean isValidEndPoint(String endPoint) throws MalformedURLException
-	{
-		return API_END_POINTS.contains(endPoint) || isValidWebSocketEndPoint(endPoint) || Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint));
-	}
-
-	public static boolean isResourceUri(String endPoint) throws MalformedURLException
-	{
-		return Objects.nonNull(SERVLET_CONTEXT.getResource(endPoint)) && !endPoint.endsWith(".jsp") && !endPoint.endsWith(".html");
-	}
-
-	public static boolean isValidWebSocketEndPoint(String endPoint)
-	{
-		Object mappingResult = ((WsServerContainer) SERVLET_CONTEXT.getAttribute("javax.websocket.server.ServerContainer")).findMapping(endPoint);
-		return Objects.nonNull(mappingResult);
 	}
 
 	public static Object getJSONFromString(String value)
@@ -406,18 +229,4 @@ public class Util
 		}
 	}
 
-	public static String getUserIP(HttpServletRequest request)
-	{
-		return StringUtils.defaultIfEmpty(Util.getHeader(request.getHeaders("x-forwarded-for")), request.getRemoteAddr());
-	}
-
-	public static String getHeader(Enumeration<String> headersEnumeration)
-	{
-		String headerValue = StringUtils.EMPTY;
-		while(headersEnumeration.hasMoreElements())
-		{
-			headerValue += headersEnumeration.nextElement() + ",";
-		}
-		return headerValue.replaceAll(",$", StringUtils.EMPTY);
-	}
 }

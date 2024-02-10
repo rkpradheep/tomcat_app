@@ -11,9 +11,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import com.server.common.Configuration;
-import com.server.common.Util;
-import com.server.db.DBUtil;
+import com.server.security.Configuration;
+import com.server.security.DBUtil;
+import com.server.security.SecurityUtil;
 
 public class PropertyHandler extends HttpServlet
 {
@@ -23,20 +23,20 @@ public class PropertyHandler extends HttpServlet
 		String propertyName = httpServletRequest.getParameter("property_name");
 		if(StringUtils.isBlank(propertyName))
 		{
-			Util.writeJSONResponse(httpServletResponse, Configuration.getPropertyList());
+			SecurityUtil.writeJSONResponse(httpServletResponse, Configuration.getPropertyList());
 		}
 		else
 		{
 			Map<String, String> responseMap = new HashMap<>();
 			responseMap.put("property_value", Configuration.getProperty(propertyName));
-			Util.writeJSONResponse(httpServletResponse, responseMap);
+			SecurityUtil.writeJSONResponse(httpServletResponse, responseMap);
 		}
 	}
 
 	@Override
 	protected void doPut(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException
 	{
-		JSONObject payload = Util.getJSONObject(httpServletRequest);
+		JSONObject payload = SecurityUtil.getJSONObject(httpServletRequest);
 
 		Configuration.setProperty(payload.getString("property_name"), payload.getString("property_value"));
 
@@ -45,6 +45,6 @@ public class PropertyHandler extends HttpServlet
 			DBUtil.initialiseDataSource();
 		}
 
-		Util.writeSuccessJSONResponse(httpServletResponse, "updated");
+		SecurityUtil.writeSuccessJSONResponse(httpServletResponse, "updated");
 	}
 }

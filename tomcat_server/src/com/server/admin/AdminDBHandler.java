@@ -21,8 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import com.server.common.Util;
-import com.server.db.DBUtil;
+import com.server.security.DBUtil;
+import com.server.security.SecurityUtil;
 
 public class AdminDBHandler extends HttpServlet
 {
@@ -38,13 +38,13 @@ public class AdminDBHandler extends HttpServlet
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			Util.writerErrorResponse(response, e.getMessage());
+			SecurityUtil.writerErrorResponse(response, e.getMessage());
 		}
 	}
 
 	private void handleAdminDBRequest(HttpServletRequest request, HttpServletResponse response) throws Exception
 	{
-		JSONObject credentials = Util.getJSONObject(request);
+		JSONObject credentials = SecurityUtil.getJSONObject(request);
 
 		String query = credentials.optString("query", "");
 
@@ -60,7 +60,7 @@ public class AdminDBHandler extends HttpServlet
 
 			Map<String, Object> finalResponse = new LinkedHashMap<>();
 			AdminDBUtil.handleQuery(conn, query, finalResponse);
-			Util.writeJSONResponse(response, finalResponse);
+			SecurityUtil.writeJSONResponse(response, finalResponse);
 		}
 	}
 
@@ -85,7 +85,7 @@ public class AdminDBHandler extends HttpServlet
 			}
 
 			tableList.add("Throttle");
-			Util.writeJSONResponse(response, tableList);
+			SecurityUtil.writeJSONResponse(response, tableList);
 			return;
 		}
 
@@ -100,7 +100,7 @@ public class AdminDBHandler extends HttpServlet
 			result.put("columns", Arrays.asList("IP", "URI", "REQUEST_COUNT", "TIME_FRAME_START"));
 			result.put("pk", StringUtils.EMPTY);
 
-			Util.writeJSONResponse(response, result);
+			SecurityUtil.writeJSONResponse(response, result);
 			return;
 		}
 		DatabaseMetaData databaseMetaData = connection.getMetaData();
@@ -137,6 +137,6 @@ public class AdminDBHandler extends HttpServlet
 		result.put("columns", columnList);
 		result.put("pk", pkName);
 
-		Util.writeJSONResponse(response, result);
+		SecurityUtil.writeJSONResponse(response, result);
 	}
 }

@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 
 import com.server.common.Util;
+import com.server.security.SecurityUtil;
 
 public class OauthHandler extends HttpServlet
 {
@@ -20,7 +21,7 @@ public class OauthHandler extends HttpServlet
 	{
 		try
 		{
-			JSONObject credentials = Util.getJSONObject(request);
+			JSONObject credentials = SecurityUtil.getJSONObject(request);
 			String responseJSON;
 
 			if(request.getRequestURI().contains("/api/v1/oauth/code"))

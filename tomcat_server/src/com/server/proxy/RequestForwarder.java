@@ -1,19 +1,13 @@
 package com.server.proxy;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,11 +16,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.server.common.Util;
-import com.server.http.HttpAPI;
-import com.server.http.HttpResponse;
+import com.server.security.http.HttpAPI;
+import com.server.security.http.HttpResponse;
+import com.server.security.SecurityUtil;
 
 public class RequestForwarder extends HttpServlet
 {
@@ -56,7 +48,7 @@ public class RequestForwarder extends HttpServlet
 
 		if(url == null || method == null || !isValidHttpMethod(method) || !isValidURL(url))
 		{
-			Util.writerErrorResponse(response, "Invalid value passed for TARGET-URL or HTTP-METHOD");
+			SecurityUtil.writerErrorResponse(response, "Invalid value passed for TARGET-URL or HTTP-METHOD");
 			return;
 		}
 

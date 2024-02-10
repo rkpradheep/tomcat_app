@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.server.common.Util;
-
 public class ThrottleHandler
 {
 	public static final Map<String, ThrottleMeta> ipThrottleMeta = new ConcurrentHashMap<>();
@@ -46,7 +44,7 @@ public class ThrottleHandler
 	{
 		synchronized(ipLockTimeMap)
 		{
-			String ip = Util.getUserIP(request);
+			String ip = SecurityUtil.getUserIP(request);
 			String key = ip + "-" + request.getRequestURI();
 
 			if(Objects.nonNull(ipLockTimeMap.get(key)))

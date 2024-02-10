@@ -3,7 +3,6 @@ package com.server.file;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,10 +22,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.server.common.Util;
+import com.server.security.SecurityUtil;
 
 public class FileManager extends HttpServlet
 {
@@ -127,7 +126,7 @@ public class FileManager extends HttpServlet
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			Util.writerErrorResponse(response, e.getMessage());
+			SecurityUtil.writerErrorResponse(response, e.getMessage());
 		}
 	}
 
