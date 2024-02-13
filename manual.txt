@@ -53,3 +53,30 @@ su - $USER
 To generate self signed certificate
 
 keytool -genkeypair -v  -keystore tomcat.jks   -keyalg RSA   -keysize 2048   -validity 365   -storepass tomcat   -keypass tomcat
+
+
+To add tomcat as service
+
+Create /etc/systemd/system/tomcat.service
+
+Add below entries :
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=network.target
+
+[Service]
+Type=forking
+
+ExecStart=sudo /home/pradheep_rk_it/MyHome/tomcat_build/bin/startup.sh
+ExecStop=sudo /home/pradheep_rk_it/MyHome/tomcat_build/bin/shutdown.sh
+
+User=pradheep_rk_it
+Group=pradheep_rk_it
+UMask=0007
+RestartSec=10
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl enable tomcat (To start after reboot)
