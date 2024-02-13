@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.JsonErrorReportValve;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 
 public class CustomErrorReportValve extends JsonErrorReportValve
@@ -45,6 +48,13 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 
 			int code = response.getStatus();
 			String uri = request.getRequestURI();
+
+			if(code == HttpStatus.SC_NOT_FOUND && uri.endsWith("/"))
+			{
+				String redirectUri = request.getRequestURI().replaceAll("(/*)$", StringUtils.EMPTY);
+				response.sendRedirect(StringUtils.defaultIfEmpty(redirectUri, "/"));
+				return;
+			}
 
 			if(isRestAPI(uri))
 			{

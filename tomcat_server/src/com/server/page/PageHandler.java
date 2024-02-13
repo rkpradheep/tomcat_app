@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.server.security.DBUtil;
 import com.server.security.SecurityUtil;
 
@@ -17,6 +19,11 @@ public class PageHandler extends HttpServlet
 		if(request.getRequestURI().equals("/"))
 		{
 			response.sendRedirect(DBUtil.isMysql? "/zoho" : "/app");
+			return;
+		}
+		if(StringUtils.isEmpty(request.getRequestURI().replaceAll("/", StringUtils.EMPTY)))
+		{
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
 		response.setContentType("text/html; charset=UTF-8");
