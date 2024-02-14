@@ -1,17 +1,79 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        select, input, textarea {
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 20%;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 15%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #data {
+            resize: vertical;
+        }
+
+        @media (max-width: 600px) {
+            select, input, textarea, #data, button {
+                width: 70%;
+            }
+        }
+    </style>
 </head>
 <body>
-<h1><b>Task Manager</b></h1>
+<h1><b>Scheduler</b></h1>
 <br />
 <br />
-Job &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<select id="task" onchange="handleFields()">
-</select><br><br>
-Delay Second(s) &nbsp;&nbsp;&nbsp; <input type="text" id="time"/>&nbsp;&nbsp;&nbsp; Or &nbsp;&nbsp;&nbsp; Date & Time &nbsp;&nbsp;&nbsp; <input type="datetime-local" id="date"><br><br>
-<textarea id="data" rows="5" cols="50" placeholder="Your message"></textarea><br><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button style="cursor:pointer" onclick="addJob()">SCHEDULE</button>
-</body>
+<label for="task">Task</label>
+<select id="task" onchange="handleFields()"></select><br><br>
+<label for="time">Delay Second(s)</label>
+<input type="text" id="time"/><br>Or</br>
+<label for="date">Date & Time</label>
+<input type="datetime-local" id="date"><br><br>
+<textarea id="data" rows="5" cols="30" placeholder="Your message"></textarea><br><br>
+<button style="cursor:pointer" onclick="addJob()">SCHEDULE</button>
 <script src="js/jobs.js"></script>
+</body>
 </html>

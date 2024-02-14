@@ -41,8 +41,5 @@ document.getElementById("output").value = data;
 <button onclick="sendCommand()"> RUN </button> <br><br><br><br>
 <h3><b>Output</b></h3>
 <textarea id="output" name="output" rows="20" cols="50"></textarea>
-</form>
-
-</form>
 </body>
 </html>

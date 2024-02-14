@@ -99,3 +99,6 @@ function handleFields()
         document.getElementById('data').placeholder = "Job data"
     }
 }
+
+var currentDate = new Date();
+document.getElementById('date').value = currentDate.get
