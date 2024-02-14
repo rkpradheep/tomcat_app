@@ -9,6 +9,8 @@ import javax.servlet.ServletContextListener;
 
 import com.server.file.FileManager;
 import com.server.job.RefreshManager;
+import com.server.security.Configuration;
+import com.server.security.DBUtil;
 import com.server.security.SecurityUtil;
 
 public class ContextListener implements ServletContextListener
@@ -21,6 +23,10 @@ public class ContextListener implements ServletContextListener
 		LOGGER.log(Level.INFO, "Initializing Context at {0}", SecurityUtil.getFormattedCurrentTime());
 
 		ProxySelector.setDefault(new ProxySelectorExtension());
+
+		Configuration.load();
+
+		DBUtil.initialiseDataSource();
 
 		//ProxyServer.init();
 

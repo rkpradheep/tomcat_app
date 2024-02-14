@@ -49,7 +49,7 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 			int code = response.getStatus();
 			String uri = request.getRequestURI();
 
-			if(code == HttpStatus.SC_NOT_FOUND && uri.endsWith("/"))
+			if(code == HttpStatus.SC_NOT_FOUND && uri.endsWith("/") && StringUtils.isNotEmpty(request.getRequestURI().replaceAll("/", StringUtils.EMPTY)))
 			{
 				String redirectUri = request.getRequestURI().replaceAll("(/*)$", StringUtils.EMPTY);
 				response.sendRedirect(StringUtils.defaultIfEmpty(redirectUri, "/"));

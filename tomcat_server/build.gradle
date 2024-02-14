@@ -7,7 +7,7 @@ sourceSets {
             srcDirs = ["${serverPath}/src"]
             outputDir = file ("${serverPath}/classes/")
         }
-        compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${serverPath}/tomcat/lib")
+        compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${serverPath}/tomcat/lib") + fileTree ("${serverPath}/tomcat/shared/lib")
     }
 }
 
@@ -102,6 +102,7 @@ task setupTomcatContainer{
 
         new File ("${home}/tomcat_build").mkdirs()
         delete "${home}/tomcat_build/*"
+        new File ("${home}/tomcat_build/logs").mkdirs()
         copy{
             from "${serverPath}/tomcat/"
             into "${home}/tomcat_build"
@@ -117,7 +118,7 @@ task setupTomcatContainer{
         }
         copy{
             from "${serverPath}/build/security.jar"
-            into "${home}/tomcat_build/lib"
+            into "${home}/tomcat_build/shared/lib"
         }
 
         println "set up tomcat container completed"
