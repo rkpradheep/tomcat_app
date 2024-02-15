@@ -50,23 +50,35 @@ async function copyToClipboard(textToCopy) {
         }
     }
 }
-function getDomain()
+function getDomain(isAuthorizeURL)
 {
 let dc = document.querySelector('input[name="dc"]:checked').value;
+if(dc == "na")
+{
+    return isAuthorizeURL ? getElementValue("authorization_uri") : getElementValue("access_token_uri");
+}
+const endpoint = isAuthorizeURL ? "/auth" : "/token";
+
 if(dc == "dev")
-return "https://accounts.csez.zohocorpin.com/oauth/v2";
+return "https://accounts.csez.zohocorpin.com/oauth/v2" + endpoint;
 if(dc == "local")
-return "https://accounts.localzoho.com/oauth/v2";
+return "https://accounts.localzoho.com/oauth/v2" + endpoint;
 if(dc == "us")
-return "https://accounts.zoho.com/oauth/v2";
+return "https://accounts.zoho.com/oauth/v2" + endpoint;
 if(dc == "in")
-return "https://accounts.zoho.in/oauth/v2";
+return "https://accounts.zoho.in/oauth/v2" + endpoint;
 }
 function redirect()
 {
     if(document.querySelector('input[name="dc"]:checked') == null)
     {
         alert("Please choose DC");
+        return;
+    }
+
+    if(getElementValue("authorization_uri") == "")
+    {
+        alert("Authorize URL is mandatory for custom service");
         return;
     }
     if(document.getElementById("client_id").value == "")
@@ -84,15 +96,20 @@ function redirect()
            alert("Redirect URI is mandatory");
            return;
       }
-    window.open (getDomain() + "/auth" + "?scope=" + document.getElementById("scope").value + "&client_id=" + document.getElementById("client_id").value + "&response_type=code&access_type=offline&redirect_uri=" + document.getElementById("redirect_uri").value + "&prompt=consent");
+    window.open (getDomain(true) + "?scope=" + document.getElementById("scope").value + "&client_id=" + document.getElementById("client_id").value + "&response_type=code&access_type=offline&redirect_uri=" + document.getElementById("redirect_uri").value + "&prompt=consent");
 }
 function getTokens()
 {
-    if(document.querySelector('input[name="dc"]:checked') == null)
-    {
-        alert("Please choose DC");
-        return;
-    }
+if(document.querySelector('input[name="dc"]:checked') == null)
+{
+    alert("Please choose DC");
+    return;
+}
+if(getElementValue("access_token_uri") == "")
+{
+    alert("Access Token URL is mandatory for custom service");
+    return;
+}
 if(document.getElementById("client_id").value == "")
 {
    alert("Client ID is mandatory to get token");
@@ -127,7 +144,7 @@ const data = {
 'client_secret':document.getElementById("client_secret").value,
 'redirect_uri':document.getElementById("redirect_uri").value,
 'grant_type':"authorization_code",
-'url' :  getDomain() + "/token"
+'url' :  getDomain(false)
 }
 fetch( "/api/v1/oauth/tokens", {
      method: "POST",
@@ -160,9 +177,14 @@ document.getElementById("refresh_token").value = res.refresh_token
 function refresh()
 {
 if(document.querySelector('input[name="dc"]:checked') == null)
-    {
-        alert("Please choose DC");
-        return;
+{
+   alert("Please choose DC");
+   return;
+}
+if(getElementValue("access_token_uri") == "")
+{
+    alert("Access Token URL is mandatory for custom service");
+    return;
 }
 if(document.getElementById("client_id").value == "")
 {
@@ -187,7 +209,7 @@ const data = {
 'client_secret': document.getElementById("client_secret").value,
 'refresh_token': document.getElementById("refresh_token").value,
 'grant_type': "refresh_token",
-'url':  getDomain() + "/token"
+'url':  getDomain(false)
 }
 
 fetch( "/api/v1/oauth/tokens", {
@@ -275,6 +297,18 @@ function reset(auto)
    }
 }
 
+function showOrHideCustomServerURI()
+{
+    if(document.querySelector('input[name="dc"]:checked').value == "na")
+    {
+        unHideElement("custom_server");
+    }
+    else
+    {
+        hideElement("custom_server");
+    }
+}
+
 </script>
 <h1><b>Token Generator</b></h1>
 <br/>
@@ -285,24 +319,29 @@ To generate token without secrets <a target="_blank" href="https://pradheep-1422
 <br/>
 
 <form>
-  DC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <input type="radio" id="dev" name="dc" value="dev">
+  DC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;
+  <input type="radio" id="dev" name="dc" value="dev" onchange="showOrHideCustomServerURI()">
   <label for="dev">Development</label>
-  <input type="radio" id="local" name="dc" value="local">
+  <input type="radio" id="local" name="dc" value="local" onchange="showOrHideCustomServerURI()">
   <label for="local">Local</label>
-  <input type="radio" id="in" name="dc" value="in">
+  <input type="radio" id="in" name="dc" value="in" onchange="showOrHideCustomServerURI()">
   <label for="in">IN</label>
-  <input type="radio" id="us" name="dc" value="us">
-  <label for="us">US</label><br><br>
+  <input type="radio" id="us" name="dc" value="us" onchange="showOrHideCustomServerURI()">
+  <label for="us">US</label>
+  <input type="radio" id="na" name="dc" value="na" checked onchange="showOrHideCustomServerURI()">
+  <label for="na">NA</label><br><br>
 </form>
 
-Client ID &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_id" id="client_id" style="width:400px;height:25px"><br><br>
-Client Secret &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_secret" id="client_secret" style="width:400px;height:25px"><br><br>
-Scope   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="scope" id="scope" style="width:400px;height:25px"><br><br>
-Redirect URI  &nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="redirect_uri" id="redirect_uri" style="width:400px;height:25px"><br><br>
-Refresh Token &nbsp;&nbsp;&nbsp;<input type="text" id="refresh_token" name="refresh_token" style="width:400px;height:25px"><br><br>
-Redirected URI  &nbsp;<input type="text" id="redirected_uri" name="redirected_uri" style="width:400px;height:25px"><br><br>
-
+Client ID &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_id" id="client_id" style="width:400px;height:25px"><br><br>
+Client Secret &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_secret" id="client_secret" style="width:400px;height:25px"><br><br>
+Scope  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="scope" id="scope" style="width:400px;height:25px"><br><br>
+Redirect URI  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="redirect_uri" id="redirect_uri" style="width:400px;height:25px"><br><br>
+Refresh Token &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="refresh_token" name="refresh_token" style="width:400px;height:25px"><br><br>
+Redirected URI  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="redirected_uri" name="redirected_uri" style="width:400px;height:25px"><br><br>
+<div id="custom_server" style="display:block">
+ <label for="authorization_uri">Authorize URL</label> &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<input type="text" id="authorization_uri" style="width:400px;height:25px"><br><br>
+ <label for="access_token_uri"> Access Token URL </label> &nbsp;<input type="text" id="access_token_uri" style="width:400px;height:25px"><br><br>
+</div>
 <button onclick="reset(false)"> Reset </button>
 
 <div id="response" style="display:none;">

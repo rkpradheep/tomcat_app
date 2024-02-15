@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.common.Util;
@@ -65,6 +66,8 @@ public class OauthHandler extends HttpServlet
 
 		HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 		httpURLConnection.setRequestMethod("POST");
+		httpURLConnection.setDoOutput(true);
+		httpURLConnection.getOutputStream().write(StringUtils.EMPTY.getBytes());
 
 		return (Util.getResponse(httpURLConnection.getResponseCode() != 200 ? httpURLConnection.getErrorStream() : httpURLConnection.getInputStream()));
 	}
