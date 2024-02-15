@@ -4,8 +4,49 @@
     <meta name="viewport"  content="initial-scale=0.7,user-scalable=no"/>
     <link rel="stylesheet" href="css/chat.css" />
     <title>Open Chat</title>
+    <link rel='stylesheet' href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css'>
+    <link rel='stylesheet' href='css/navbar.css'>
 </head>
 <body>
+<nav id="sidebar" class="sidebar close">
+    <header>
+        <span id="toggle" style="font-size:50px;position:absolute;cursor:pointer;color:white;margin-top:0px" onclick="openNav()">☰</span>
+    </header>
+    <br>
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+    <br>
+    <div class="menu-bar">
+        <div class="menu">
+            <ul class="menu-links">
+                <li class="nav-link">
+                    <a href="#">
+                        <i class='bx bx-home-alt icon'></i>
+                        <span class="text nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/chat.html">
+                        <span class="text nav-text">Let's Chat</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/admin/dbtool.jsp">
+                        <span class="text nav-text">Admin</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="bottom-content">
+            <li class="">
+                <a href="#">
+                    <i class='bx bx-log-out icon'></i>
+                    <span class="text nav-text">Logout</span>
+                </a>
+            </li>
+        </div>
+    </div>
+</nav>
+
 <audio id="incomingSound" preload="auto">
     <source src="../resources/message.mp3" type="audio/mpeg">
 </audio>
@@ -30,4 +71,5 @@
 </div>
 </body>
 <script src="js/chat.js"></script>
+<script src="js/navbar.js"></script>
 </html>

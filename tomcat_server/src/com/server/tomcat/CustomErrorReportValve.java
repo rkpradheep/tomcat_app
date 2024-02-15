@@ -41,13 +41,13 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 	{
 		try
 		{
-			if(!response.isErrorReportRequired())
+			int code = response.getStatus();
+			String uri = request.getRequestURI();
+
+			if(!response.isErrorReportRequired() || StringUtils.isEmpty(uri))
 			{
 				return;
 			}
-
-			int code = response.getStatus();
-			String uri = request.getRequestURI();
 
 			if(code == HttpStatus.SC_NOT_FOUND && uri.endsWith("/") && StringUtils.isNotEmpty(request.getRequestURI().replaceAll("/", StringUtils.EMPTY)))
 			{
