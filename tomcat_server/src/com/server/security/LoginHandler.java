@@ -40,4 +40,20 @@ public class LoginHandler extends HttpServlet
 		SecurityUtil.writerErrorResponse(response, "failed");
 	}
 
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
+	{
+		String maxAge = "Max-Age=0";
+		StringBuilder header = new StringBuilder()
+			.append("iam_token" + "=")
+			.append(SecurityUtil.getSessionId(request))
+			//.append("; Secure")
+			//.append("; SameSite=None")
+			.append("; Path=/;")
+			.append(maxAge);
+
+		response.setHeader("Set-Cookie", header.toString());
+		response.sendRedirect("/");
+	}
+
 }

@@ -90,6 +90,7 @@
 		<servlet-name>LoginHandler</servlet-name>
 		<url-pattern>/api/v1/authenticate</url-pattern>
 		<url-pattern>/api/v1/admin/authenticate</url-pattern>
+		<url-pattern>/logout</url-pattern>
 	</servlet-mapping>
 
 
