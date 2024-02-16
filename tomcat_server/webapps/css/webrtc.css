@@ -109,3 +109,11 @@ html, body {
   from {top: 30px; opacity: 1;}
   to {top: 0; opacity: 0;}
 }
+
+@media(max-width:800px)
+{
+#toggle
+{
+color:#FFFFF7;
+}
+}

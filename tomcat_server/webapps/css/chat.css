@@ -211,3 +211,11 @@
    border-color: #ccc;
    background:rgba(133,185,255);
 }
+
+@media(max-width:800px)
+{
+#toggle
+{
+color:#FFFFF7;
+}
+}

@@ -16,14 +16,9 @@ public class PageHandler extends HttpServlet
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		if(request.getRequestURI().equals("/"))
+		if(request.getRequestURI().equals("/") || StringUtils.isEmpty(request.getRequestURI().replaceAll("/", StringUtils.EMPTY)))
 		{
 			response.sendRedirect(DBUtil.isMysql? "/zoho" : "/app");
-			return;
-		}
-		if(StringUtils.isEmpty(request.getRequestURI().replaceAll("/", StringUtils.EMPTY)))
-		{
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
 		response.setContentType("text/html; charset=UTF-8");
