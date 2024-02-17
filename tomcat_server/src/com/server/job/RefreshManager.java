@@ -1,5 +1,8 @@
 package com.server.job;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ThreadFactory;
@@ -9,6 +12,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.server.security.Configuration;
+import com.server.security.DBUtil;
 import com.server.security.SecurityUtil;
 
 public class RefreshManager
@@ -25,8 +30,17 @@ public class RefreshManager
 		executor = new ThreadPoolExecutor(1, 2, 1L, TimeUnit.MINUTES, queue, tf, new ThreadPoolExecutor.CallerRunsPolicy());
 		executor.prestartAllCoreThreads();
 
-		addJobInQueue(-1L, JobDispatcher::new, null, 1);
+		if(Configuration.getBoolean("can.add.job.dispatcher"))
+		{
+			addJobInQueue(-1L, JobDispatcher::new, null, 1);
+		}
+		else
+		{
+			String pendingJobQuery = "SELECT * FROM Job";
+			addJobInQueue(pendingJobQuery);
+		}
 	}
+
 	public static void shutDown()
 	{
 		executor.shutdownNow();
@@ -34,7 +48,38 @@ public class RefreshManager
 
 	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, int seconds)
 	{
-		queue.add(new RefreshManager.RefreshElement(jobID, taskHandler, data, System.currentTimeMillis() + (seconds * 1000L)));
+		addJobInQueue(jobID, taskHandler, data, System.currentTimeMillis() + (seconds * 1000L));
+	}
+
+	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, long milliseconds)
+	{
+		queue.add(new RefreshManager.RefreshElement(jobID, taskHandler, data, System.currentTimeMillis() + milliseconds));
+	}
+
+	public static void addJobInQueue(String selectQuery)
+	{
+		try(Connection connection = DBUtil.getServerDBConnection())
+		{
+			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
+
+			ResultSet resultSet = preparedStatement.executeQuery();
+
+			while(resultSet.next())
+			{
+				String task = resultSet.getString("task_name");
+				String data = resultSet.getString("data");
+				long scheduledTime = resultSet.getLong("scheduled_time");
+				long jobId = resultSet.getLong("id");
+				long delay = (scheduledTime - System.currentTimeMillis());
+				delay = Math.max(delay, 0);
+
+				addJobInQueue(jobId, TaskEnum.getHandler(task), data, delay);
+			}
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred while adding jobs in queue", e);
+		}
 	}
 
 	private static class RefreshElement implements Delayed, Runnable
@@ -64,11 +109,14 @@ public class RefreshManager
 				}
 
 				task.run(data);
-				JobUtil.deleteJob(jobId);
 			}
 			catch(Exception var6)
 			{
 				LOGGER.log(Level.INFO, "Exception during refresh job for task - " + taskSupplier.get().getClass().getName() + " ", var6);
+			}
+			finally
+			{
+				JobUtil.deleteJob(jobId);
 			}
 
 		}

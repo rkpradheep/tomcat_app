@@ -44,6 +44,8 @@ public class ContextListener implements ServletContextListener
 
 		//ProxyServer.shutDown();
 
+		DBUtil.closeDataSource();
+
 		LOGGER.log(Level.INFO, "Context Destroyed at {0}", SecurityUtil.getFormattedCurrentTime());
 	}
 }

@@ -100,5 +100,21 @@ function handleFields()
     }
 }
 
-var currentDate = new Date();
-document.getElementById('date').value = currentDate.get
+function getFormattedDateVal(value)
+{
+return value < 10 ? '0' + value : value;
+}
+
+const defaultScheduleDate = new Date(new Date().getTime() + (5*60000));
+
+document.getElementById('date').value = `${defaultScheduleDate.getFullYear()}-${getFormattedDateVal(defaultScheduleDate.getMonth() + 1)}-${getFormattedDateVal(defaultScheduleDate.getDate())}T${getFormattedDateVal(defaultScheduleDate.getHours())}:${getFormattedDateVal(defaultScheduleDate.getMinutes())}`
+
+
+function removeDelaySeconds()
+{
+setElementValue('time', '')
+}
+function removeDate()
+{
+setElementValue('date', '')
+}

@@ -87,12 +87,6 @@
                     </a>
                 </li>
                 <li class="nav-link">
-                    <a href="/jobs.html">
-                        <i class='bx eos-icons--cronjob icon'></i>
-                        <span class="text nav-text">Scheduler</span>
-                    </a>
-                </li>
-                <li class="nav-link">
                     <a href="/stream.html">
                         <i class='bx ri--broadcast-line icon'></i>
                         <span class="text nav-text">Broadcast</span>
@@ -159,9 +153,9 @@
 <label for="task">Task</label>
 <select id="task" onchange="handleFields()"></select><br><br>
 <label for="time">Delay Second(s)</label>
-<input type="text" id="time"/><br>Or</br>
+<input type="text" id="time" onchange="removeDate()"/><br>Or</br>
 <label for="date">Date & Time</label>
-<input type="datetime-local" id="date"><br><br>
+<input type="datetime-local" id="date" onchange="removeDelaySeconds()"><br><br>
 <textarea id="data" rows="5" cols="30" placeholder="Your message"></textarea><br><br>
 <button style="cursor:pointer" onclick="addJob()">SCHEDULE</button>
 <script src="js/jobs.js"></script>

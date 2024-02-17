@@ -82,12 +82,6 @@
                     </a>
                 </li>
                 <li class="nav-link">
-                    <a href="/commandExecutor.jsp">
-                        <i class='bx mdi--powershell icon'></i>
-                        <span class="text nav-text">Shell</span>
-                    </a>
-                </li>
-                <li class="nav-link">
                     <a href="/admin/dbtool.jsp">
                         <i class='bx clarity--administrator-line icon'></i>
                         <span class="text nav-text">Admin</span>
@@ -144,4 +138,6 @@ document.getElementById("output").value = data;
 <h3><b>Output</b></h3>
 <textarea id="output" name="output" rows="20" cols="50"></textarea>
 </body>
+<script src="js/navbar.js"></script>
+<script src="js/common.js"></script>
 </html>

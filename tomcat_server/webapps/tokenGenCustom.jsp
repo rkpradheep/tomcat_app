@@ -78,12 +78,6 @@
                     </a>
                 </li>
                 <li class="nav-link">
-                    <a href="/tokenGen.jsp">
-                        <i class='bx logos--oauth icon'></i>
-                        <span class="text nav-text">Oauth Tool</span>
-                    </a>
-                </li>
-                <li class="nav-link">
                     <a href="/network">
                         <i class='bx ant-design--api-outlined icon'></i>
                         <span class="text nav-text">API Tool</span>
