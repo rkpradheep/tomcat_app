@@ -12,7 +12,35 @@
     background-size: cover;
     background-attachment: fixed;
     overflow-x: hidden;
+
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
 }
+
+.quote-container {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+blockquote {
+    font-size: 1.8rem;
+    color: #333;
+    margin: 20px 0;
+}
+
+#author {
+    font-size: 1.2rem;
+    color: #666;
+    margin-top: 10px;
+}
+
 </style>
 <body>
 <nav id="sidebar" class="sidebar close">
@@ -103,7 +131,29 @@
         </div>
     </div>
 </nav>
-
+<div class="quote-container">
+    <blockquote id="quote-text"></blockquote>
+    <p id="author"></p>
+</div>
 </body>
 <script src="js/navbar.js"></script>
+<script>
+
+document.addEventListener('DOMContentLoaded', getRandomQuote);
+
+function getRandomQuote() {
+    fetch('https://api.quotable.io/random')
+        .then(response => response.json())
+        .then(data => {
+            displayQuote(data.content, data.author);
+        })
+        .catch(error => console.error('Error fetching quote:', error));
+}
+
+function displayQuote(quote, author) {
+    document.getElementById('quote-text').textContent = `"${quote}"`;
+    document.getElementById('author').textContent = `- ${author}`;
+}
+
+</script>
 </html>
