@@ -187,6 +187,9 @@
         <a target="_blank" href="/files">File Manager</a><br/><br/><br/>
         <a target="_blank" href="/commandExecutor.jsp">Terminal Command Executor</a><br/><br/></br>
 
+         <button style='background-color:red' onclick="deleteExpired()">DELETE EXPIRED</button>
+         </br>
+
         <b>Add User : </b> <input type="text" id="user_name" placeholder="Name"/>
         &nbsp;&nbsp;<input type="password" id="user_password" placeholder="Password" />
         &nbsp;&nbsp;<select name="role" id="user_role">
@@ -882,6 +885,37 @@
                     alert("Something went wrong. Please check the error response below and try again.");
                 });
 
+        }
+
+
+        function deleteExpired()
+        {
+            fetch("/api/v1/admin/delete/expired", {
+                    method: "DELETE"
+                })
+                .then((response) => {
+                    return response.text();
+                })
+                .then((data) => {
+                    res = JSON.parse(data)
+                    if(handleRedirection(res))
+                    {
+                        hideElement("loading");
+                        return;
+                    }
+                    var error = res["error"]
+                    if (error != undefined) {
+                        throw new Error("API error")
+                    }
+                    hideElement("loading");
+                    alert(res["message"])
+                })
+                .catch((error) => {
+                    hideElement("loading");
+                    console.log(error);
+                    setElementValue("output", JSON.stringify(res, null, 2));
+                    alert("Something went wrong. Please check the error response below and try again.");
+                });
         }
 
         </script>

@@ -74,11 +74,12 @@
 
 	<servlet>
 		<servlet-name>AdminDBHandler</servlet-name>
-		<servlet-class>com.server.admin.AdminDBHandler</servlet-class>
+		<servlet-class>com.server.admin.AdminHandler</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>AdminDBHandler</servlet-name>
 		<url-pattern>/api/v1/admin/db/execute</url-pattern>
+		<url-pattern>/api/v1/admin/delete/expired</url-pattern>
 	</servlet-mapping>
 
 

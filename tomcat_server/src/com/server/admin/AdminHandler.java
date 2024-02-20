@@ -22,18 +22,30 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.security.DBUtil;
+import com.server.security.LoginUtil;
 import com.server.security.SecurityUtil;
+import com.server.security.ThrottleHandler;
 
-public class AdminDBHandler extends HttpServlet
+public class AdminHandler extends HttpServlet
 {
-	private static final Logger LOGGER = Logger.getLogger(AdminDBHandler.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(AdminHandler.class.getName());
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
 		try
 		{
-			handleAdminDBRequest(request, response);
+			if(request.getRequestURI().contains("/db/execute"))
+			{
+				handleAdminDBRequest(request, response);
+			}
+			else if(request.getRequestURI().contains("/delete/expired"))
+			{
+				ThrottleHandler.removeExpiredIPLockingAndThrottleMeta();
+				LoginUtil.deleteExpiredSessions();
+
+				SecurityUtil.writeSuccessJSONResponse(response, "Deleted successfully");
+			}
 		}
 		catch(Exception e)
 		{

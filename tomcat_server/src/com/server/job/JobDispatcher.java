@@ -9,7 +9,7 @@ public class JobDispatcher implements Task
 	{
 		try
 		{
-			ThrottleHandler.removeExpiredIPLocking();
+			ThrottleHandler.removeExpiredIPLockingAndThrottleMeta();
 			LoginUtil.deleteExpiredSessions();
 
 			String pendingJobQuery = "SELECT * FROM Job where scheduled_time <= " + (System.currentTimeMillis() + 5000);

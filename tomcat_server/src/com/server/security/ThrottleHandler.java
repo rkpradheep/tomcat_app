@@ -77,13 +77,20 @@ public class ThrottleHandler
 
 	}
 
-	public static void removeExpiredIPLocking()
+	public static void removeExpiredIPLockingAndThrottleMeta()
 	{
 		Long currentTime = System.currentTimeMillis();
 		List<String> lockExpiredIP = ipLockTimeMap.entrySet().stream().filter(lockMap -> lockMap.getValue() < currentTime).map(Map.Entry::getKey).collect(Collectors.toList());
 		for(String ip : lockExpiredIP)
 		{
 			ipLockTimeMap.remove(ip);
+		}
+
+		Long expiredTimeFrame = currentTime -  (1000 * 60 * 5);
+		List<String> throttleExpiredIP = ipThrottleMeta.entrySet().stream().filter(throttleMeta -> throttleMeta.getValue().getTime() < expiredTimeFrame).map(Map.Entry::getKey).collect(Collectors.toList());
+		for(String ip : throttleExpiredIP)
+		{
+			ipThrottleMeta.remove(ip);
 		}
 	}
 
