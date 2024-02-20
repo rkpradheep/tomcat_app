@@ -94,6 +94,12 @@
                             <span class="text nav-text">Home</span>
                         </a>
                     </li>
+                <li class="nav-link">
+                    <a href="/chat.html">
+                        <i class='bx quill--chat icon'></i>
+                        <span class="text nav-text">Text Chat</span>
+                    </a>
+                </li>
                     <li class="nav-link">
                         <a href="/webrtc.html">
                             <i class='bx icon-park-solid--phone-video-call icon'></i>
@@ -161,6 +167,12 @@
                     <a href="/logout">
                         <i class='bx bx--log-out icon'></i>
                         <span class="text nav-text">Logout</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/admin/dbtool.jsp" style="background-color:var(--primary-color);"  onclick="return false;">
+                        <i class='bx clarity--administrator-line icon' style="color:var(--sidebar-color);"></i>
+                        <span class="text nav-text">Admin</span>
                     </a>
                 </li>
             </div>

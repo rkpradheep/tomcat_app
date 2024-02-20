@@ -54,6 +54,12 @@
                     </a>
                 </li>
                 <li class="nav-link">
+                    <a href="/chat.html">
+                        <i class='bx quill--chat icon'></i>
+                        <span class="text nav-text">Text Chat</span>
+                    </a>
+                </li>
+                <li class="nav-link">
                     <a href="/webrtc.html">
                         <i class='bx icon-park-solid--phone-video-call icon'></i>
                         <span class="text nav-text">Video Chat</span>
@@ -75,6 +81,12 @@
                     <a href="/live.html">
                         <i class='bx icon-park-outline--receiver icon'></i>
                         <span class="text nav-text">Subscribe</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/tokenGen.jsp" style="background-color:var(--primary-color);"  onclick="return false;">
+                        <i class='bx logos--oauth icon' style="color:var(--sidebar-color);"></i>
+                        <span class="text nav-text">Oauth Tool</span>
                     </a>
                 </li>
                 <li class="nav-link">

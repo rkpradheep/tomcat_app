@@ -34,6 +34,12 @@
                     </a>
                 </li>
                 <li class="nav-link">
+                    <a href="/chat.html">
+                        <i class='bx quill--chat icon'></i>
+                        <span class="text nav-text">Text Chat</span>
+                    </a>
+                </li>
+                <li class="nav-link">
                     <a href="/webrtc.html">
                         <i class='bx icon-park-solid--phone-video-call icon'></i>
                         <span class="text nav-text">Video Chat</span>
@@ -79,6 +85,12 @@
                     <a href="/csv">
                         <i class='bx iwwa--csv icon'></i>
                         <span class="text nav-text">CSV Parser</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/commandExecutor.jsp" style="background-color:var(--primary-color);"  onclick="return false;">
+                        <i class='bx mdi--powershell icon' style="color:var(--sidebar-color);"></i>
+                        <span class="text nav-text">Shell</span>
                     </a>
                 </li>
                 <li class="nav-link">
