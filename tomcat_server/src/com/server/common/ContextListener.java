@@ -24,8 +24,6 @@ public class ContextListener implements ServletContextListener
 
 		ProxySelector.setDefault(new ProxySelectorExtension());
 
-		Configuration.load();
-
 		DBUtil.initialiseDataSource();
 
 		//ProxyServer.init();
@@ -43,8 +41,6 @@ public class ContextListener implements ServletContextListener
 		RefreshManager.shutDown();
 
 		//ProxyServer.shutDown();
-
-		DBUtil.closeDataSource();
 
 		LOGGER.log(Level.INFO, "Context Destroyed at {0}", SecurityUtil.getFormattedCurrentTime());
 	}

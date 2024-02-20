@@ -40,11 +40,6 @@ public class PropertyHandler extends HttpServlet
 
 		Configuration.setProperty(payload.getString("property_name"), payload.getString("property_value"));
 
-		if(StringUtils.equals("db.server.ip", payload.getString("property_name").trim()))
-		{
-			DBUtil.initialiseDataSource();
-		}
-
 		SecurityUtil.writeSuccessJSONResponse(httpServletResponse, "updated");
 	}
 }

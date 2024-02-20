@@ -183,4 +183,6 @@
     </Engine>
   </Service>
 
+  <Listener className="com.server.tomcat.LifeCycleListener" />
+
 </Server>

@@ -129,7 +129,7 @@ task setupTomcatContainer{
 task buildTomcatValvesJar(type: Jar) {
     archiveFileName = "CustomTomcatValves.jar"
     from "${serverPath}/classes"
-    include "com/server/tomcat/CustomErrorReportValve.class"
+    include "com/server/tomcat/*"
     destinationDir = file("${serverPath}/build")
 }
 
