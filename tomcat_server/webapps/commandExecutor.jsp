@@ -142,13 +142,11 @@ document.getElementById("output").value = data;
 }
 </script>
 <script src="js/navbar.js"></script>
-<h1><b>Terminal Command Executor</b></h1>
-<br/>
 <h3><b>Command</b></h3>
-<textarea id="command" name="command" rows="5" cols="50"></textarea><br><br>
+<textarea id="command" name="command" rows="5" cols="50" style="background-color: black;color:white"></textarea><br><br>
 <button onclick="sendCommand()"> RUN </button> <br><br><br><br>
 <h3><b>Output</b></h3>
-<textarea id="output" name="output" rows="20" cols="50"></textarea>
+<textarea id="output" name="output" rows="20" cols="50" style="background-color: black;color:white"></textarea>
 </body>
 <script src="js/navbar.js"></script>
 <script src="js/common.js"></script>

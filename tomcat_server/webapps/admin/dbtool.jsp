@@ -154,12 +154,12 @@
                             <span class="text nav-text">Shell</span>
                         </a>
                     </li>
-                    <li class="nav-link">
-                        <a href="/admin/dbtool.jsp">
-                            <i class='bx clarity--administrator-line icon'></i>
-                            <span class="text nav-text">Admin</span>
-                        </a>
-                    </li>
+                <li class="nav-link">
+                    <a href="/admin/dbtool.jsp" style="background-color:var(--primary-color);"  onclick="return false;">
+                        <i class='bx clarity--administrator-line icon' style="color:var(--sidebar-color);"></i>
+                        <span class="text nav-text">Admin</span>
+                    </a>
+                </li>
                 </ul>
             </div>
             <div class="bottom-content">
@@ -167,12 +167,6 @@
                     <a href="/logout">
                         <i class='bx bx--log-out icon'></i>
                         <span class="text nav-text">Logout</span>
-                    </a>
-                </li>
-                <li class="nav-link">
-                    <a href="/admin/dbtool.jsp" style="background-color:var(--primary-color);"  onclick="return false;">
-                        <i class='bx clarity--administrator-line icon' style="color:var(--sidebar-color);"></i>
-                        <span class="text nav-text">Admin</span>
                     </a>
                 </li>
             </div>
@@ -187,7 +181,8 @@
         <a target="_blank" href="/files">File Manager</a><br/><br/><br/>
         <a target="_blank" href="/commandExecutor.jsp">Terminal Command Executor</a><br/><br/></br>
 
-         <button style='background-color:red' onclick="deleteExpired()">DELETE EXPIRED</button>
+         <button style='background-color:red;' onclick="deleteExpired()">DELETE EXPIRED</button>
+         </br>
          </br>
 
         <b>Add User : </b> <input type="text" id="user_name" placeholder="Name"/>
@@ -890,6 +885,7 @@
 
         function deleteExpired()
         {
+            unHideElement("loading");
             fetch("/api/v1/admin/delete/expired", {
                     method: "DELETE"
                 })
