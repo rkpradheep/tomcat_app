@@ -39,6 +39,7 @@ document.getElementById('password').value = "test@123";
             window.open (redirectURI, "_self");
 
           }).catch(error => {
+             hideElement("loading");
              alert("Something went wrong. Server might be down");
           });
     }

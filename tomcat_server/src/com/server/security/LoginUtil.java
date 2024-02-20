@@ -6,25 +6,26 @@ import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.server.security.user.User;
+import com.server.security.user.UserUtil;
+
 public class LoginUtil
 {
 	private static final Logger LOGGER = Logger.getLogger(LoginUtil.class.getName());
 
-	public static Long validateCredentials(String name, String password, boolean isAdmin)
+	public static User validateCredentials(String name, String password)
 	{
 		name = name.toUpperCase().trim();
 
-		String selectQuery = "SELECT * FROM Users where name = ? AND password = ? AND role_type = ?";
+		String selectQuery = "SELECT * FROM Users where name = ? AND password = ?";
 
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
 			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
 			preparedStatement.setString(1, name.toUpperCase().trim());
 			preparedStatement.setString(2, password.trim());
-			preparedStatement.setInt(3, isAdmin ? -1 : 0);
 
-			ResultSet resultSet = preparedStatement.executeQuery();
-			return resultSet.next() ? resultSet.getLong("id") : null;
+			return UserUtil.getUser(preparedStatement.executeQuery());
 		}
 		catch(Exception e)
 		{
@@ -33,7 +34,7 @@ public class LoginUtil
 		}
 	}
 
-	public static boolean addSession(String sessionId, Long userId, boolean isAdminLogin)
+	public static void addSession(String sessionId, Long userId, boolean isAdminLogin)
 	{
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
@@ -47,12 +48,10 @@ public class LoginUtil
 			preparedStatement.setLong(3, System.currentTimeMillis() + expiryTime);
 
 			preparedStatement.executeUpdate();
-			return true;
 		}
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			return false;
 		}
 	}
 

@@ -40,6 +40,7 @@ import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.security.http.FormData;
+import com.server.security.user.User;
 
 public class SecurityUtil
 {
@@ -67,7 +68,7 @@ public class SecurityUtil
 			return token;
 		}
 
-		String tokenName = isAdminCall(requestURI) ? "iam_admin_token" : "iam_token";
+		String tokenName = "iam_token";
 
 		if(Objects.nonNull(cookies))
 		{
@@ -84,7 +85,7 @@ public class SecurityUtil
 
 	public static boolean isLoggedIn()
 	{
-		return Objects.nonNull(SecurityFilter.CURRENT_USER_TL.get());
+		return Objects.nonNull(getCurrentUser());
 	}
 
 	public static boolean canSkipAuthentication(String requestURI)
@@ -97,7 +98,7 @@ public class SecurityUtil
 		URL urlObject = new URL(request.getRequestURL().toString());
 		int port = urlObject.getPort() != -1 ? urlObject.getPort() : urlObject.getDefaultPort();
 		String url = urlObject.getProtocol() + "://" + urlObject.getHost() + ":" + port;
-		return (!isAdminCall(request.getRequestURI()) ? url + "/login" : url + "/admin/login") + "?post=true";
+		return url + "/login?post=true";
 	}
 
 	public static String getUserIP(HttpServletRequest request)
@@ -252,5 +253,10 @@ public class SecurityUtil
 	public static String getFormattedTime(Long timeInMilliseconds)
 	{
 		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliseconds), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("hh : mm a"));
+	}
+
+	public static User getCurrentUser()
+	{
+		return SecurityFilter.CURRENT_USER_TL.get();
 	}
 }

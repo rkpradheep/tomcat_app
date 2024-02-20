@@ -18,6 +18,11 @@ public enum RoleEnum
 		this.type = type;
 	}
 
+	public int getType()
+	{
+		return type;
+	}
+
 	public static int getType(String name)
 	{
 		return Arrays.stream(values()).filter(roleEnum -> StringUtils.equals(roleEnum.name, name)).findFirst().get().type;

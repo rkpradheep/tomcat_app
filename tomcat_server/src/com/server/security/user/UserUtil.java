@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.transform.Result;
+
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
@@ -21,25 +23,25 @@ public class UserUtil
 			return null;
 		}
 
-		String selectQuery = "SELECT * FROM SessionManagement INNER JOIN Users on SessionManagement.user_id = Users.id where SessionManagement.id = ?";
+		String selectQuery = "SELECT * FROM Users INNER JOIN SessionManagement on  Users.id=SessionManagement.user_id where SessionManagement.id = ?";
 
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
 			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
 			preparedStatement.setString(1, sessionId);
 
-			ResultSet resultSet = preparedStatement.executeQuery();
-			if(resultSet.next())
-			{
-				return new User(resultSet.getLong("user_id"), resultSet.getString("name"), sessionId, resultSet.getLong("expiry_time"));
-			}
-			return null;
+			return getUser(preparedStatement.executeQuery());
 		}
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 			return null;
 		}
+	}
+
+	public static User getUser(ResultSet resultSet) throws Exception
+	{
+		return resultSet.next() ? new User(resultSet.getLong("id"), resultSet.getString("name"), resultSet.getInt("role_type") == RoleEnum.ADMIN.getType()) : null;
 	}
 
 	public static void addUser(JSONObject userJSON) throws Exception

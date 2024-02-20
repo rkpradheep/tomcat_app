@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
+import com.server.security.user.User;
+
 public class LoginHandler extends HttpServlet
 {
 	@Override
@@ -16,14 +18,15 @@ public class LoginHandler extends HttpServlet
 	{
 		JSONObject jsonObject = SecurityUtil.getJSONObject(request);
 
-		boolean isAdminLogin = SecurityUtil.isAdminCall(request.getRequestURI());
-		String tokenName = isAdminLogin ? "iam_admin_token" : "iam_token";
+		String tokenName = "iam_token";
 
-		Long userID = LoginUtil.validateCredentials(jsonObject.getString("name"), jsonObject.getString("password"), isAdminLogin);
-		String sessionID = userID + String.valueOf(System.currentTimeMillis());
-		if(Objects.nonNull(userID) && LoginUtil.addSession(sessionID, userID, isAdminLogin))
+		User user = LoginUtil.validateCredentials(jsonObject.getString("name"), jsonObject.getString("password"));
+		if(Objects.nonNull(user))
 		{
-			String maxAge = isAdminLogin ? "Max-Age=86400" : "Max-Age=1800";
+			String sessionID = user.getId() + String.valueOf(System.currentTimeMillis());
+			LoginUtil.addSession(sessionID, user.getId(), user.isAdmin());
+
+			String maxAge = user.isAdmin() ? "Max-Age=86400" : "Max-Age=1800";
 			StringBuilder header = new StringBuilder()
 				.append(tokenName + "=")
 				.append(sessionID)

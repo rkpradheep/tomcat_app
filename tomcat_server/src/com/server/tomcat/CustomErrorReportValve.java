@@ -100,14 +100,17 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 		String message;
 		switch(code)
 		{
-			case 404:
+			case HttpStatus.SC_NOT_FOUND:
 				message = isRestAPI(uri) ? "The requested resource [$1] is not available".replace("$1", uri) : "Page not found";
 				break;
-			case 429:
+			case HttpStatus.SC_TOO_MANY_REQUESTS:
 				message = !isRestAPI(uri) ? "Throttle limit exceeded" : "Throttle limit exceeded. Please try again after 5 minutes.";
 				break;
+			case HttpStatus.SC_FORBIDDEN:
+				message = "You are not authorized to access this page";
+				break;
 			default:
-				message = "Something went wrong. Please try again later.";
+				message = "Something went wrong. Please try again later";
 		}
 		return message;
 	}

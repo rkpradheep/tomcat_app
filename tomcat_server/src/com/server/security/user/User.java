@@ -4,15 +4,13 @@ public class User
 {
 	private Long id;
 	private String name;
-	private String sessionId;
-	private Long expiryTime;
+	private boolean isAdmin;
 
-	public User(Long id, String name, String sessionId, long expiryTime)
+	public User(Long id, String name, boolean isAdmin)
 	{
 		this.id = id;
 		this.name = name;
-		this.sessionId = sessionId;
-		this.expiryTime = expiryTime;
+		this.isAdmin = isAdmin;
 	}
 
 	public Long getId()
@@ -25,13 +23,8 @@ public class User
 		return name;
 	}
 
-	public String getSessionId()
+	public boolean isAdmin()
 	{
-		return sessionId;
-	}
-
-	public Long getExpiryTime()
-	{
-		return expiryTime;
+		return isAdmin;
 	}
 }

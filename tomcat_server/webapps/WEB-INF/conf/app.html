@@ -4,6 +4,7 @@
     <meta name="viewport"  content="initial-scale=0.8,user-scalable=no"/>
     <script src="js/common.js"></script>
     <link rel='stylesheet' href='css/navbar.css'>
+    <link rel='stylesheet' href='css/loading.css'>
 </head>
 <style>
     body {
@@ -27,6 +28,8 @@
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 500px;
+    display:none;
 }
 
 blockquote {
@@ -53,6 +56,12 @@ blockquote {
     <div class="menu-bar">
         <div class="menu">
             <ul class="menu-links">
+                <li class="nav-link" style="color: var(--sidebar-color); disabled">
+                    <a href="/app">
+                        <i class='bx bx--home-alt icon'></i>
+                        <span class="text nav-text">Home</span>
+                    </a>
+                </li>
                 <li class="nav-link">
                     <a href="/chat.html">
                         <i class='bx quill--chat icon'></i>
@@ -131,7 +140,8 @@ blockquote {
         </div>
     </div>
 </nav>
-<div class="quote-container">
+<div class="loading" id="loading" style="display:none">Loading…</div>
+<div class="quote-container" id="quote-container">
     <blockquote id="quote-text"></blockquote>
     <p id="author"></p>
 </div>
@@ -142,12 +152,19 @@ blockquote {
 document.addEventListener('DOMContentLoaded', getRandomQuote);
 
 function getRandomQuote() {
+    unHideElement('loading')
     fetch('https://api.quotable.io/random')
         .then(response => response.json())
         .then(data => {
             displayQuote(data.content, data.author);
+            hideElement('loading')
+             unHideElement("quote-container");
         })
-        .catch(error => console.error('Error fetching quote:', error));
+        .catch(error => {
+        hideElement("loading");
+        hideElement("quote-container");
+        console.error('Error fetching quote:', error);
+        })
 }
 
 function displayQuote(quote, author) {

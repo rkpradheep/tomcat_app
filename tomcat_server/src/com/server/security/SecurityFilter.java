@@ -59,7 +59,7 @@ public class SecurityFilter implements Filter
 
 			if(SecurityUtil.canSkipAuthentication(requestURI))
 			{
-				if(requestURI.matches("/(admin/)?login") && SecurityUtil.isLoggedIn())
+				if(requestURI.matches("/login") && SecurityUtil.isLoggedIn())
 				{
 					httpServletResponse.sendRedirect("/");
 					return;
@@ -71,7 +71,12 @@ public class SecurityFilter implements Filter
 
 			if(SecurityUtil.isLoggedIn())
 			{
-				LOGGER.log(Level.INFO, "Request received for uri {0}  Session {1} IP {2}", new Object[] {requestURI, CURRENT_USER_TL.get().getSessionId(), SecurityUtil.getUserIP(httpServletRequest)});
+				if(!SecurityUtil.getCurrentUser().isAdmin() && SecurityUtil.isAdminCall(requestURI))
+				{
+					httpServletResponse.sendError(HttpStatus.SC_FORBIDDEN);
+					return;
+				}
+				LOGGER.log(Level.INFO, "Request received for uri {0}  Session {1} IP {2}", new Object[] {requestURI, sessionId, SecurityUtil.getUserIP(httpServletRequest)});
 				filterChain.doFilter(servletRequest, servletResponse);
 			}
 			else
@@ -85,7 +90,7 @@ public class SecurityFilter implements Filter
 				}
 				else
 				{
-					String loginPage = SecurityUtil.isAdminCall(requestURI) ? "/admin/login" : "/login";
+					String loginPage = "/login";
 					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, "UTF-8");
 
 					httpServletResponse.sendRedirect(loginPage);
