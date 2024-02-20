@@ -48,6 +48,7 @@ public class HotSwap extends HttpServlet
 		try
 		{
 			message = ShellExecutor.execute(command);
+			message = StringUtils.contains(message, "Initializing jdb") ? "Hotswap completed" : message;
 		}
 		catch(Exception e)
 		{
