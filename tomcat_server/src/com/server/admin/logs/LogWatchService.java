@@ -14,6 +14,7 @@ import java.nio.file.WatchService;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -92,7 +93,7 @@ public class LogWatchService
 			watchService.close();
 			watchService = null;
 			executorService.shutdownNow();
-			LOGGER.log(Level.INFO, "Thread shutdown for Log WatchService");
+			LOGGER.log(Level.INFO, "Thread shutdown for Log WatchService :: Is Terminated? {0}", executorService.awaitTermination(5, TimeUnit.SECONDS));
 		}
 		catch(Exception e)
 		{

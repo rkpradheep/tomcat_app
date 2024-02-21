@@ -51,28 +51,34 @@ public class LiveLogHandler
 	}
 
 	@OnClose
-	public void onClose(Session ss)
+	public void onClose(Session session)
 	{
-		try
-		{
-			liveSessionList.remove(ss);
-			LOGGER.info("Session Closed " + ss.getId());
-			ss.close();
-			if(liveSessionList.isEmpty())
-			{
-				LogWatchService.stop();
-			}
-		}
-		catch(IOException e)
-		{
-			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-		}
+		handleSessionClose(session);
 	}
 
 	@OnError
 	public void onError(Session session, Throwable throwable)
 	{
+		handleSessionClose(session);
 		LOGGER.log(Level.SEVERE, "Error occurred for session " + session.getId(), throwable);
+	}
+
+	private static void handleSessionClose(Session session)
+	{
+		try
+		{
+			liveSessionList.remove(session);
+			LOGGER.info("Session Closed " + session.getId());
+			if(liveSessionList.isEmpty())
+			{
+				LogWatchService.stop();
+			}
+			session.close();
+		}
+		catch(IOException e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+		}
 	}
 
 }
