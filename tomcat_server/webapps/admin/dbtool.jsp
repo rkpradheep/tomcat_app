@@ -255,6 +255,10 @@
         <div id="response" style="display: none;">
             <textarea readonly id="output" name="output" rows="10" cols="50" style="font-size: 18px; color: white; background-color: black;"></textarea>
         </div>
+        <br />
+        <br />
+        <h3>Live Logs</h3>
+         <iframe src="/livelogs" height="400" width="100%" title="Live logs"></iframe>
         </div>
         <script>
         var QUERY_OUTPUT = "";
