@@ -120,6 +120,7 @@
 		<url-pattern>/csv</url-pattern>
 		<url-pattern>/hotswap</url-pattern>
 		<url-pattern>/network</url-pattern>
+		<url-pattern>/livelogs</url-pattern>
 	</servlet-mapping>
 
 

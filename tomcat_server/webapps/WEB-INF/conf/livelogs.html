@@ -1,0 +1,46 @@
+<html>
+<header>
+    <meta name="viewport"  content="initial-scale=0.8,user-scalable=no"/>
+</header>
+<body>
+<style>
+    div{
+        display:flex;
+        justify-content:center;
+        align-items: center;
+        height: 100%;
+    }
+</style>
+<div>
+    <textarea id="logs" cols="150" rows="50" style="background-color:#2b2b2b;color:white" readonly></textarea>
+</div>
+<script>
+function join() {
+    var url = "ws://";
+    if (window.location.origin.includes('https'))
+        url = "wss://";
+    url = url + window.location.host + "/api/v1/admin/live/logs";
+    socket = new WebSocket(url);
+    socket.addEventListener('open', function(event) {
+        joined = true;
+    });
+    socket.addEventListener("error", (event) => {
+        joined = false;
+        console.log(event);
+    });
+    socket.addEventListener('close', function(event) {
+        console.log(event)
+        joined = false;
+    });
+    socket.addEventListener('message', function(event) {
+        incoming(event.data);
+    });
+}
+
+function incoming(msg) {
+    document.getElementById("logs").innerHTML = document.getElementById("logs").innerHTML + msg;
+}
+join();
+</script>
+</body>
+</html>

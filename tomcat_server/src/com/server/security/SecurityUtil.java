@@ -44,7 +44,7 @@ import com.server.security.user.User;
 
 public class SecurityUtil
 {
-	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/(admin/)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/run");
+	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/(admin/)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/run", "/api/v1/admin/live/logs");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
