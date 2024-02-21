@@ -10,11 +10,11 @@ public class CustomLogFormatter extends SimpleFormatter
 	@Override
 	public String format(LogRecord record)
 	{
-		return System.lineSeparator()  + getLineSeparator() + System.lineSeparator() + System.lineSeparator() + Thread.currentThread().getName()  + " ----> " + super.format(record) + System.lineSeparator() + getLineSeparator();
+		return getLineSeparator() + Thread.currentThread().getName()  + " ----> " + super.format(record) + getLineSeparator();
 	}
 
 	String getLineSeparator()
 	{
-		return String.join("", Collections.nCopies(200, "-"));
+		return String.join("", Collections.nCopies(2, System.lineSeparator()));
 	}
 }
