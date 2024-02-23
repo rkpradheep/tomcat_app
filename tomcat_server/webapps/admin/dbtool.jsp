@@ -12,12 +12,17 @@
     #rootdiv
     {
     margin-left:50px;
+    width: 150%;
     }
     @media (min-width:1000px)
     {
     #rootdiv
     {
     margin-left:200px;
+    }
+    iframe
+    {
+     width:50%
     }
     }
 
