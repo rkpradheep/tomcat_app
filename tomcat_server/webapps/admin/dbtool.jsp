@@ -3,7 +3,7 @@
 <html>
     <head>
         <title>Admin DB Tool</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=0.8" />
         <link rel="stylesheet" href="/css/loading.css" />
         <link rel="stylesheet" href="/css/navbar.css">
     </head>
@@ -12,7 +12,6 @@
     #rootdiv
     {
     margin-left:50px;
-    width: 150%;
     }
     @media (min-width:1000px)
     {
