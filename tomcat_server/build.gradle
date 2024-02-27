@@ -58,14 +58,8 @@ task bundleResource {
             into "${serverPath}/build/tomcat_server/WEB-INF/classes"
         }
 
-        copy {
-            from "${home}/app.properties"
-            into "${serverPath}/classes/com/server/security"
-        }
-
-        copy {
-            from "${serverPath}/lib"
-            exclude 'servlet-api.jar', 'websocket-api.jar'
+        copy{
+            from "${serverPath}/build/security.jar"
             into "${serverPath}/build/tomcat_server/WEB-INF/lib"
         }
 
@@ -107,24 +101,87 @@ task setupTomcatContainer{
             from "${serverPath}/tomcat/"
             into "${home}/tomcat_build"
         }
-        replaceToken("${home}/tomcat_build/bin/setenv.sh", [
-                [from: "MY_HOME=",
-                 to: "MY_HOME=${home}"
-                ]
-        ])
-        copy{
-            from "${serverPath}/build/CustomTomcatValves.jar"
-            into "${home}/tomcat_build/lib"
-        }
-        copy{
-            from "${serverPath}/build/security.jar"
-            into "${home}/tomcat_build/shared/lib"
-        }
+
+        packNonROOTWebApps ()
 
         println "set up tomcat container completed"
     }
 }
 
+
+def packNonROOTWebApps()
+{
+    copy{
+        from "${serverPath}/build/security.jar"
+        into "${home}/tomcat_build/webapps/manager/WEB-INF/lib"
+    }
+    copy{
+        from "${serverPath}/build/tomcat_server/WEB-INF/conf/login.html"
+        into "${home}/tomcat_build/webapps/manager"
+    }
+    copy{
+        from "${serverPath}/build/tomcat_server/css/login.css"
+        into "${home}/tomcat_build/webapps/manager/css"
+    }
+    copy{
+        from "${serverPath}/build/tomcat_server/js/login.js"
+        into "${home}/tomcat_build/webapps/manager/js"
+    }
+
+    replaceToken("${home}/tomcat_build/webapps/manager/js/login.js", [
+            [from: "/api/v1/authenticate",
+             to: "/manager/api/v1/authenticate"
+            ]
+    ])
+    copy{
+        from "${serverPath}/build/tomcat_server/js/common.js"
+        into "${home}/tomcat_build/webapps/manager/js"
+    }
+    copy{
+        from "${serverPath}/build/tomcat_server/css/loading.css"
+        into "${home}/tomcat_build/webapps/manager/css"
+    }
+    copy{
+        from "${serverPath}/build/security.jar"
+        into "${home}/tomcat_build/webapps/tomcat/WEB-INF/lib"
+    }
+    copy{
+        from "${serverPath}/build/tomcat_server/WEB-INF/conf/login.html"
+        into "${home}/tomcat_build/webapps/tomcat"
+    }
+    copy{
+        from "${serverPath}/build/tomcat_server/css/login.css"
+        into "${home}/tomcat_build/webapps/tomcat/css"
+    }
+    copy{
+        from "${serverPath}/build/tomcat_server/js/login.js"
+        into "${home}/tomcat_build/webapps/tomcat/js"
+    }
+
+    replaceToken("${home}/tomcat_build/webapps/tomcat/js/login.js", [
+            [from: "/api/v1/authenticate",
+             to: "/tomcat/api/v1/authenticate"
+            ]
+    ])
+    copy{
+        from "${serverPath}/build/tomcat_server/js/common.js"
+        into "${home}/tomcat_build/webapps/tomcat/js"
+    }
+    copy {
+        from "${serverPath}/build/tomcat_server/css/loading.css"
+        into "${home}/tomcat_build/webapps/tocmat/css"
+    }
+
+    replaceToken("${home}/tomcat_build/bin/setenv.sh", [
+            [from: "MY_HOME=",
+             to: "MY_HOME=${home}"
+            ]
+    ])
+    copy{
+        from "${serverPath}/build/CustomTomcatValves.jar"
+        into "${home}/tomcat_build/lib"
+    }
+}
 
 task buildTomcatValvesJar(type: Jar) {
     archiveFileName = "CustomTomcatValves.jar"
@@ -208,7 +265,17 @@ def getTomcatCommand(isStart)
     }
 }
 
-configureTaskDependencies(fullBuild, [build, bundleResource, packRootWar, buildTomcatValvesJar, buildSecurityJar, setupTomcatContainer, deployBuild, cleanUp])
+task copyProperyFile{
+    doLast{
+        copy {
+            from "${home}/app.properties"
+            into "${serverPath}/classes/com/server/security"
+        }
+        println "Copy property file completed"
+    }
+}
+configureTaskDependencies(build, [copyProperyFile])
+configureTaskDependencies(fullBuild, [build, buildSecurityJar, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, deployBuild])
 configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, stopTomcat, deployBuild, cleanUp, startTomcat])
 
 defaultTasks 'updateBuild'

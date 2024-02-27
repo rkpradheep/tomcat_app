@@ -44,7 +44,7 @@ import com.server.security.user.User;
 
 public class SecurityUtil
 {
-	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/(admin/)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/run", "/api/v1/admin/live/logs");
+	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/run", "/api/v1/admin/live/logs");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
@@ -98,7 +98,7 @@ public class SecurityUtil
 		URL urlObject = new URL(request.getRequestURL().toString());
 		int port = urlObject.getPort() != -1 ? urlObject.getPort() : urlObject.getDefaultPort();
 		String url = urlObject.getProtocol() + "://" + urlObject.getHost() + ":" + port;
-		return url + "/login?post=true";
+		return url + request.getContextPath() + "/login?post=true";
 	}
 
 	public static String getUserIP(HttpServletRequest request)
@@ -224,6 +224,17 @@ public class SecurityUtil
 			.map(ServletRegistration::getMappings)
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
+
+		for(String apiEndpoint : apiEndPoints)
+		{
+			if(apiEndpoint.endsWith("/*"))
+			{
+			 if(endPoint.startsWith(apiEndpoint.replaceAll("/\\*", StringUtils.EMPTY)))
+			 {
+				 return true;
+			 }
+			}
+		}
 
 		return apiEndPoints.contains(endPoint) || endPoint.startsWith("/manager")  ||  endPoint.startsWith("/tomcat") || isValidWebSocketEndPoint(endPoint) || Objects.nonNull(SecurityFilter.SERVLET_CONTEXT_TL.get().getResource(URLDecoder.decode(endPoint)));
 	}

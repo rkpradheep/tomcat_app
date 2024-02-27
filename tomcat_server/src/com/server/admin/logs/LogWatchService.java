@@ -90,8 +90,11 @@ public class LogWatchService
 	{
 		try
 		{
-			watchService.close();
-			watchService = null;
+			if(Objects.nonNull(watchService))
+			{
+				watchService.close();
+				watchService = null;
+			}
 			executorService.shutdownNow();
 			LOGGER.log(Level.INFO, "Thread shutdown for Log WatchService :: Is Terminated? {0}", executorService.awaitTermination(5, TimeUnit.SECONDS));
 		}

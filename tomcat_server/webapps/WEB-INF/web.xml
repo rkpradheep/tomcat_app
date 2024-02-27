@@ -22,9 +22,9 @@
                       http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
 		version="4.0"
 		metadata-complete="true">
-	<display-name>Welcome to Tomcat</display-name>
+	<display-name>Main</display-name>
 	<description>
-     Welcome to Tomcat
+    Main
   </description>
 	<context-param>
 		<param-name>dname</param-name>
@@ -55,9 +55,17 @@
 	</filter-mapping>
 
 	<listener>
-		<listener-class>com.server.common.ContextListener</listener-class>
+		<listener-class>com.server.security.listener.ContextListener</listener-class>
 	</listener>
 
+	<filter>
+		<filter-name>SecurityFilter</filter-name>
+		<filter-class>com.server.security.SecurityFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>SecurityFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
 	<servlet>
 		<servlet-name>SASHandler</servlet-name>
@@ -90,7 +98,6 @@
 	<servlet-mapping>
 		<servlet-name>LoginHandler</servlet-name>
 		<url-pattern>/api/v1/authenticate</url-pattern>
-		<url-pattern>/api/v1/admin/authenticate</url-pattern>
 		<url-pattern>/logout</url-pattern>
 	</servlet-mapping>
 

@@ -30,8 +30,8 @@ public class DBUtil
 		basicDataSource.setUrl(MessageFormat.format("jdbc:{0}://{1}:{2}/{3}?connectTimeout=5000&useSSL=false&allowPublicKeyRetrieval=True", server, Configuration.getProperty("db.server.ip"), Configuration.getProperty("db.server.port"), DBUtil.schemaName));
 		basicDataSource.setUsername(Configuration.getProperty("db.server.user"));
 		basicDataSource.setPassword(Configuration.getProperty("db.server.password"));
-		basicDataSource.setMaxIdle(10);
-		basicDataSource.setMinIdle(5);
+		basicDataSource.setMaxIdle(5);
+		basicDataSource.setMinIdle(2);
 		basicDataSource.setMaxTotal(20);
 
 		dataSource = basicDataSource;

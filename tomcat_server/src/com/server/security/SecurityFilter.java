@@ -38,7 +38,7 @@ public class SecurityFilter implements Filter
 			HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
 			HttpServletResponse httpServletResponse = ((HttpServletResponse) servletResponse);
 
-			String requestURI = httpServletRequest.getRequestURI();
+			String requestURI = httpServletRequest.getRequestURI().replaceFirst(httpServletRequest.getContextPath(), StringUtils.EMPTY);
 			String requestURL = httpServletRequest.getRequestURL().toString();
 
 			if(!SecurityUtil.isValidEndPoint(requestURI))
@@ -90,7 +90,7 @@ public class SecurityFilter implements Filter
 				}
 				else
 				{
-					String loginPage = "/login";
+					String loginPage = httpServletRequest.getContextPath() + "/login";
 					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, "UTF-8");
 
 					httpServletResponse.sendRedirect(loginPage);
