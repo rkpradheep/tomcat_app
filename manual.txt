@@ -1,9 +1,9 @@
 
 Unix setup : 
 
-To set environment variable MY_HOME, add below entry in /etc/profile
+To set environment variable MY_HOME, add below entry in /etc/profile.d/myhome.sh
 
-export MY_HOME=$HOME/MyHome
+export MY_HOME=/home/local/ZOHOCORP/pradheep-14225/MyHome
 
 
 
@@ -63,15 +63,19 @@ Add below entries :
 [Unit]
 Description=Apache Tomcat Web Application Container
 After=network.target
+Requires=mysql.service
 
 [Service]
 Type=forking
 
-ExecStart=sudo /home/pradheep_rk_it/MyHome/tomcat_build/bin/startup.sh
-ExecStop=sudo /home/pradheep_rk_it/MyHome/tomcat_build/bin/shutdown.sh
+Environment="DISPLAY=:1"
 
-User=pradheep_rk_it
-Group=pradheep_rk_it
+#ExecStart=/home/local/ZOHOCORP/pradheep-14225/MyHome/tomcat_build/run.sh (For development)
+ExecStart=sudo /home/pradheep_rk_it/MyHome/tomcat_build/bin/startup.sh
+ExecStop=/home/local/ZOHOCORP/pradheep-14225/MyHome/tomcat_build/bin/shutdown.sh
+
+User=pradheep-14225
+Group=pradheep-14225
 UMask=0007
 RestartSec=10
 Restart=always
@@ -79,4 +83,10 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 
+
+
+
+
+sudo systemctl daemon-reload
+sudo systemctl restart tomcat
 sudo systemctl enable tomcat (To start after reboot)
