@@ -12,7 +12,7 @@ echo "appHealth ---> ${appHealth} and ngrokPID ---> ${ngrokPID}"  >> output.txt
 
 if ! test "$appHealth" = "true" ; then
 	echo "Server is not running"  >> output.txt
-	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49 -d alert="Server is down. Please check." >> output.txt
+	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey= -d alert="Server is down. Please check." >> output.txt
 else
 echo "Server is up and running"  >> output.txt
 fi
@@ -20,7 +20,7 @@ fi
 
 if [ -z "$ngrokPID" ]; then
 	echo "ngrok is not running"  >> output.txt
-	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49 -d alert="ngrok is down. Please check." >> output.txt
+	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey= -d alert="ngrok is down. Please check." >> output.txt
 else
 echo "ngrok is up and running"  >> output.txt
 fi

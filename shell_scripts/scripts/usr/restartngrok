@@ -18,7 +18,7 @@ while true
 do
 	url=$(curl -s http://localhost:4040/api/tunnels/ | jq .tunnels[0].public_url)
 	if [[ "$url" == *https* ]];then
-	   curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49 -d url=$url/api/v1/run
+	   curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey= -d url=$url/api/v1/run
 	   echo 'ngrok connected successfully'  >> output.txt
 	   echo $url > $MY_HOME/liveUrl.txt
 	   break

@@ -71,7 +71,7 @@ public class Util
 	{
 		try
 		{
-			URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/message?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49");
+			URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/message?zapikey=" + Configuration.getProperty("cliq.zapi.key"));
 
 			HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 			httpURLConnection.setRequestMethod("POST");

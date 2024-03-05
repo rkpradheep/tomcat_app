@@ -81,7 +81,7 @@ public class ShellExecutor extends HttpServlet
 
 		String boundary = "---" + Long.toHexString(System.currentTimeMillis());
 
-		URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49");
+		URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=" + Configuration.getProperty("cliq.zapi.key"));
 
 		HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 		httpURLConnection.setRequestMethod("POST");
@@ -114,7 +114,7 @@ public class ShellExecutor extends HttpServlet
 		LOGGER.info("API Response " + Util.getResponse(httpURLConnection.getInputStream()));
 		//TODO: Alternative with advanced library to achieve the same
 
-		//		String url = "https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49";
+		//		String url = "https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=" + Configuration.getProperty("cliq.zapi.key");
 		//		File file = new File("myImage.jpeg");
 		//
 		//		HttpEntity entity = MultipartEntityBuilder.create()
@@ -141,7 +141,7 @@ public class ShellExecutor extends HttpServlet
 
 			String boundary = "---" + Long.toHexString(System.currentTimeMillis());
 
-			URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=1001.cb9555d23c48ab721daae1657431b62f.5d7e4f5eabc947097d2d4fd64a235f49");
+			URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=" + Configuration.getProperty("cliq.zapi.key"));
 
 			HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 			httpURLConnection.setRequestMethod("POST");
