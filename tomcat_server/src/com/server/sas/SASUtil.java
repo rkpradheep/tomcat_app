@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.common.Util;
@@ -276,7 +277,7 @@ public class SASUtil
 			PrivateKey privateKey = (PrivateKey) request.getSession().getAttribute("private_key");
 			if(privateKey == null)
 			{
-				throw new RuntimeException("key_expired");
+				throw new Exception("key_expired");
 			}
 			credentials.put("ip", Util.decryptData(privateKey, credentials.getString("ip")));
 			credentials.put("user", Util.decryptData(privateKey, credentials.getString("user")));
@@ -284,7 +285,8 @@ public class SASUtil
 		}
 		catch(Exception e)
 		{
-			throw new Exception("Credentials tampered. Please refresh the page and try again.");
+			String errorMessage = StringUtils.equals(e.getMessage(), "key_expired") ? "key_expired" : "Credentials tampered. Please refresh the page and try again.";
+			throw new Exception(errorMessage);
 		}
 
 	}
