@@ -68,8 +68,6 @@ Requires=mysql.service
 [Service]
 Type=forking
 
-Environment="DISPLAY=:1"
-
 #ExecStart=/home/local/ZOHOCORP/pradheep-14225/MyHome/tomcat_build/run.sh (For development)
 ExecStart=sudo /home/pradheep_rk_it/MyHome/tomcat_build/bin/startup.sh
 ExecStop=/home/local/ZOHOCORP/pradheep-14225/MyHome/tomcat_build/bin/shutdown.sh

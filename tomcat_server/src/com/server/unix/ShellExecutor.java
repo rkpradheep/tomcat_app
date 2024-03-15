@@ -10,6 +10,8 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -191,23 +193,27 @@ public class ShellExecutor extends HttpServlet
 
 	public static String execute(String[] cmdArray) throws Exception
 	{
-		File file = new File("output.txt");
-		try
-		{
-			Process process = Runtime.getRuntime().exec(cmdArray);
-			StringWriter stringWriter = new StringWriter();
+		File[] dbusFiles = new File("/run/user/").listFiles();
 
-			IOUtils.copy(process.getErrorStream(), stringWriter);
-			file.delete();
-			if(StringUtils.isEmpty(stringWriter.toString()))
-			{
-				IOUtils.copy(process.getInputStream(), stringWriter);
-			}
-			return stringWriter.toString();
-		}
-		finally
+		ProcessBuilder pb = new ProcessBuilder(cmdArray);
+		Map<String, String> env = pb.environment();
+		env.put("DISPLAY", ":1");
+
+		if(Objects.nonNull(dbusFiles) && dbusFiles.length > 0)
 		{
-			file.delete();
+			env.put("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/" + dbusFiles[0].getName() + "/bus");
 		}
+
+		Process process = pb.start();
+		process.waitFor();
+
+		StringWriter stringWriter = new StringWriter();
+
+		IOUtils.copy(process.getErrorStream(), stringWriter);
+		if(StringUtils.isEmpty(stringWriter.toString()))
+		{
+			IOUtils.copy(process.getInputStream(), stringWriter);
+		}
+		return stringWriter.toString();
 	}
 }
