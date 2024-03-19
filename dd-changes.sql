@@ -126,7 +126,7 @@ INSERT INTO `tomcatserver`.`Users`
 `password`, `role_type`)
 VALUES(
 'admin',
-'admin@123', -1);
+'7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358', -1);
 
 INSERT INTO `tomcatserver`.`Users`
 (
@@ -134,4 +134,4 @@ INSERT INTO `tomcatserver`.`Users`
 `password`, `role_type`)
 VALUES(
 'test',
-'test@123', 0);
+'8622f0f69c91819119a8acf60a248d7b36fdb7ccf857ba8f85cf7f2767ff8265', 0);

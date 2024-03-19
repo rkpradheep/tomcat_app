@@ -28,7 +28,9 @@ public class PropertyHandler extends HttpServlet
 		else
 		{
 			Map<String, String> responseMap = new HashMap<>();
-			responseMap.put("property_value", Configuration.getProperty(propertyName));
+			String sensitiveKeyRegex = "(.*)(password|credential|secret)(.*)";
+
+			responseMap.put("property_value", propertyName.matches(sensitiveKeyRegex) ? "*****" : Configuration.getProperty(propertyName));
 			SecurityUtil.writeJSONResponse(httpServletResponse, responseMap);
 		}
 	}

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import javax.xml.transform.Result;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
@@ -53,7 +54,7 @@ public class UserUtil
 		{
 			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
 			preparedStatement.setString(1, userJSON.getString("name"));
-			preparedStatement.setString(2, userJSON.getString("password"));
+			preparedStatement.setString(2, DigestUtils.sha256Hex(userJSON.getString("password").trim()));
 			preparedStatement.setInt(3, RoleEnum.getType(userJSON.getString("role")));
 
 			preparedStatement.executeUpdate();

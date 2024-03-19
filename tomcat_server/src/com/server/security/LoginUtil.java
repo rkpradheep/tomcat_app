@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import com.server.security.user.User;
 import com.server.security.user.UserUtil;
 
@@ -23,7 +25,7 @@ public class LoginUtil
 		{
 			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
 			preparedStatement.setString(1, name.toUpperCase().trim());
-			preparedStatement.setString(2, password.trim());
+			preparedStatement.setString(2, DigestUtils.sha256Hex(password.trim()));
 
 			return UserUtil.getUser(preparedStatement.executeQuery());
 		}
