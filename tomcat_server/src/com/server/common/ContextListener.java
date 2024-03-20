@@ -9,6 +9,8 @@ import javax.servlet.ServletContextEvent;
 import com.server.file.FileManager;
 
 import com.server.job.RefreshManager;
+import com.server.proxy.ProxyServer;
+import com.server.security.Configuration;
 import com.server.security.listener.Listener;
 import com.server.security.SecurityUtil;
 
@@ -25,7 +27,10 @@ public class ContextListener implements Listener
 
 		FileManager.copyUploads();
 
-		//ProxyServer.init();
+		if(Configuration.getBoolean("proxy.server"))
+		{
+			ProxyServer.init();
+		}
 	}
 
 	@Override
@@ -33,6 +38,9 @@ public class ContextListener implements Listener
 	{
 		RefreshManager.shutDown();
 
-		//ProxyServer.shutDown();
+		if(Configuration.getBoolean("proxy.server"))
+		{
+			ProxyServer.shutDown();
+		}
 	}
 }

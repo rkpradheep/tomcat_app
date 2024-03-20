@@ -10,6 +10,8 @@ import java.io.StringReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -22,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.server.common.Util;
 import com.server.job.RefreshManager;
@@ -98,7 +101,8 @@ public class ProxyServer
 
 			LOGGER.info("Input Stream Available size " + clientIn.available());
 
-			while(clientIn.available() == 0);
+			while(clientIn.available() == 0)
+				;
 
 			byte[] bytes = new byte[clientIn.available()];
 
@@ -126,16 +130,29 @@ public class ProxyServer
 
 				ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-				Future<?> clientThread = executorService.submit(()-> forwardData(clientSocket, targetSocket, "Proxy's Client Socket"));
-				Future<?> targetThread = executorService.submit(()-> forwardData(targetSocket, clientSocket, "Proxy's Client's Target Socket"));
+				Future<?> clientThread = executorService.submit(() -> forwardData(clientSocket, targetSocket, "Proxy's Client Socket"));
+				Future<?> targetThread = executorService.submit(() -> forwardData(targetSocket, clientSocket, "Proxy's Client's Target Socket"));
 
 				clientThread.get();
 				targetSocket.shutdownOutput();
-				clientSocket.shutdownInput();
 				targetThread.get();
 
 				executorService.shutdownNow();
 			}
+			else
+			{
+				String data = new String(bytes, 0, read);
+				forwardData(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), targetSocket);
+
+				while(targetSocket.getInputStream().available() < 1) ;
+
+				byte[] targetOutputBytes = new byte[targetSocket.getInputStream().available()];
+				targetSocket.getInputStream().read(targetOutputBytes);
+				forwardData(new ByteArrayInputStream(targetOutputBytes), clientSocket);
+
+				targetSocket.shutdownOutput();
+			}
+
 			targetSocket.close();
 		}
 		catch(Exception e)
@@ -149,10 +166,15 @@ public class ProxyServer
 		}
 	}
 
-	static String[] getHostAndPort(String targetHost, String targetURL)
+	static String[] getHostAndPort(String targetHost, String targetURL) throws Exception
 	{
 
 		String port = targetURL.split(":").length > 1 ? targetURL.split(":")[1] : "80";
+		if(targetURL.startsWith("http"))
+		{
+			int portFromUrl = new URL(targetURL).getPort();
+			port = (portFromUrl == -1 ? new URL(targetURL).getDefaultPort() : portFromUrl) + StringUtils.EMPTY;
+		}
 		Pattern pattern = Pattern.compile("([\\w.-]+):?(\\d*)");
 		Matcher matcher = pattern.matcher(targetHost.toLowerCase().replaceFirst("host: ", ""));
 		matcher.matches();
