@@ -57,7 +57,7 @@ public class SecurityFilter implements Filter
 
 			CURRENT_USER_TL.set(UserUtil.getUser(sessionId));
 
-			if(SecurityUtil.canSkipAuthentication(requestURI))
+			if(Configuration.getBoolean("skip.authentication") || SecurityUtil.canSkipAuthentication(requestURI))
 			{
 				if(requestURI.matches("/login") && SecurityUtil.isLoggedIn())
 				{
