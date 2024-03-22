@@ -25,8 +25,8 @@ import com.server.security.user.UserUtil;
 
 public class SecurityFilter implements Filter
 {
-	public static final ThreadLocal<User> CURRENT_USER_TL = new ThreadLocal<>();
-	public static final ThreadLocal<ServletContext> SERVLET_CONTEXT_TL = new ThreadLocal<>();
+	static final ThreadLocal<User> CURRENT_USER_TL = new ThreadLocal<>();
+	static final ThreadLocal<ServletContext> SERVLET_CONTEXT_TL = new ThreadLocal<>();
 	private static final Logger LOGGER = Logger.getLogger(SecurityFilter.class.getName());
 
 	@Override public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException

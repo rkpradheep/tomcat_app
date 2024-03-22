@@ -26,7 +26,7 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 	{
 		try
 		{
-			BufferedReader bufferedReader = new BufferedReader(new FileReader(System.getenv("MY_HOME") + "/tomcat_server/webapps/WEB-INF/conf/errorPage.html"));
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(System.getenv("MY_HOME") + "/tomcat_build/conf/errorPage.html"));
 			ERROR_HTML = bufferedReader.lines().collect(Collectors.joining());
 		}
 		catch(Exception e)
@@ -71,6 +71,7 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 			{
 				LOGGER.log(Level.SEVERE, "TOMCAT ERROR REPORT VALVE :: Writing html response for request - {0}", request.getRequestURI()); //No I18N
 
+				response.setContentType("text/html");
 				IOUtils.copy(getErrorHtmlInputStream(uri, code), response.getOutputStream());
 				response.setErrorReported();
 			}

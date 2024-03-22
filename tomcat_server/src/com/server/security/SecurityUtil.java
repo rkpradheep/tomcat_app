@@ -80,7 +80,7 @@ public class SecurityUtil
 
 	public static boolean isAdminCall(String requestURI)
 	{
-		return requestURI.matches("^(/api/v1)?/admin(.*)|/manager(.*)");
+		return requestURI.matches("^(/api/v1)?/admin(.*)") || StringUtils.equals(SecurityFilter.SERVLET_CONTEXT_TL.get().getServletContextName(), "Manager");
 	}
 
 	public static boolean isLoggedIn()

@@ -3,7 +3,7 @@ Unix setup :
 
 To set environment variable MY_HOME, add below entry in /etc/profile.d/myhome.sh
 
-export MY_HOME=/home/local/ZOHOCORP/pradheep-14225/MyHome
+export MY_HOME=${HOME}/MyHome   Replace HOME with your home dir
 
 
 

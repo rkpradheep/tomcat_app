@@ -43,7 +43,7 @@ public class HotSwap extends HttpServlet
 			fileWriter.flush();
 		}
 		fileWriter.close();
-		String[] command = new String[] {"bash", "-c", "jdb -attach " + host + ":" + port + "< " + fileName};
+		String[] command = new String[] {"bash", "-c", System.getenv("JAVA_HOME") + "/bin/jdb -attach " + host + ":" + port + "< " + fileName};
 		String message = "Something went wrong!";
 		try
 		{
