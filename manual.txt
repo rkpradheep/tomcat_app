@@ -1,12 +1,3 @@
-
-Unix setup : 
-
-To set environment variable MY_HOME, add below entry in /etc/profile.d/myhome.sh
-
-export MY_HOME=${HOME}/MyHome   Replace HOME with your home dir
-
-
-
 To allow sudoers to execute command without password, follow below steps
 
 Step 1 : sudo visudo
@@ -35,11 +26,11 @@ Step 4 : y
 Step 5 : Enter
 
 
-Add this under .bashrc
+Add this under .bashrc for accessing the log easily
 
 alias alog="tail -n 500 -f $MY_HOME/output.txt"
-alias applog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/my_app_log.txt"
-alias clog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/my_catalina_log.txt"
+alias applog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/app_log.txt"
+alias clog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/catalina_log.txt"
 
 
 Docker without sudo
@@ -53,38 +44,3 @@ su - $USER
 To generate self signed certificate
 
 keytool -genkeypair -v  -keystore tomcat.jks   -keyalg RSA   -keysize 2048   -validity 365   -storepass tomcat   -keypass tomcat
-
-
-To add tomcat as service
-
-Create /etc/systemd/system/tomcat.service
-
-Add below entries :
-[Unit]
-Description=Apache Tomcat Web Application Container
-After=network.target
-Requires=mysql.service
-
-[Service]
-Type=forking
-
-#ExecStart=/home/local/ZOHOCORP/pradheep-14225/MyHome/tomcat_build/run.sh (For development)
-ExecStart=sudo /home/pradheep_rk_it/MyHome/tomcat_build/bin/startup.sh
-ExecStop=/home/local/ZOHOCORP/pradheep-14225/MyHome/tomcat_build/bin/shutdown.sh
-
-User=pradheep-14225
-Group=pradheep-14225
-UMask=0007
-RestartSec=10
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-
-
-
-
-
-sudo systemctl daemon-reload
-sudo systemctl restart tomcat
-sudo systemctl enable tomcat (To start after reboot)

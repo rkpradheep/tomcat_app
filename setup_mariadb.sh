@@ -1,0 +1,80 @@
+#!/bin/sh
+
+. ./set_variables.sh
+
+set -e
+trap '[ $? -eq 0 ] || echo "${RED}######### MARIADB SETUP FAILED #########${NC}"' EXIT
+
+
+########### MARIADB SETUP START ##############
+
+echo "Do you want to setup MARIADB? (yes/no)"
+read consent
+
+if ! [ "$consent" = "yes" ]; then
+    echo "########## MARIADB SETUP SKIPPED ##########"
+    exit 0
+fi
+
+
+echo "############## Mariadb setup started ##############\n"
+
+if [ -f "/etc/systemd/system/mysql.service" ]; then
+  sudo systemctl stop mysql
+  sudo systemctl disable mysql
+fi
+if [ -f "/etc/systemd/system/mariadb.service" ]; then
+  sudo systemctl stop mariadb
+  sudo systemctl disable mariadb
+fi
+
+if ! $(grep -q mysql /etc/passwd) ; then
+    echo "Adding mysql user"
+    sudo useradd mysql
+fi
+
+sudo rm -rf /opt/mariadb/mariadb-${MARIADB_VERSION}
+sudo wget -P /tmp https://mirrors.aliyun.com/mariadb//mariadb-11.3.2/bintar-linux-systemd-x86_64/mariadb-${MARIADB_VERSION}.tar.gz
+if ! [ -d "/opt/mariadb" ]; then
+  sudo mkdir /opt/mariadb
+fi
+sudo tar -xvf /tmp/mariadb-${MARIADB_VERSION}.tar.gz --directory /opt/mariadb
+MARIADB_HOME=/opt/mariadb/mariadb-${MARIADB_VERSION}
+sudo chown -R mysql:mysql $MARIADB_HOME
+sudo chmod -R 777 $MARIADB_HOME
+cp mariadb_server.sh $MARIADB_HOME
+sudo chown mysql:mysql $MARIADB_HOME/mariadb_server.sh
+sudo chmod 777 $MARIADB_HOME/mariadb_server.sh
+sudo apt-get install libaio1 libaio-dev libnuma-dev libncurses6 libncurses5
+cd $MARIADB_HOME
+sudo touch my.cnf
+sudo chmod -R 644 my.cnf
+sudo sh -c "echo > my.cnf"
+sudo sh -c "echo [client] >> my.cnf"
+sudo sh -c "echo socket=${MARIADB_HOME}/data/mysql.sock >> my.cnf"
+sudo sh -c "echo [mysqld] >> my.cnf"
+sudo sh -c "echo server-id=2 >> my.cnf"
+sudo sh -c "echo socket=${MARIADB_HOME}/data/mysql.sock >> my.cnf"
+sudo sh -c "echo port=4000 >> my.cnf"
+sudo sh -c "echo basedir=${MARIADB_HOME} >> my.cnf"
+sudo sh -c "echo datadir=${MARIADB_HOME}/data >> my.cnf"
+sudo rm -rf data
+sudo mkdir data
+sudo sh ./scripts/mysql_install_db  --defaults-file=${MARIADB_HOME}/my.cnf --user=mysql
+
+sudo chmod -R 777 $MARIADB_HOME/data
+sudo sh ./mariadb_server.sh start
+
+echo "Please enter the password as root if prompted to reset root user password"
+sudo ./bin/mariadb --defaults-file=$MARIADB_HOME/my.cnf -u root -p -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';"
+echo "Please enter the password as root if prompted"
+sudo ./bin/mariadb --defaults-file=$MARIADB_HOME/my.cnf -u root -p < $MY_HOME/dd-changes.sql
+
+echo "Enter password below to stop the mariadb for now"
+sudo sh ./mariadb_server.sh stop
+
+sudo rm -rf /tmp/mariadb-${MARIDB_VERSION}.tar.gz
+
+echo "${GREEN}############## Mariadb setup completed ##############${NC}\n\n\n"
+
+############# MARIADB SETUP END ##############

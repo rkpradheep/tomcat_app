@@ -131,7 +131,7 @@
     </div>
 </nav>
 <br><br><br>
-<h1><b>Token Generator</b></h1>
+<h1><b>Token Generator for Zoho</b></h1>
 <br/>
 To generate token using custom secrets <a target="_blank" href="/tokenGenCustom.jsp">click here</a>
 <br/>
@@ -158,17 +158,19 @@ To generate token using custom secrets <a target="_blank" href="/tokenGenCustom.
 <button onclick="copyAT()"> Copy Access Token </button> <button onclick="copyRT()"> Copy Refresh Token </button> <button onclick="copyAll()"> Copy All </button> <br>
 <textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black "></textarea>
 </div>
-
+<script src="js/navbar.js"></script>
+<script src="js/common.js"></script>
 <script>
-if(!window.location.href.includes("pradheep-14225"))
+
+if (!window.location.origin.includes('https') )
 {
-window.open(new URL(window.location.href).origin + "/tokenGenCustom.jsp" , "_self");
+window.open(new URL(window.location.href).origin.replace('http', 'https') + "/tokenGen.jsp" , "_self");
 }
 const code =  new URLSearchParams(window.location.search).get('code');
 if(code!=null && code.length > 10 && localStorage.getItem('dc') != null)
 {
 const url = new URL(window.location.href);
-window.history.replaceState({}, document.title, "https://pradheep-14225.csez.zohocorpin.com:8091/tokenGen.jsp");
+window.history.replaceState({}, document.title, `${window.location.origin}/tokenGen.jsp`);
 getTokens(code)
 }
 function getDomain()
@@ -370,6 +372,4 @@ alert("copied");
 
 </script>
 </body>
-<script src="js/navbar.js"></script>
-<script src="js/common.js"></script>
 </html>

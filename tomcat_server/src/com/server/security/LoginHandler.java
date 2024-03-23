@@ -37,6 +37,16 @@ public class LoginHandler extends HttpServlet
 
 			response.setHeader("Set-Cookie", header.toString());
 
+			header = new StringBuilder()
+				.append("production" + "=")
+				.append(Configuration.getBoolean("production"))
+				//.append("; Secure")
+				//.append("; SameSite=None")
+				.append("; Path=/;")
+				.append(maxAge);
+
+			response.addHeader("Set-Cookie", header.toString());
+
 			SecurityUtil.writeSuccessJSONResponse(response, "success");
 			return;
 		}

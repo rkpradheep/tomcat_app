@@ -1,0 +1,16 @@
+[Unit]
+Description=Mysql service
+After=network.target
+
+[Service]
+Type=forking
+
+ExecStart=/opt/mysql/mysql-8.3.0-linux-glibc2.28-x86_64/mysql_server.sh start
+ExecStop=/opt/mysql/mysql-8.3.0-linux-glibc2.28-x86_64/mysql_server.sh stop
+
+TimeoutSec=300
+User=mysql
+Group=mysql
+
+[Install]
+WantedBy=multi-user.target

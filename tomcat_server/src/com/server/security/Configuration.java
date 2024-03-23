@@ -66,6 +66,7 @@ public class Configuration
 			String val = props.getProperty(key);
 			appProps.put(key, val);
 		}
+		appProps.put("production", System.getenv("PRODUCTION"));
 
 		LOGGER.log(Level.INFO, "Properties file has been loaded.");
 

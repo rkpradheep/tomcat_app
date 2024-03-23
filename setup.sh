@@ -2,39 +2,27 @@
 
 . ./set_variables.sh
 
-############## GRADLE SETUP START ##############
+set -e
+trap '[ $? -eq 0 ] || echo "${RED}######### SETUP FAILED #########${NC}"' EXIT
 
-sudo rm -rf /opt/gradle/gradle-${GRADLE_VERSION}
+sh setup_gradle.sh
 
-echo "############## Downloading Gradle ${GRADLE_VERSION} ##############"
-sudo wget -P /tmp https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip
+sh setup_java.sh
 
-echo "############## Extracting downloaded zip ##############"
-sudo unzip -d /opt/gradle /tmp/gradle-${GRADLE_VERSION}-bin.zip >/dev/null
+if test "$DB_SERVER" = "mysql" ; then
+  sh setup_mysql.sh
+else
+  # Using repository
+  #  sudo apt-get purge mariadb-server
+  #  sudo apt-get autoremove
+  #  sudo apt-get install mariadb-server
+  #  echo "Enter the password as root if prompted"
+  #  sudo mariadb -u root -p -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';"
+  #  echo "Enter the password as root if prompted to initialize tables and default values"
+  #  sudo mariadb -u root -p < $MY_HOME/dd-changes.sql
+  sh setup_mariadb.sh
+fi
 
-GRADLE_HOME=/opt/gra0dle/gradle-${GRADLE_VERSION}/bin
+sh setup_services.sh
 
-############## GRADLE SETUP END ##############
-
-
-
-############## JAVA SETUP START ##############
-
-sudo rm -rf /opt/java/zulu${JAVA_VERSION}
-
-echo "############## Downloading java zulu 17.10 ##############"
-wget -P /tmp https://cdn.azul.com/zulu/bin/zulu${JAVA_VERSION}.zip
-
-echo "############## Extracting downloaded zip ##############"
-sudo unzip -d /opt/java /tmp/zulu${JAVA_VERSION}.zip >/dev/null
-
-JAVA_HOME=/opt/java/zulu${JAVA_VERSION}/bin
-
-############## JAVA SETUP END ##############
-
-
-
-sudo rm -rf /tmp/*
-
-echo 'Add the below line in /etc/profile.d/setenv.sh'
-echo "export PATH=${JAVA_HOME}:${GRADLE_HOME}"':$PATH'
+sh build.sh

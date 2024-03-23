@@ -12,7 +12,7 @@ if [[ "$ngrokPID" != "" ]]; then
 	echo 'Killed ngrok successfully'  >> output.txt
 fi
 
-nohup nohup ngrok/ngrok --config ngrok/ngrok.yml http 8090 >> output.txt 2>>output.txt &
+nohup nohup ngrok/ngrok --config ngrok/ngrok.yml http 80 >> output.txt 2>>output.txt &
 
 while true
 do

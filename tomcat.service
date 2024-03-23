@@ -1,0 +1,19 @@
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=network.target
+Requires=mariadb.service
+
+[Service]
+Type=forking
+
+ExecStart=home_ph/tomcat_build/run.sh
+ExecStop=home_ph/tomcat_build/bin/shutdown.sh
+
+User=user_ph
+Group=user_ph
+UMask=0007
+RestartSec=10
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

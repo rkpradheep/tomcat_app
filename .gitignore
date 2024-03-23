@@ -2,6 +2,6 @@ tomcat_build/
 output.txt
 .gradle/
 build/
-app.properties
+custom/
 uploads
 liveUrl.txt

@@ -119,6 +119,14 @@ task setupTomcatContainer{
             into "${home}/tomcat_build"
         }
 
+        exec {
+            commandLine "sed", "-i", "s|home_ph|${home}|", "${home}/tomcat_build/run.sh"
+        }
+
+        exec {
+            commandLine "sed", "-i", "s|production_ph|${System.getenv ("PRODUCTION")}|", "${home}/tomcat_build/run.sh"
+        }
+
         packNonROOTWebApps ()
 
         println "set up tomcat container completed"
@@ -195,6 +203,43 @@ def packNonROOTWebApps()
              to: "MY_HOME=${home}"
             ]
     ])
+    replaceToken("${home}/tomcat_build/bin/setenv.sh", [
+            [from: "PRODUCTION=",
+             to: "PRODUCTION=${Boolean.valueOf (System.getenv ("PRODUCTION"))}"
+            ]
+    ])
+    if (System.getenv ("CUSTOM_KEYSTORE_FILE") != null) {
+        copy{
+            from "${home}/custom/${System.getenv ("CUSTOM_KEYSTORE_FILE")}"
+            into "${home}/tomcat_build/conf/"
+        }
+        replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                [from: "tomcat.jks",
+                 to  : "${System.getenv ("CUSTOM_KEYSTORE_FILE")}"
+                ]
+        ])
+        replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                [from: "keystorePass=\"tomcat\"",
+                 to  : "keystorePass=\"${System.getenv ("CUSTOM_KEYSTORE_PASSWORD")}\""
+                ]
+        ])
+    }
+    if (System.getenv ("TOMCAT_CUSTOM_HTTP_PORT") != null)
+    {
+        replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                [from: "port=\"80\"",
+                 to  : "port=\"${System.getenv ("TOMCAT_CUSTOM_HTTP_PORT")}\""
+                ]
+        ])
+    }
+    if (System.getenv ("TOMCAT_CUSTOM_HTTPS_PORT") != null)
+    {
+        replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                [from: "port=\"443\"",
+                 to  : "port=\"${System.getenv ("TOMCAT_CUSTOM_HTTPS_PORT")}\""
+                ]
+        ])
+    }
     copy{
         from "${serverPath}/build/CustomTomcatValves.jar"
         into "${home}/tomcat_build/lib"
@@ -215,9 +260,9 @@ task buildSecurityJar(type: Jar) {
     destinationDir = file("${serverPath}/build")
 }
 
-task fullBuild{
+task setupServer{
     doLast{
-        println "Full build completed"
+        println "server setup completed"
     }
 }
 
@@ -295,13 +340,25 @@ task copyProperyFile{
         properties.load(appPropsFile.newDataInputStream());
         properties.setProperty("build.label", LocalDateTime.ofInstant(Instant.ofEpochMilli(System.currentTimeMillis ()), ZoneId.of ("Asia/Calcutta")).format(DateTimeFormatter.ofPattern("MMM_dd_yyyy_HH_mm")))
 
+        def secretPropsFile = new File("${home}/custom/custom.properties")
+        if (secretPropsFile.exists ())
+        {
+            println "custom.properties found"
+            def secretProperties = new Properties()
+            secretProperties.load(secretPropsFile.newDataInputStream())
+            secretProperties.keySet().each { secretKey -> properties.setProperty (secretKey, secretProperties.getProperty (secretKey.toString ()))}
+        }
+        if (System.getenv ("DB_SERVER") == "mysql")
+        {
+            properties.setProperty("db.server", "mysql")
+        }
+
         properties.store (appPropsFile.newWriter(), null)
 
         println "Copy property file completed"
     }
 }
 configureTaskDependencies(build, [copyProperyFile])
-configureTaskDependencies(fullBuild, [build, buildSecurityJar, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, packManagerWar, packTomcatWar, deployBuild, cleanUp])
-//configureTaskDependencies(updateBuild, [build, bundleResource, packRootWar, stopTomcat, deployBuild, cleanUp, startTomcat])
+configureTaskDependencies(setupServer, [build, buildSecurityJar, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, packManagerWar, packTomcatWar, deployBuild, cleanUp])
 
-defaultTasks 'updateBuild'
+defaultTasks 'setupServer'

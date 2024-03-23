@@ -9,4 +9,4 @@ ext.home = System.getenv ("MY_HOME")
 apply from: 'tomcat_server/build.gradle'
 apply from: 'shell_scripts/build.gradle'
 
-// tasks : fullBuild, updateBuild, installScripts
+// tasks : setupServer, installScripts

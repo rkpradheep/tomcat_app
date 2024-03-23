@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.server.security.Configuration;
 import com.server.security.DBUtil;
 import com.server.security.SecurityUtil;
 
@@ -18,7 +19,7 @@ public class PageHandler extends HttpServlet
 	{
 		if(request.getRequestURI().equals("/") || StringUtils.isEmpty(request.getRequestURI().replaceAll("/", StringUtils.EMPTY)))
 		{
-			response.sendRedirect(DBUtil.isMysql? "/zoho" : "/app");
+			response.sendRedirect(Configuration.getBoolean("production") ? "/app" : "/zoho");
 			return;
 		}
 		response.setContentType("text/html; charset=UTF-8");
