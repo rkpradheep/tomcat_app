@@ -182,8 +182,13 @@
 
         <br><br><br>
         <div id="rootdiv">
+        <a target="_blank" href="/manager">App Manager</a><br/><br/><br/>
         <a target="_blank" href="/files">File Manager</a><br/><br/><br/>
         <a target="_blank" href="/commandExecutor.jsp">Terminal Command Executor</a><br/><br/></br>
+
+        <input type="file" id="file"/></br>
+        <input type="text" id="path" style="width:300px" placeholder="Destination path"/> &nbsp; &nbsp;
+        <button onclick="transferFile()">TRANSFER FILE</button><br/><br/></br>
 
          <button style='background-color:red;' onclick="deleteExpired()">DELETE EXPIRED</button>
          </br>
@@ -919,6 +924,60 @@
                     console.log(error);
                     setElementValue("output", JSON.stringify(res, null, 2));
                     alert("Something went wrong. Please check the error response below and try again.");
+                });
+        }
+
+        function transferFile()
+        {
+                const fileInput = document.getElementById('file');
+                const path = getElementValue('path');
+
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Please select a file.');
+                    return;
+                }
+
+                if (path == undefined || path.length < 1) {
+                    alert('Please enter valid path.');
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('path', path);
+
+                unHideElement("loading")
+                fetch('/api/v1/admin/file/transfer', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                 if(handleRedirection(data))
+                 {
+                     hideElement("loading");
+                     fileInput.value = "";
+                     return;
+                 }
+                 if(data["message"])
+                 {
+                    alert(data["message"])
+                    fileInput.value = "";
+                    setElementValue("path", "")
+                 }
+                 else
+                 {
+                    alert(data["error"])
+                 }
+                hideElement("loading");
+                })
+                .catch(error => {
+                    hideElement("loading");
+                    alert('Something went wrong')
+                    console.error('There was a problem with the fetch operation:', error);
                 });
         }
 

@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -37,6 +36,8 @@ public class SecurityFilter implements Filter
 
 			HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
 			HttpServletResponse httpServletResponse = ((HttpServletResponse) servletResponse);
+
+			httpServletResponse.setHeader("Server_Build_Label", Configuration.getProperty("build.label"));
 
 			String requestURI = httpServletRequest.getRequestURI().replaceFirst(httpServletRequest.getContextPath(), StringUtils.EMPTY);
 			String requestURL = httpServletRequest.getRequestURL().toString();

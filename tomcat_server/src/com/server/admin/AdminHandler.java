@@ -1,5 +1,7 @@
 package com.server.admin;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -21,10 +23,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
+import com.server.common.Util;
 import com.server.security.DBUtil;
 import com.server.security.LoginUtil;
 import com.server.security.SecurityUtil;
 import com.server.security.ThrottleHandler;
+import com.server.security.http.FormData;
 
 public class AdminHandler extends HttpServlet
 {
@@ -46,12 +50,37 @@ public class AdminHandler extends HttpServlet
 
 				SecurityUtil.writeSuccessJSONResponse(response, "Deleted successfully");
 			}
+			else if(request.getRequestURI().contains("/file/transfer"))
+			{
+				handleFileTransfer(request, response);
+			}
 		}
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 			SecurityUtil.writerErrorResponse(response, e.getMessage());
 		}
+	}
+
+	private void handleFileTransfer(HttpServletRequest request, HttpServletResponse response) throws IOException
+	{
+		Map<String, FormData> formDataMap = SecurityUtil.parseMultiPartFormData(request);
+		String path = formDataMap.get("path").getValue();
+		path = path.replaceAll("/*$", StringUtils.EMPTY);
+		File file = new File(Util.HOME_PATH, path);
+		if(!file.exists())
+		{
+			SecurityUtil.writerErrorResponse(response, "Invalid path");
+			return;
+		}
+		FormData.FileData fileData = formDataMap.get("file").getFileDataList().get(0);
+		file = new File(Util.HOME_PATH, path + "/" + fileData.getFileName());
+		try(FileOutputStream fileOutputStream = new FileOutputStream(file))
+		{
+			fileOutputStream.write(fileData.getBytes());
+		}
+
+		SecurityUtil.writeSuccessJSONResponse(response, "File transferred successfully");
 	}
 
 	private void handleAdminDBRequest(HttpServletRequest request, HttpServletResponse response) throws Exception
