@@ -1,21 +1,70 @@
 task installScripts {
     doLast {
-        copyWithSudo ("${home}/shell_scripts/scripts/usr", "/usr/local/bin")
-        copyWithSudo ("${home}/shell_scripts/scripts/network", "/etc/NetworkManager/dispatcher.d")
-        if (!new File ("${home}/ngrok/ngrok").exists ()) {
-            new File ("${home}/ngrok").mkdirs ()
-            copy {
-                from "ngrok"
-                into "${home}/ngrok"
-            }
+
+        def response = new ByteArrayOutputStream()
+        exec {
+            commandLine 'whoami'
+            standardOutput = response
         }
+        new File ("$home/tmp/scripts").mkdir ()
+
+        Properties properties = new Properties();
+        properties.load (new FileReader("${home}/custom/custom.properties"))
+        String token = properties.getProperty ("cliq.zapi.key")
+
+        copy{
+            from "shell_scripts/scripts"
+            into "custom/tmp/scripts"
+        }
+
+        def filePathList = [];
+        getFilePathsForReplacePH ("${home}/custom/tmp/scripts", filePathList)
+
+        def user= response.toString ().replaceAll ("\\s|\\n", "")
+        filePathList.each { filePath ->
+            replaceToken( filePath, [
+                    [from: "home_ph",
+                     to: "$home"
+                    ],
+                    [from: "token_ph",
+                     to: "$token"
+                    ],
+                    [
+                     from:"user_ph",
+                      to:user
+                    ]
+            ])
+        }
+
+        println "placeholders replaced successfully"
+
+        copyWithSudo ("${home}/custom/tmp/scripts/usr", "/usr/local/bin")
+        copyWithSudo ("${home}/custom/tmp/scripts/network", "/etc/NetworkManager/dispatcher.d")
+
         println "copied successfully"
+
+        delete "$home/custom/tmp"
+
+    }
+}
+
+def getFilePathsForReplacePH(dirName, filePathList)
+{
+    File[] scriptFiles = new File(dirName).listFiles()
+    for (File file : scriptFiles) {
+        if (file.isFile ()) {
+            filePathList.add(file.getAbsolutePath ())
+        }
+        else
+        {
+            getFilePathsForReplacePH (file.getAbsolutePath (), filePathList)
+        }
     }
 }
 
 def copyWithSudo(from, to) {
     exec {
-        commandLine 'find', from, '-type', 'f', '-exec', 'sudo', 'cp', '{}', to, ';'
+        commandLine 'find', from, '-type', 'f', '-exec', 'sudo', 'cp','-p', '{}', to, ';'
     }
 }
 

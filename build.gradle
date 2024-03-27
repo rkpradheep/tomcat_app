@@ -6,6 +6,34 @@ plugins {
 
 ext.home = System.getenv ("MY_HOME")
 
+ext.replaceToken = { filePath, entries ->
+
+    if(entries) {
+        File file = new File(filePath)
+        if(file.exists ()) {
+            String contents = file.getText ('UTF-8')
+            entries.each() {
+                if(it.to.contains('$')) {
+                    contents = contents.replace(it.from, it.to)
+                }
+                else {
+                    contents = contents.replaceAll(it.from, it.to)
+                }
+            }
+            new File(filePath).write( contents, 'UTF-8' )
+        }
+    }
+
+}
+
+ext.configureTaskDependencies = { task, dependentTasks ->
+    task.dependsOn (dependentTasks)
+    for (int i = 0; i < dependentTasks.size () - 1; i++) {
+        dependentTasks [i + 1].mustRunAfter dependentTasks [i]
+    }
+}
+
+
 apply from: 'tomcat_server/build.gradle'
 apply from: 'shell_scripts/build.gradle'
 

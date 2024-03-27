@@ -1,18 +1,19 @@
 #!/bin/bash
 
+MY_HOME=home_ph
 cd $MY_HOME
 
 ngrokPID=$(sudo netstat -nlp | grep :4040 | awk '{print $7}' | awk -F'/' '{print $1}')
 
 echo "Checking server and ngrok status $(date) "  >> output.txt
 
-appHealth=$(curl -s -X POST http://localhost:8090/_app/health)
+appHealth=$(curl -s -X POST http://localhost:80/_app/health)
 
 echo "appHealth ---> ${appHealth} and ngrokPID ---> ${ngrokPID}"  >> output.txt
 
 if ! test "$appHealth" = "true" ; then
 	echo "Server is not running"  >> output.txt
-	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey= -d alert="Server is down. Please check." >> output.txt
+	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey=token_ph -d alert="Server is down. Please check." >> output.txt
 else
 echo "Server is up and running"  >> output.txt
 fi
@@ -20,7 +21,7 @@ fi
 
 if [ -z "$ngrokPID" ]; then
 	echo "ngrok is not running"  >> output.txt
-	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey= -d alert="ngrok is down. Please check." >> output.txt
+	curl -s -X POST https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/incoming?zapikey=token_ph -d alert="ngrok is down. Please check." >> output.txt
 else
 echo "ngrok is up and running"  >> output.txt
 fi

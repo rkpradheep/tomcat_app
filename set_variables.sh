@@ -15,3 +15,7 @@ export RED='\033[0;31m'
 export GREEN='\033[0;32m'
 
 export NC='\033[0m'
+
+if [ -f $MY_HOME/custom/setenv.sh ]; then
+    . $MY_HOME//custom/setenv.sh
+fi

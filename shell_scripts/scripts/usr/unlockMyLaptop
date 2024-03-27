@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo su user_ph bash -c "xdotool key Return && sleep 1 && xdotool type \"$1\" && xdotool key Return"

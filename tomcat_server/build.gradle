@@ -16,33 +16,6 @@ sourceSets {
     }
 }
 
-ext.replaceToken = { filePath, entries ->
-
-    if(entries) {
-        File file = new File(filePath)
-        if(file.exists ()) {
-            String contents = file.getText ('UTF-8')
-            entries.each() {
-                if(it.to.contains('$')) {
-                    contents = contents.replace(it.from, it.to)
-                }
-                else {
-                    contents = contents.replaceAll(it.from, it.to)
-                }
-            }
-            new File(filePath).write( contents, 'UTF-8' )
-        }
-    }
-
-}
-
-ext.configureTaskDependencies = { task, dependentTasks ->
-    task.dependsOn (dependentTasks)
-    for (int i = 0; i < dependentTasks.size () - 1; i++) {
-        dependentTasks [i + 1].mustRunAfter dependentTasks [i]
-    }
-}
-
 task bundleResource {
     doLast {
         new File ("${serverPath}/build/tomcat_server").mkdirs()
@@ -216,9 +189,7 @@ def packNonROOTWebApps()
         replaceToken ("${home}/tomcat_build/conf/server.xml", [
                 [from: "tomcat.jks",
                  to  : "${System.getenv ("CUSTOM_KEYSTORE_FILE")}"
-                ]
-        ])
-        replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                ],
                 [from: "keystorePass=\"tomcat\"",
                  to  : "keystorePass=\"${System.getenv ("CUSTOM_KEYSTORE_PASSWORD")}\""
                 ]

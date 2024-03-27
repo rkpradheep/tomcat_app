@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo su user_ph bash -c "gnome-screensaver-command --lock"

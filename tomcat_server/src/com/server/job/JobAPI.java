@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 
 import com.server.common.Util;
+import com.server.security.Configuration;
 import com.server.security.SecurityUtil;
 
 public class JobAPI extends HttpServlet
@@ -50,7 +51,7 @@ public class JobAPI extends HttpServlet
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		Map<String, String> jobList = Arrays.stream(TaskEnum.values()).filter(taskEnum -> request.getRequestURL().toString().contains("pradheep") || !taskEnum.getTaskName().equals(TaskEnum.REMINDER.getTaskName())).collect(Collectors.toMap(TaskEnum::getTaskName, TaskEnum::getTaskDisplayName));
+		Map<String, String> jobList = Arrays.stream(TaskEnum.values()).filter(taskEnum -> !Configuration.getBoolean("production") || !taskEnum.getTaskName().equals(TaskEnum.REMINDER.getTaskName())).collect(Collectors.toMap(TaskEnum::getTaskName, TaskEnum::getTaskDisplayName));
 		SecurityUtil.writeJSONResponse(response, jobList);
 	}
 }

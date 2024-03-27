@@ -4,6 +4,7 @@
 <head>
 <meta name="viewport"  content="initial-scale=0.8,user-scalable=no"/>
 <link rel="stylesheet" href="css/navbar.css">
+<link rel="stylesheet" href="/css/loading.css" />
 <style>
   body {
             margin: 0;
@@ -123,6 +124,7 @@ return;
 }
 params.append('command',document.getElementById("command").value);
 params.append('password', prompt("Enter password to execute"));
+unHideElement('loading')
 fetch("/api/v1/run", {
   body: params,
   method: "POST",
@@ -132,16 +134,20 @@ fetch("/api/v1/run", {
 })
 .then(response =>
 {
+hideElement('loading')
 return response.text();
 }
 ).then(data=> {
 document.getElementById("output").value = data;
 }).catch(error => {
+   hideElement('loading')
    document.getElementById("output").value = error;
 });
 }
 </script>
 <script src="js/navbar.js"></script>
+<div class="loading" id="loading" style="display:none">Loading&#8230;</div>
+<br />
 <h3><b>Command</b></h3>
 <textarea id="command" name="command" rows="5" cols="50" style="background-color: black;color:white"></textarea><br><br>
 <button onclick="sendCommand()"> RUN </button> <br><br><br><br>
