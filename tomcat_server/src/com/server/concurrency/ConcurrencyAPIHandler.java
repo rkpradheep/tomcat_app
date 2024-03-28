@@ -41,6 +41,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.json.JSONObject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.common.Util;
 import com.server.security.http.FormData;
 import com.server.security.http.HttpAPI;
@@ -121,10 +122,10 @@ public class ConcurrencyAPIHandler extends HttpServlet
 				StringWriter stringWriter = new StringWriter();
 				IOUtils.copy(httpResponse.getInputStream(), stringWriter);
 				JSONObject responseJSON = new JSONObject();
-				Object responseObject = ObjectUtils.defaultIfNull(Util.getJSONFromString(stringWriter.toString()), stringWriter.toString());
-				responseJSON.put("Response " + atomicInteger.incrementAndGet(), responseObject);
+				Object responseObject = SecurityUtil.isValidJSON(stringWriter.toString()) ? new ObjectMapper().readTree(stringWriter.toString()) : stringWriter.toString(); //To preserve order
 				synchronized(responseList)
 				{
+					responseJSON.put("Response " + atomicInteger.incrementAndGet(), responseObject);
 					responseList.add(responseJSON.toMap());
 				}
 			}
