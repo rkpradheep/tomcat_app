@@ -1,6 +1,7 @@
 package com.server.security;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +59,13 @@ public class SecurityFilter implements Filter
 
 			CURRENT_USER_TL.set(UserUtil.getUser(sessionId));
 
-			if(Configuration.getBoolean("skip.authentication") || SecurityUtil.canSkipAuthentication(requestURI))
+			if(Configuration.getBoolean("production") && (requestURI.equals("/dbtool.jsp") || requestURI.equals("/zoho")))
+			{
+				httpServletResponse.sendRedirect("/");
+				return;
+			}
+
+			if(Configuration.getBoolean("skip.authentication") || SecurityUtil.canSkipAuthentication(requestURI) || InetAddress.getByName(SecurityUtil.getUserIP(httpServletRequest)).isLoopbackAddress())
 			{
 				if(requestURI.matches("/login") && SecurityUtil.isLoggedIn())
 				{

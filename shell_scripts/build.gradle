@@ -41,6 +41,10 @@ task installScripts {
         copyWithSudo ("${home}/custom/tmp/scripts/usr", "/usr/local/bin")
         copyWithSudo ("${home}/custom/tmp/scripts/network", "/etc/NetworkManager/dispatcher.d")
 
+        exec {
+            commandLine 'sudo', 'chown', 'root', '/etc/NetworkManager/dispatcher.d/myNetworkWebHook'
+        }
+
         println "copied successfully"
 
         delete "$home/custom/tmp"

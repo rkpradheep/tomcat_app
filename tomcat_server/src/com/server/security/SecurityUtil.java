@@ -270,4 +270,16 @@ public class SecurityUtil
 	{
 		return SecurityFilter.CURRENT_USER_TL.get();
 	}
+
+	public static boolean isValidJSON(String data)
+	{
+		try
+		{
+			return StringUtils.isNotEmpty(new ObjectMapper().writeValueAsString(new ObjectMapper().readTree(data)));
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
 }

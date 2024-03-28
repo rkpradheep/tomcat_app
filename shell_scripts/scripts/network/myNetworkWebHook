@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MY_HOME = home_ph
+MY_HOME=home_ph
 echo Status : $2 >> $MY_HOME/output.txt
 if [ "$2" = "up" ]; then
     echo Restarting ngrok >> $MY_HOME/output.txt

@@ -392,6 +392,8 @@ function reset(auto)
     document.getElementById("redirected_uri").value="";
     document.getElementById("response").value="";
     document.getElementById("refresh_token").value="";
+    setElementValue("authorization_uri", "") ;
+    setElementValue("access_token_uri", "");
 
     document.getElementById("response").style.display="none";
 
@@ -424,7 +426,7 @@ function showOrHideCustomServerURI()
 <br/>
 
 <form>
-  DC : &nbsp;&nbsp;
+  DC (Only for zoho service) &nbsp;&nbsp;
   <input type="radio" id="dev" name="dc" value="dev" onchange="showOrHideCustomServerURI()">
   <label for="dev">Development</label>
   <input type="radio" id="local" name="dc" value="local" onchange="showOrHideCustomServerURI()">
