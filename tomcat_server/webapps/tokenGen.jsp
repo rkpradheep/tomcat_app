@@ -161,7 +161,10 @@ To generate token using custom secrets <a target="_blank" href="/tokenGenCustom.
 <script src="js/navbar.js"></script>
 <script src="js/common.js"></script>
 <script>
-
+if (getCookie('production') == 'true')
+{
+window.open(new URL(window.location.href).origin + "/tokenGenCustom.jsp" , "_self");
+}
 if (!window.location.origin.includes('https') )
 {
 window.open(new URL(window.location.href).origin.replace('http', 'https') + "/tokenGen.jsp" , "_self");

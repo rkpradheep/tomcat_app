@@ -1,12 +1,14 @@
 package com.server.security;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.security.user.User;
@@ -26,26 +28,30 @@ public class LoginHandler extends HttpServlet
 			String sessionID = user.getId() + String.valueOf(System.currentTimeMillis());
 			LoginUtil.addSession(sessionID, user.getId(), user.isAdmin());
 
-			String maxAge = user.isAdmin() ? "Max-Age=86400" : "Max-Age=1800";
-			StringBuilder header = new StringBuilder()
+			String maxAge = user.isAdmin() ? "Max-Age=86400;" : "Max-Age=1800;";
+			StringBuilder tokenHeader = new StringBuilder()
 				.append(tokenName + "=")
 				.append(sessionID)
-			    //.append("; Secure")
-			    //.append("; SameSite=None")
 			    .append("; Path=/;")
 			    .append(maxAge);
 
-			response.setHeader("Set-Cookie", header.toString());
-
-			header = new StringBuilder()
+			StringBuilder productionHeader = new StringBuilder()
 				.append("production" + "=")
 				.append(Configuration.getBoolean("production"))
-				//.append("; Secure")
-				//.append("; SameSite=None")
 				.append("; Path=/;")
 				.append(maxAge);
 
-			response.addHeader("Set-Cookie", header.toString());
+			String origin = request.getHeader("Origin");
+			String referer = request.getHeader("Referer");
+			if(StringUtils.isNotEmpty(origin) && StringUtils.isNotEmpty(referer) & !new URL(origin).getHost().equals(new URL(referer).getHost()))
+			{
+				tokenHeader.append("; Secure").append("; SameSite=None");
+				productionHeader.append("; Secure").append("; SameSite=None");
+			}
+
+			response.setHeader("Set-Cookie", tokenHeader.toString());
+
+			response.addHeader("Set-Cookie", productionHeader.toString());
 
 			SecurityUtil.writeSuccessJSONResponse(response, "success");
 			return;

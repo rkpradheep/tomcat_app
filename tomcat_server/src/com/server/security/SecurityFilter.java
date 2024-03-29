@@ -1,7 +1,6 @@
 package com.server.security;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
-			if(Configuration.getBoolean("skip.authentication") || SecurityUtil.canSkipAuthentication(requestURI) || InetAddress.getByName(SecurityUtil.getUserIP(httpServletRequest)).isLoopbackAddress())
+			if(Configuration.getBoolean("skip.authentication") || SecurityUtil.canSkipAuthentication(requestURI))
 			{
 				if(requestURI.matches("/login") && SecurityUtil.isLoggedIn())
 				{

@@ -2,7 +2,7 @@ To allow sudoers to execute command without password, follow below steps
 
 Step 1 : sudo visudo
 
-Step 2 : Add this entry in last line -> %sudo   ALL=NOPASSWD:ALL
+Step 2 : Add this entry in last line ->%superadmin ALL=(ALL:ALL) NOPASSWD:ALL
 
 Step 3 : ctrl + x
 
@@ -10,6 +10,9 @@ Step 4 : y
 
 Step 5 : Enter
 
+Step 6 : sudo groupadd superadmin
+
+Step 7 : sudo usermod -aG superadmin $USER
 
 
 

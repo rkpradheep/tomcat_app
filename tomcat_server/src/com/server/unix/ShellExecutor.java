@@ -139,7 +139,7 @@ public class ShellExecutor extends HttpServlet
 
 			executeCommand(request, response, new String[] {"bash", "-c", "takeVideo " + seconds});
 			String fileName = "video.mp4";
-			String filePath = Util.HOME_PATH + fileName;
+			String filePath = Util.HOME_PATH + "/" + fileName;
 
 			String boundary = "---" + Long.toHexString(System.currentTimeMillis());
 
@@ -174,6 +174,8 @@ public class ShellExecutor extends HttpServlet
 			outputStream.close();
 
 			LOGGER.info("API Response " + Util.getResponse(httpURLConnection.getInputStream()));
+
+			new File(filePath).delete();
 		}
 		catch(Exception e)
 		{
