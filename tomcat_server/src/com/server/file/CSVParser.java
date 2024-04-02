@@ -1,6 +1,7 @@
 package com.server.file;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -9,81 +10,68 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.server.security.SecurityUtil;
+import com.server.security.http.FormData;
 
 public class CSVParser extends HttpServlet
 {
 	private static final char DELIMITER = ',';
+	private static final Logger LOGGER = Logger.getLogger(CSVParser.class.getName());
 
 	@Override
 	public void doPost(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException
 	{
 		try
 		{
+			Map<String, FormData> formDataMap = SecurityUtil.parseMultiPartFormData(httpServletRequest);
+			FormData formData = formDataMap.get("file");
 
-			DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
-			diskFileItemFactory.setSizeThreshold(0);
-			List<FileItem> items = new ServletFileUpload(diskFileItemFactory).parseRequest(httpServletRequest);
+			StringBuilder tableData = new StringBuilder("<table>\n");
+			tableData.append("<thead>\n");
+			tableData.append("<tr>\n");
 
-			for(FileItem item : items)
-			{
-				if(item.isFormField())
+			AtomicInteger counter = new AtomicInteger(0);
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(formData.getFileDataList().get(0).getBytes())));
+			AtomicInteger headerSize = new AtomicInteger();
+			bufferedReader.lines().forEach(line -> {
+				if(counter.get() == 0)
 				{
-					//				String fieldName = item.getFieldName();
-					//				String fieldValue = item.getString();
+					Pair<String, Integer> headerPair = constructHeader(line);
+					tableData.append(headerPair.getLeft());
+					headerSize.set(headerPair.getValue());
+					tableData.append("</thead>\n");
+					tableData.append("</tr>\n");
+					tableData.append("<tbody>\n");
 				}
 				else
 				{
-					StringBuilder tableData = new StringBuilder("<table>\n");
-					tableData.append("<thead>\n");
-					tableData.append("<tr>\n");
-
-					AtomicInteger counter = new AtomicInteger(0);
-					BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(item.getInputStream()));
-					AtomicInteger headerSize = new AtomicInteger();
-					bufferedReader.lines().forEach(line -> {
-						if(counter.get() == 0)
-						{
-							Pair<String, Integer> headerPair = constructHeader(line);
-							tableData.append(headerPair.getLeft());
-							headerSize.set(headerPair.getValue());
-							tableData.append("</thead>\n");
-							tableData.append("</tr>\n");
-							tableData.append("<tbody>\n");
-						}
-						else
-						{
-							tableData.append(constructBody(counter.get(), line, headerSize.get()));
-						}
-						counter.incrementAndGet();
-
-					});
-					tableData.append("</tbody>\n");
-					Map<String, String> responseMap = new HashMap<>();
-					responseMap.put("table_data", tableData.toString());
-					responseMap.put("total", String.valueOf(counter.decrementAndGet()));
-					item.delete();
-					SecurityUtil.writeJSONResponse(httpServletResponse, responseMap);
+					tableData.append(constructBody(counter.get(), line, headerSize.get()));
 				}
-				break;
-			}
+				counter.incrementAndGet();
+
+			});
+			tableData.append("</tbody>\n");
+			Map<String, String> responseMap = new HashMap<>();
+			responseMap.put("table_data", tableData.toString());
+			responseMap.put("total", String.valueOf(counter.decrementAndGet()));
+			SecurityUtil.writeJSONResponse(httpServletResponse, responseMap);
 
 		}
 		catch(Exception e)
 		{
+			LOGGER.log(Level.SEVERE, "Exception occurred while parsing csv", e);
 			SecurityUtil.writerErrorResponse(httpServletResponse, e.getMessage());
 		}
 	}

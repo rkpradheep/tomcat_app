@@ -1,5 +1,6 @@
 package com.server.security;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -151,6 +152,11 @@ public class SecurityUtil
 		DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
 		try
 		{
+			File tempFile = new File(System.getProperty("java.io.tmpdir"));
+			if(!tempFile.exists())
+			{
+				tempFile.mkdirs();
+			}
 			items = new ServletFileUpload(diskFileItemFactory).parseRequest(request);
 		}
 		catch(Exception e)

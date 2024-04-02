@@ -9,7 +9,7 @@ function uploadFile() {
     const file = fileInput.files[0];
     const formData = new FormData();
     formData.append('file', file);
-
+    fileInput.value = "";
     unHideElement("loading")
     fetch('/api/v1/csv/parse', {
         method: 'POST',
@@ -22,12 +22,10 @@ function uploadFile() {
      if(handleRedirection(data))
      {
          hideElement("loading");
-         fileInput.value = "";
          return;
      }
     document.getElementById("queryOutput").innerHTML = data.table_data;
     document.getElementById("total").innerHTML = "TOTAL : " + data.total;
-    fileInput.value = "";
     hideElement("loading");
     })
     .catch(error => {
