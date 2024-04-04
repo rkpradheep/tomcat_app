@@ -1,3 +1,5 @@
+forceHttpsRedirect()
+
 (function() {
 
     var video = document.querySelector('video');

@@ -165,10 +165,7 @@ if (getCookie('production') == 'true')
 {
 window.open(new URL(window.location.href).origin + "/tokenGenCustom.jsp" , "_self");
 }
-if (!window.location.origin.includes('https') )
-{
-window.open(new URL(window.location.href).origin.replace('http', 'https') + "/tokenGen.jsp" , "_self");
-}
+forceHttpsRedirect();
 const code =  new URLSearchParams(window.location.search).get('code');
 if(code!=null && code.length > 10 && localStorage.getItem('dc') != null)
 {

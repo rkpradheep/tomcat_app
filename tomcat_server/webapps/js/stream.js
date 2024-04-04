@@ -1,3 +1,6 @@
+
+forceHttpsRedirect();
+
 var url = "wss://";
 var socket;
 var stop = false;

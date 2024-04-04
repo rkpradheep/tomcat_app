@@ -1,3 +1,6 @@
+
+forceHttpsRedirect()
+
 var selfView = document.getElementById('self-view');
 var remoteView = document.getElementById('remote-view');
 var localStream;

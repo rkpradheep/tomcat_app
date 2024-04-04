@@ -1,3 +1,11 @@
+function forceHttpsRedirect()
+{
+if (!window.location.origin.includes('https') )
+{
+window.open(new URL(window.location.href.replace('http', 'https')) , "_self");
+}
+}
+
  function handleRedirection(errorResponse)
  {
      if(errorResponse["code"] != "authentication_needed")
