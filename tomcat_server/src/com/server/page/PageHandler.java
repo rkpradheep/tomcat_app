@@ -24,6 +24,7 @@ public class PageHandler extends HttpServlet
 		}
 		response.setContentType("text/html; charset=UTF-8");
 		String outputHtml = SecurityUtil.readFileAsString(request.getRequestURI() + ".html");
+		outputHtml = outputHtml.replace("${IP}", request.getRemoteAddr());
 		response.getWriter().println(outputHtml);
 	}
 }
