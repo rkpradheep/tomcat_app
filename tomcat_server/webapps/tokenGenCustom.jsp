@@ -176,13 +176,8 @@ return "https://accounts.zoho.in/oauth/v2" + endpoint;
 }
 function redirect()
 {
-    if(document.querySelector('input[name="dc"]:checked') == null)
-    {
-        alert("Please choose DC");
-        return;
-    }
-
-    if(getElementValue("authorization_uri") == "")
+    const dc = document.querySelector('input[name="dc"]:checked').value;
+    if(getElementValue("authorization_uri") == "" && dc == "na")
     {
         alert("Authorize URL is mandatory for custom service");
         return;
@@ -206,12 +201,8 @@ function redirect()
 }
 function getTokens()
 {
-if(document.querySelector('input[name="dc"]:checked') == null)
-{
-    alert("Please choose DC");
-    return;
-}
-if(getElementValue("access_token_uri") == "")
+ const dc = document.querySelector('input[name="dc"]:checked').value;
+if(getElementValue("access_token_uri") == "" && dc == "na")
 {
     alert("Access Token URL is mandatory for custom service");
     return;
@@ -282,12 +273,8 @@ document.getElementById("refresh_token").value = res.refresh_token
 
 function refresh()
 {
-if(document.querySelector('input[name="dc"]:checked') == null)
-{
-   alert("Please choose DC");
-   return;
-}
-if(getElementValue("access_token_uri") == "")
+const dc = document.querySelector('input[name="dc"]:checked').value;
+if(getElementValue("access_token_uri") == "" && dc == "na")
 {
     alert("Access Token URL is mandatory for custom service");
     return;
