@@ -56,15 +56,14 @@ body {
     top: 10px;
     right: 10px;
     background-color: #cdc9c9;
-    padding: 10px;
+    padding: 5px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     height:7vh;
 }
 
-#user-ip {
+.user-ip {
     font-weight: bold;
-    margin-top: 5px;
     color: #333;
 }
 @media(max-width:800px)
@@ -176,8 +175,8 @@ background-image: url(../resources/nature.avif);
 </nav>
 <div class="loading" id="loading" style="display:none">Loading…</div>
 <div class="ip-container">
-    <p>Your Public IP:</p>
-    <p id="user-ip">${IP}</p>
+    <p>Public IP : <span class="user-ip">${PUBLIC_IP}</span></p><br>
+    <p>Originating IP : <span class="user-ip">${ORIGINATING_IP}</span></p>
 </div>
 <div class="quote-container" id="quote-container">
     <blockquote id="quote-text"></blockquote>

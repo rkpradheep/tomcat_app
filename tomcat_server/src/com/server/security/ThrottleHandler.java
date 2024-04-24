@@ -44,7 +44,7 @@ public class ThrottleHandler
 	{
 		synchronized(ipLockTimeMap)
 		{
-			String ip = SecurityUtil.getUserIP(request);
+			String ip = SecurityUtil.getOriginatingUserIP();
 			String key = ip + "-" + request.getRequestURI();
 
 			if(Objects.nonNull(ipLockTimeMap.get(key)))

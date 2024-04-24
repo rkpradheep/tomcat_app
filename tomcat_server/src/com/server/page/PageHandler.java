@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 
 import com.server.security.Configuration;
-import com.server.security.DBUtil;
 import com.server.security.SecurityUtil;
 
 public class PageHandler extends HttpServlet
@@ -24,7 +23,8 @@ public class PageHandler extends HttpServlet
 		}
 		response.setContentType("text/html; charset=UTF-8");
 		String outputHtml = SecurityUtil.readFileAsString(request.getRequestURI() + ".html");
-		outputHtml = outputHtml.replace("${IP}", request.getRemoteAddr());
+		outputHtml = outputHtml.replace("${PUBLIC_IP}", request.getRemoteAddr());
+		outputHtml = outputHtml.replace("${ORIGINATING_IP}", SecurityUtil.getOriginatingUserIP());
 		response.getWriter().println(outputHtml);
 	}
 }

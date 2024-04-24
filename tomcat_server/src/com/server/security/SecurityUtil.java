@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,6 +42,10 @@ import org.apache.tomcat.websocket.server.WsServerContainer;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.common.Util;
+import com.server.job.JobAPI;
+import com.server.job.JobUtil;
+import com.server.job.RefreshManager;
 import com.server.security.http.FormData;
 import com.server.security.user.User;
 
@@ -48,6 +54,8 @@ public class SecurityUtil
 	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/run", "/api/v1/admin/live/logs");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
+
+	public static final Map<String,List<String>> VISITOR_META = new ConcurrentHashMap<>();
 
 	public static boolean isResourceUri(ServletContext servletContext, String endPoint) throws MalformedURLException
 	{
@@ -102,9 +110,9 @@ public class SecurityUtil
 		return url + request.getContextPath() + "/login?post=true";
 	}
 
-	public static String getUserIP(HttpServletRequest request)
+	public static String getOriginatingUserIP()
 	{
-		return StringUtils.defaultIfEmpty(getHeader(request.getHeaders("x-forwarded-for")), request.getRemoteAddr());
+		return StringUtils.defaultIfEmpty(getHeader(SecurityUtil.getCurrentRequest().getHeaders("x-forwarded-for")), SecurityUtil.getCurrentRequest().getRemoteAddr());
 	}
 
 	public static String getHeader(Enumeration<String> headersEnumeration)
@@ -267,9 +275,19 @@ public class SecurityUtil
 		return getFormattedTime(System.currentTimeMillis());
 	}
 
+	public static String getFormattedCurrentTime(String format)
+	{
+		return getFormattedTime(System.currentTimeMillis(), format);
+	}
+
 	public static String getFormattedTime(Long timeInMilliseconds)
 	{
-		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliseconds), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("hh : mm a"));
+		return getFormattedTime(timeInMilliseconds, "hh : mm a");
+	}
+
+	public static String getFormattedTime(Long timeInMilliseconds, String format)
+	{
+		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliseconds), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern(format));
 	}
 
 	public static User getCurrentUser()
@@ -287,5 +305,32 @@ public class SecurityUtil
 		{
 			return false;
 		}
+	}
+
+	public static HttpServletRequest getCurrentRequest()
+	{
+		return SecurityFilter.CURRENT_REQUEST_TL.get();
+	}
+
+	static void sendVisitorNotification()
+	{
+		String key = getFormattedCurrentTime("dd/MM/yyyy");
+		List<String> visitorList = VISITOR_META.getOrDefault(key, new ArrayList<>());
+		if(visitorList.isEmpty())
+		{
+			VISITOR_META.clear();
+			VISITOR_META.put(key, visitorList);
+		}
+
+		synchronized(VISITOR_META)
+		{
+			if(visitorList.contains(getCurrentRequest().getRemoteAddr()))
+			{
+				return;
+			}
+			visitorList.add(getCurrentRequest().getRemoteAddr());
+		}
+		String message = "<b>Public IP : </b> &nbsp;&nbsp;" + getCurrentRequest().getRemoteAddr() + "<br><br><b>Originating IP : </b> &nbsp;&nbsp;" + getOriginatingUserIP() + "<br><br><b>Accessed URI : </b> &nbsp;&nbsp;" + getCurrentRequest().getRequestURI();
+		JobUtil.scheduleJob(()-> Util.sendEmail("Visitor Alert - " + key, Configuration.getProperty("mail.user"), message), 2);
 	}
 }

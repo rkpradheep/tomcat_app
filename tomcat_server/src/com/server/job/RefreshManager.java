@@ -3,6 +3,7 @@ package com.server.job;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Objects;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ThreadFactory;
@@ -48,12 +49,17 @@ public class RefreshManager
 
 	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, int seconds)
 	{
-		addJobInQueue(jobID, taskHandler, data, System.currentTimeMillis() + (seconds * 1000L));
+		addJobInQueue(jobID, taskHandler, data, seconds * 1000L);
 	}
 
 	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, long milliseconds)
 	{
 		queue.add(new RefreshManager.RefreshElement(jobID, taskHandler, data, System.currentTimeMillis() + milliseconds));
+	}
+
+	public static void addJobInQueue(CustomRunnable runnable, int seconds)
+	{
+		queue.add(new RefreshManager.RefreshElement(runnable, System.currentTimeMillis() + (seconds * 1000L)));
 	}
 
 	public static void addJobInQueue(String selectQuery)
@@ -88,6 +94,7 @@ public class RefreshManager
 		Supplier<Task> taskSupplier;
 		String data;
 		long time;
+		CustomRunnable runnable;
 
 		RefreshElement(Long jobId, Supplier<Task> taskSupplier, String data, long time)
 		{
@@ -97,10 +104,22 @@ public class RefreshManager
 			this.time = time;
 		}
 
+		RefreshElement(CustomRunnable runnable, long time)
+		{
+			this.runnable = runnable;
+			this.time = time;
+		}
+
 		public void run()
 		{
 			try
 			{
+				if(Objects.nonNull(runnable))
+				{
+					runnable.run();
+					return;
+				}
+
 				Task task = taskSupplier.get();
 
 				if(jobId != -1)
@@ -116,7 +135,10 @@ public class RefreshManager
 			}
 			finally
 			{
-				JobUtil.deleteJob(jobId);
+				if(Objects.nonNull(jobId))
+				{
+					JobUtil.deleteJob(jobId);
+				}
 			}
 
 		}

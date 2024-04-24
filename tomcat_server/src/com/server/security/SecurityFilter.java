@@ -25,6 +25,7 @@ import com.server.security.user.UserUtil;
 public class SecurityFilter implements Filter
 {
 	static final ThreadLocal<User> CURRENT_USER_TL = new ThreadLocal<>();
+	static final ThreadLocal<HttpServletRequest> CURRENT_REQUEST_TL = new ThreadLocal<>();
 	static final ThreadLocal<ServletContext> SERVLET_CONTEXT_TL = new ThreadLocal<>();
 	private static final Logger LOGGER = Logger.getLogger(SecurityFilter.class.getName());
 
@@ -36,6 +37,10 @@ public class SecurityFilter implements Filter
 
 			HttpServletRequest httpServletRequest = ((HttpServletRequest) servletRequest);
 			HttpServletResponse httpServletResponse = ((HttpServletResponse) servletResponse);
+
+			CURRENT_REQUEST_TL.set(httpServletRequest);
+
+			SecurityUtil.sendVisitorNotification();
 
 			httpServletResponse.setHeader("Server_Build_Label", Configuration.getProperty("build.label"));
 
@@ -83,7 +88,7 @@ public class SecurityFilter implements Filter
 					httpServletResponse.sendError(HttpStatus.SC_FORBIDDEN);
 					return;
 				}
-				LOGGER.log(Level.INFO, "Request received for uri {0}  Session {1} IP {2}", new Object[] {requestURI, sessionId, SecurityUtil.getUserIP(httpServletRequest)});
+				LOGGER.log(Level.INFO, "Request received for uri {0} Public IP {1}  Session {2} Originating IP {3}", new Object[] {requestURI, sessionId, httpServletRequest.getRemoteAddr(), SecurityUtil.getOriginatingUserIP()});
 				filterChain.doFilter(servletRequest, servletResponse);
 			}
 			else
@@ -108,6 +113,7 @@ public class SecurityFilter implements Filter
 		{
 			CURRENT_USER_TL.remove();
 			SERVLET_CONTEXT_TL.remove();
+			CURRENT_REQUEST_TL.remove();
 		}
 	}
 

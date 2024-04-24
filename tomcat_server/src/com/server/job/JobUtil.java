@@ -43,7 +43,10 @@ public class JobUtil
 		return id;
 	}
 
-
+	public static void scheduleJob(CustomRunnable runnable, int seconds)
+	{
+		RefreshManager.addJobInQueue(runnable, seconds);
+	}
 
 	static void deleteJob(long id)
 	{

@@ -101,7 +101,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		String previousForwardedFor = headersMap.getOrDefault("x-forwarded-for", StringUtils.EMPTY);
 		previousForwardedFor = StringUtils.isNotEmpty(previousForwardedFor) ? previousForwardedFor.concat(",") : StringUtils.EMPTY;
 
-		headersMap.put("x-forwarded-for", previousForwardedFor.concat(SecurityUtil.getUserIP(request)));
+		headersMap.put("x-forwarded-for", previousForwardedFor.concat(request.getRemoteAddr()));
 
 		if(!HttpAPI.isValidURL(url))
 		{
