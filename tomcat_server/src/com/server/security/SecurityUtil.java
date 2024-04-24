@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,8 +21,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,6 +43,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 import org.json.JSONObject;
 
@@ -47,6 +53,7 @@ import com.server.job.JobAPI;
 import com.server.job.JobUtil;
 import com.server.job.RefreshManager;
 import com.server.security.http.FormData;
+import com.server.security.http.HttpAPI;
 import com.server.security.user.User;
 
 public class SecurityUtil
@@ -56,6 +63,8 @@ public class SecurityUtil
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
 	public static final Map<String,List<String>> VISITOR_META = new ConcurrentHashMap<>();
+
+	private static final Logger LOGGER = Logger.getLogger(SecurityUtil.class.getName());
 
 	public static boolean isResourceUri(ServletContext servletContext, String endPoint) throws MalformedURLException
 	{
@@ -243,10 +252,10 @@ public class SecurityUtil
 		{
 			if(apiEndpoint.endsWith("/*"))
 			{
-			 if(endPoint.startsWith(apiEndpoint.replaceAll("/\\*", StringUtils.EMPTY)))
-			 {
-				 return true;
-			 }
+				if(endPoint.startsWith(apiEndpoint.replaceAll("/\\*", StringUtils.EMPTY)))
+				{
+					return true;
+				}
 			}
 		}
 
@@ -312,10 +321,12 @@ public class SecurityUtil
 		return SecurityFilter.CURRENT_REQUEST_TL.get();
 	}
 
-	static void sendVisitorNotification()
+	static void sendVisitorNotification() throws UnknownHostException
 	{
 		String key = getFormattedCurrentTime("dd/MM/yyyy");
 		List<String> visitorList = VISITOR_META.getOrDefault(key, new ArrayList<>());
+		String remoteIp = getCurrentRequest().getRemoteAddr();
+		String ip = InetAddress.getByName(remoteIp).isLoopbackAddress() ? getOriginatingUserIP() : remoteIp;
 		if(visitorList.isEmpty())
 		{
 			VISITOR_META.clear();
@@ -324,13 +335,55 @@ public class SecurityUtil
 
 		synchronized(VISITOR_META)
 		{
-			if(visitorList.contains(getCurrentRequest().getRemoteAddr()))
+			if(visitorList.contains(ip))
 			{
 				return;
 			}
-			visitorList.add(getCurrentRequest().getRemoteAddr());
+			visitorList.add(remoteIp);
 		}
-		String message = "<b>Public IP : </b> &nbsp;&nbsp;" + getCurrentRequest().getRemoteAddr() + "<br><br><b>Originating IP : </b> &nbsp;&nbsp;" + getOriginatingUserIP() + "<br><br><b>Accessed URI : </b> &nbsp;&nbsp;" + getCurrentRequest().getRequestURI();
-		JobUtil.scheduleJob(()-> Util.sendEmail("Visitor Alert - " + key, Configuration.getProperty("mail.user"), message), 2);
+		String message = "<b>Public IP : </b> &nbsp;&nbsp;" + remoteIp + "<br><br><b>Originating IP : </b> &nbsp;&nbsp;" + getOriginatingUserIP() + "<br><br><b>Request URL : </b> &nbsp;&nbsp;" + getCurrentRequest().getRequestURL().toString();
+		JobUtil.scheduleJob(() -> Util.sendEmail("Visitor Alert - " + key, Configuration.getProperty("mail.user"), getMessageForVisitorNotification(ip, message)), 2);
+	}
+
+	static String getMessageForVisitorNotification(String ip, String message) throws IOException
+	{
+		Map<String, String> headersMap = new HashMap<>();
+		headersMap.put("User-Agent", "Java - " + new Random().nextInt(100));
+
+		if(StringUtils.isNotEmpty(Configuration.getProperty("ip2location.apikey")))
+		{
+			String ipLookUpUrl = "https://api.ip2location.io?key=" + Configuration.getProperty("ip2location.apikey") + "&ip=" + ip;
+
+			JSONObject ipLookUpResponse = new JSONObject(HttpAPI.makeNetworkCall(ipLookUpUrl, HttpGet.METHOD_NAME, headersMap).getStringResponse());
+
+			if(!ipLookUpResponse.has("error"))
+			{
+				message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_name");
+				message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("region_name");
+				message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("city_name");
+				message += "<br><br><b>Lat,Long : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("latitude") + "," + ipLookUpResponse.get("longitude");
+				message += "<br><br><b>ISP : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("as");
+			}
+			else
+			{
+				LOGGER.info("IP look up failed with message " + ipLookUpResponse.getJSONObject("error").getString("error_message"));
+			}
+		}
+
+		String ipLookUpStringResponse = HttpAPI.makeNetworkCall("https://ipapi.co/${IP}/json".replace("${IP}", ip), HttpGet.METHOD_NAME, headersMap).getStringResponse();
+		JSONObject ipLookUpResponse = isValidJSON(ipLookUpStringResponse) ? new JSONObject(ipLookUpStringResponse) : new JSONObject();
+		if(!ipLookUpResponse.has("error") && ipLookUpResponse.has("country_capital"))
+		{
+			message += "<br><br><br><u><b>IPCO IP lookup data : </b></u>";
+			message += "<br><br><b>Country Capital, Currency : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_capital") + ", " + ipLookUpResponse.getString("currency");
+			message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_name");
+			message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("region");
+			message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("city");
+		}
+		else
+		{
+			LOGGER.info("IP look up failed with message " + ipLookUpResponse.optString("reason", ipLookUpStringResponse));
+		}
+		return message;
 	}
 }

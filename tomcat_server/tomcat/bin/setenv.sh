@@ -1,6 +1,5 @@
 #!/bin/sh
 export MY_HOME=
-export PRODUCTION=
 export JPDA_ADDRESS="*:8002"
 export JAVA_HOME="/opt/java/zulu17.48.15-ca-jdk17.0.10-linux_x64"
 export CATALINA_PID="/$MY_HOME/tomcat_build/temp/tomcat.pid"

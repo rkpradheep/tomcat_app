@@ -15,7 +15,16 @@ sourceSets {
         compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${serverPath}/tomcat/lib") + fileTree ("${serverPath}/tomcat/shared/lib")
     }
 }
-
+ext{
+    def customPropertyFile = new File("${home}/custom/custom.properties")
+     customProperties = null
+    if (customPropertyFile.exists ())
+    {
+        println "custom.properties found"
+        customProperties = new Properties()
+        customProperties.load(customPropertyFile.newDataInputStream())
+    }
+}
 task bundleResource {
     doLast {
         new File ("${serverPath}/build/tomcat_server").mkdirs()
@@ -97,7 +106,7 @@ task setupTomcatContainer{
         }
 
         exec {
-            commandLine "sed", "-i", "s|production_ph|${System.getenv ("PRODUCTION")}|", "${home}/tomcat_build/run.sh"
+            commandLine "sed", "-i", "s|production_ph|${getCustomProperty ("production", false)}|", "${home}/tomcat_build/run.sh"
         }
 
         packNonROOTWebApps ()
@@ -176,38 +185,33 @@ def packNonROOTWebApps()
              to: "MY_HOME=${home}"
             ]
     ])
-    replaceToken("${home}/tomcat_build/bin/setenv.sh", [
-            [from: "PRODUCTION=",
-             to: "PRODUCTION=${Boolean.valueOf (System.getenv ("PRODUCTION"))}"
-            ]
-    ])
-    if (System.getenv ("CUSTOM_KEYSTORE_FILE") != null) {
+    if (getCustomProperty ("custom.keystore.file", null) != null) {
         copy{
-            from "${home}/custom/${System.getenv ("CUSTOM_KEYSTORE_FILE")}"
+            from "${home}/custom/${getCustomProperty ("custom.keystore.file", null)}"
             into "${home}/tomcat_build/conf/"
         }
         replaceToken ("${home}/tomcat_build/conf/server.xml", [
                 [from: "tomcat.jks",
-                 to  : "${System.getenv ("CUSTOM_KEYSTORE_FILE")}"
+                 to  : "${getCustomProperty ("custom.keystore.file", null)}"
                 ],
                 [from: "keystorePass=\"tomcat\"",
-                 to  : "keystorePass=\"${System.getenv ("CUSTOM_KEYSTORE_PASSWORD")}\""
+                 to  : "keystorePass=\"${getCustomProperty ("custom.keystore.password", null)}\""
                 ]
         ])
     }
-    if (System.getenv ("TOMCAT_CUSTOM_HTTP_PORT") != null)
+    if (getCustomProperty("custom.tomcat.http.port", null) != null)
     {
         replaceToken ("${home}/tomcat_build/conf/server.xml", [
                 [from: "port=\"80\"",
-                 to  : "port=\"${System.getenv ("TOMCAT_CUSTOM_HTTP_PORT")}\""
+                 to  : "port=\"${getCustomProperty("custom.tomcat.http.port")}\""
                 ]
         ])
     }
-    if (System.getenv ("TOMCAT_CUSTOM_HTTPS_PORT") != null)
+    if (getCustomProperty ("custom.tomcat.https.port", null) != null)
     {
         replaceToken ("${home}/tomcat_build/conf/server.xml", [
                 [from: "port=\"443\"",
-                 to  : "port=\"${System.getenv ("TOMCAT_CUSTOM_HTTPS_PORT")}\""
+                 to  : "port=\"${getCustomProperty("custom.tomcat.https.port")}\""
                 ]
         ])
     }
@@ -299,6 +303,16 @@ def getTomcatCommand(isStart)
     }
 }
 
+def getCustomProperty(key, defaultValue)
+{
+    if (customProperties == null || customProperties.getProperty(key) == null)
+    {
+        return defaultValue;
+    }
+
+    return customProperties.getProperty(key)
+}
+
 task copyProperyFile{
     doLast{
         copy {
@@ -311,17 +325,9 @@ task copyProperyFile{
         properties.load(appPropsFile.newDataInputStream());
         properties.setProperty("build.label", LocalDateTime.ofInstant(Instant.ofEpochMilli(System.currentTimeMillis ()), ZoneId.of ("Asia/Calcutta")).format(DateTimeFormatter.ofPattern("MMM_dd_yyyy_HH_mm")))
 
-        def secretPropsFile = new File("${home}/custom/custom.properties")
-        if (secretPropsFile.exists ())
+        if (customProperties != null)
         {
-            println "custom.properties found"
-            def secretProperties = new Properties()
-            secretProperties.load(secretPropsFile.newDataInputStream())
-            secretProperties.keySet().each { secretKey -> properties.setProperty (secretKey, secretProperties.getProperty (secretKey.toString ()))}
-        }
-        if (System.getenv ("DB_SERVER") == "mysql")
-        {
-            properties.setProperty("db.server", "mysql")
+            customProperties.keySet().each { customKey -> properties.setProperty (customKey, customProperties.getProperty (customKey.toString ()))}
         }
 
         properties.store (appPropsFile.newWriter(), null)

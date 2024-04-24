@@ -1,7 +1,13 @@
 package com.server.security.http;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
 
 public class HttpResponse
 {
@@ -43,6 +49,13 @@ public class HttpResponse
 	public InputStream getInputStream()
 	{
 		return inputStream;
+	}
+
+	public String getStringResponse() throws IOException
+	{
+		StringWriter stringWriter = new StringWriter();
+		IOUtils.copy(getInputStream(), stringWriter, StandardCharsets.UTF_8);
+		return stringWriter.toString();
 	}
 
 	public void setInputStream(InputStream inputStream)

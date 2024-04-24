@@ -31,9 +31,9 @@ Step 5 : Enter
 
 Add this under .bashrc for accessing the log easily
 
-alias alog="tail -n 500 -f $MY_HOME/output.txt"
-alias applog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/app_log.txt"
-alias clog="tail  -n 500 -f $MY_HOME/tomcat_build/logs/catalina_log.txt"
+alias alog="tail -n 500 -F $MY_HOME/output.txt"
+alias applog="tail  -n 500 -F $MY_HOME/tomcat_build/logs/app_log.txt"
+alias clog="tail  -n 500 -F $MY_HOME/tomcat_build/logs/catalina_log.txt"
 
 
 Docker without sudo

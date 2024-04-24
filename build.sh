@@ -8,10 +8,6 @@ trap '[ $? -eq 0 ] || echo "${RED}######### OPERATION FAILED #########${NC}"' EX
 echo "############## Build started ##############\n"
 
 
-if [ -f ./custom/setenv.sh ]; then
-    . ./custom/setenv.sh
-fi
-
 if git diff --quiet; then
   git pull origin master --rebase
 fi

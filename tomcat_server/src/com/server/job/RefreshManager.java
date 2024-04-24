@@ -129,9 +129,9 @@ public class RefreshManager
 
 				task.run(data);
 			}
-			catch(Exception var6)
+			catch(Exception e)
 			{
-				LOGGER.log(Level.INFO, "Exception during refresh job for task - " + taskSupplier.get().getClass().getName() + " ", var6);
+				LOGGER.log(Level.INFO, "Exception during refresh job", e);
 			}
 			finally
 			{

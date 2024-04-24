@@ -33,6 +33,15 @@ public class HttpAPI
 		outputStream.flush();
 	}
 
+	public static HttpResponse makeNetworkCall(String url, String method) throws IOException
+	{
+		return makeNetworkCall(url, method, null, null, null, null);
+	}
+
+	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap) throws IOException
+	{
+		return makeNetworkCall(url, method, null, headersMap, null, null);
+	}
 	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream, Proxy proxy) throws IOException
 	{
 		if(StringUtils.isNotEmpty(queryString))
@@ -44,9 +53,12 @@ public class HttpAPI
 		httpURLConnection.setRequestMethod(method);
 		httpURLConnection.setConnectTimeout(5000);
 
-		for(Map.Entry<String, String> headers : headersMap.entrySet())
+		if(Objects.nonNull(headersMap))
 		{
-			httpURLConnection.setRequestProperty(headers.getKey(), headers.getValue());
+			for(Map.Entry<String, String> headers : headersMap.entrySet())
+			{
+				httpURLConnection.setRequestProperty(headers.getKey(), headers.getValue());
+			}
 		}
 
 		httpURLConnection.setDoInput(true);

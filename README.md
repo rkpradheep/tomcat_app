@@ -20,32 +20,20 @@
 
 Custom configuration steps
 
-1.) For custom properties and environment variables, create a new directory named "custom" inside MyHome directory.
+For custom properties and custom file, create a new directory named "custom" inside MyHome directory.
 
-<br />
-
-2.) All the custom environment variables can be set in setenv.sh file under custom directory.
-
-Example (MyHome/custom/setenv.sh) :
-
-#!/bin/sh
-
-export CUSTOM_KEYSTORE_FILE="demo.keystore"
-
-export CUSTOM_KEYSTORE_PASSWORD="demo"
-
-export TOMCAT_CUSTOM_HTTP_PORT="8080"
-
-export TOMCAT_CUSTOM_HTTPS_PORT="8443"
-
-export DB_SERVER="mysql"
-
-<br />
-
-3.) All the custom properties can be set in custom.properties file under custom directory.
+All the custom properties can be set in custom.properties file under custom directory.
 
 Example (MyHome/custom/custom.properties) : 
 
 mail.user = abc@gmail.com
 
 mail.password = demo
+
+custom.keystore.file = demo.keystore
+
+custom.keystore.password = demo
+
+custom.tomcat.http.port = 8080
+
+custom.tomcat.https.port = 8443
