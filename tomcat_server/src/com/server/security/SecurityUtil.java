@@ -351,17 +351,22 @@ public class SecurityUtil
 			{
 				return;
 			}
-			visitorList.add(remoteIp);
-		}
-		String message = "<b>Public IP : </b> &nbsp;&nbsp;" + remoteIp +
-			"<br><br><b>Originating IP : </b> &nbsp;&nbsp;" + getOriginatingUserIP() +
-			"<br><br><b>Request URL : </b> &nbsp;&nbsp;" + getCurrentRequest().getRequestURL().toString();
+			visitorList.add(ip);
+			String message = "<b>Public IP : </b> &nbsp;&nbsp;" + ip +
+				"<br><br><b>Originating IP : </b> &nbsp;&nbsp;" + getOriginatingUserIP() +
+				"<br><br><b>Request URL : </b> &nbsp;&nbsp;" + getCurrentRequest().getRequestURL().toString();
 
-		JobUtil.scheduleJob(() -> Util.sendEmail("Visitor Alert - " + key, Configuration.getProperty("mail.user"), getMessageForVisitorNotification(ip, message)), 2);
+			JobUtil.scheduleJob(() -> Util.sendEmail("Visitor Alert - " + key, Configuration.getProperty("mail.user"), getMessageForVisitorNotification(ip, message)), 2);
+		}
 	}
 
 	static String getMessageForVisitorNotification(String ip, String message) throws IOException
 	{
+		InetAddress inetAddress = InetAddress.getByName(ip);
+		if(inetAddress.isSiteLocalAddress() || inetAddress.isLoopbackAddress())
+		{
+			return message;
+		}
 		Map<String, String> headersMap = new HashMap<>();
 		headersMap.put("User-Agent", "Java - " + new Random().nextInt(900) + 100);
 
@@ -375,11 +380,11 @@ public class SecurityUtil
 			{
 				message += "<br><br><br><u><b>ip2location.io IP lookup data : </b></u>";
 
-				message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_name");
-				message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("region_name");
-				message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("city_name");
+				message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("country_name");
+				message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("region_name");
+				message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("city_name");
 				message += "<br><br><b>Lat,Long : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("latitude") + "," + ipLookUpResponse.get("longitude");
-				message += "<br><br><b>ISP : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("as");
+				message += "<br><br><b>ISP : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("as");
 			}
 			else
 			{
@@ -393,12 +398,12 @@ public class SecurityUtil
 		{
 			message += "<br><br><br><u><b>ipapi.co IP lookup data : </b></u>";
 
-			message += "<br><br><b>Country Capital, Currency : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_capital") + ", " + ipLookUpResponse.getString("currency");
-			message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_name");
-			message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("region");
-			message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("city");
+			message += "<br><br><b>Country Capital, Currency : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("country_capital") + ", " + ipLookUpResponse.get("currency");
+			message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("country_name");
+			message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("region");
+			message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("city");
 			message += "<br><br><b>Lat,Long : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("latitude") + "," + ipLookUpResponse.get("longitude");
-			message += "<br><br><b>ISP : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("org");
+			message += "<br><br><b>ISP : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("org");
 		}
 		else
 		{

@@ -88,7 +88,7 @@ public class SecurityFilter implements Filter
 					httpServletResponse.sendError(HttpStatus.SC_FORBIDDEN);
 					return;
 				}
-				LOGGER.log(Level.INFO, "Request received for uri {0} Public IP {1}  Session {2} Originating IP {3}", new Object[] {requestURI, sessionId, httpServletRequest.getRemoteAddr(), SecurityUtil.getOriginatingUserIP()});
+				LOGGER.log(Level.INFO, "Request received for uri {0} Public IP {1}  Session {2} Originating IP {3}", new Object[] {requestURI, httpServletRequest.getRemoteAddr(), sessionId, SecurityUtil.getOriginatingUserIP()});
 				filterChain.doFilter(servletRequest, servletResponse);
 			}
 			else
