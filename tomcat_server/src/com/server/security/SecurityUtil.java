@@ -323,6 +323,10 @@ public class SecurityUtil
 
 	static void sendVisitorNotification() throws UnknownHostException
 	{
+		if(!isLoggedIn())
+		{
+			return;
+		}
 		String key = getFormattedCurrentTime("dd/MM/yyyy");
 		List<String> visitorList = VISITOR_META.getOrDefault(key, new ArrayList<>());
 		String remoteIp = getCurrentRequest().getRemoteAddr();
@@ -341,14 +345,17 @@ public class SecurityUtil
 			}
 			visitorList.add(remoteIp);
 		}
-		String message = "<b>Public IP : </b> &nbsp;&nbsp;" + remoteIp + "<br><br><b>Originating IP : </b> &nbsp;&nbsp;" + getOriginatingUserIP() + "<br><br><b>Request URL : </b> &nbsp;&nbsp;" + getCurrentRequest().getRequestURL().toString();
+		String message = "<b>Public IP : </b> &nbsp;&nbsp;" + remoteIp +
+			"<br><br><b>Originating IP : </b> &nbsp;&nbsp;" + getOriginatingUserIP() +
+			"<br><br><b>Request URL : </b> &nbsp;&nbsp;" + getCurrentRequest().getRequestURL().toString();
+
 		JobUtil.scheduleJob(() -> Util.sendEmail("Visitor Alert - " + key, Configuration.getProperty("mail.user"), getMessageForVisitorNotification(ip, message)), 2);
 	}
 
 	static String getMessageForVisitorNotification(String ip, String message) throws IOException
 	{
 		Map<String, String> headersMap = new HashMap<>();
-		headersMap.put("User-Agent", "Java - " + new Random().nextInt(100));
+		headersMap.put("User-Agent", "Java - " + new Random().nextInt(900) + 100);
 
 		if(StringUtils.isNotEmpty(Configuration.getProperty("ip2location.apikey")))
 		{
@@ -358,6 +365,8 @@ public class SecurityUtil
 
 			if(!ipLookUpResponse.has("error"))
 			{
+				message += "<br><br><br><u><b>ip2location.io IP lookup data : </b></u>";
+
 				message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_name");
 				message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("region_name");
 				message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("city_name");
@@ -374,11 +383,14 @@ public class SecurityUtil
 		JSONObject ipLookUpResponse = isValidJSON(ipLookUpStringResponse) ? new JSONObject(ipLookUpStringResponse) : new JSONObject();
 		if(!ipLookUpResponse.has("error") && ipLookUpResponse.has("country_capital"))
 		{
-			message += "<br><br><br><u><b>IPCO IP lookup data : </b></u>";
+			message += "<br><br><br><u><b>ipapi.co IP lookup data : </b></u>";
+
 			message += "<br><br><b>Country Capital, Currency : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_capital") + ", " + ipLookUpResponse.getString("currency");
 			message += "<br><br><b>Country : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("country_name");
 			message += "<br><br><b>Region : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("region");
 			message += "<br><br><b>City : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("city");
+			message += "<br><br><b>Lat,Long : </b>&nbsp;&nbsp;" + ipLookUpResponse.get("latitude") + "," + ipLookUpResponse.get("longitude");
+			message += "<br><br><b>ISP : </b>&nbsp;&nbsp;" + ipLookUpResponse.getString("org");
 		}
 		else
 		{

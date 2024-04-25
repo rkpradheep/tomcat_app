@@ -40,8 +40,6 @@ public class SecurityFilter implements Filter
 
 			CURRENT_REQUEST_TL.set(httpServletRequest);
 
-			SecurityUtil.sendVisitorNotification();
-
 			httpServletResponse.setHeader("Server_Build_Label", Configuration.getProperty("build.label"));
 
 			String requestURI = httpServletRequest.getRequestURI().replaceFirst(httpServletRequest.getContextPath(), StringUtils.EMPTY);
@@ -108,6 +106,8 @@ public class SecurityFilter implements Filter
 					httpServletResponse.sendRedirect(loginPage);
 				}
 			}
+
+			SecurityUtil.sendVisitorNotification();
 		}
 		finally
 		{
