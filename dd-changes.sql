@@ -82,6 +82,17 @@ ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
+-- CREATE TABLE "AuthToken" -------------------------------------
+CREATE TABLE `AuthToken`(
+	`token` Text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`user_id` BigInt( 255 ) NOT NULL )
+CHARACTER SET = utf8
+COLLATE = utf8_general_ci
+ENGINE = InnoDB
+-- -------------------------------------------------------------
+
+
+
 -- CREATE INDEX "chatuserdetails_fk1" --------------------------
 CREATE INDEX `chatuserdetails_fk1` USING BTREE ON `ChatUserDetails`( `chatuserid` );
 -- -------------------------------------------------------------
@@ -104,6 +115,14 @@ ALTER TABLE `ChatUserDetails`
 -- CREATE LINK "lnk_Users_SessionManagement" -------------------
 ALTER TABLE `SessionManagement`
 	ADD CONSTRAINT `lnk_Users_SessionManagement` FOREIGN KEY ( `user_id` )
+	REFERENCES `Users`( `id` )
+	ON DELETE Cascade
+	ON UPDATE Cascade;
+-- -------------------------------------------------------------
+
+-- CREATE LINK "lnk_Users_AuthToken" -------------------
+ALTER TABLE `AuthToken`
+	ADD CONSTRAINT `lnk_Users_AuthToken` FOREIGN KEY ( `user_id` )
 	REFERENCES `Users`( `id` )
 	ON DELETE Cascade
 	ON UPDATE Cascade;

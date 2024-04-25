@@ -49,16 +49,14 @@ import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.common.Util;
-import com.server.job.JobAPI;
 import com.server.job.JobUtil;
-import com.server.job.RefreshManager;
 import com.server.security.http.FormData;
 import com.server.security.http.HttpAPI;
 import com.server.security.user.User;
 
 public class SecurityUtil
 {
-	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/run", "/api/v1/admin/live/logs");
+	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/admin/live/logs");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
@@ -71,21 +69,31 @@ public class SecurityUtil
 		return Objects.nonNull(servletContext.getResource(endPoint)) && !endPoint.endsWith(".jsp") && !endPoint.endsWith(".html");
 	}
 
-	public static String getSessionId(HttpServletRequest request)
+	public static String getAuthToken()
 	{
-		String requestURI = request.getRequestURI();
-		Cookie[] cookies = request.getCookies();
-		String authorizationHeader = ObjectUtils.defaultIfNull(request.getHeader("Authorization"), StringUtils.EMPTY);
-		Pattern pattern = Pattern.compile("Bearer (\\d+)");
+		String token = getCurrentRequest().getParameter("token");
+		if(StringUtils.isNotBlank(token))
+		{
+			return token;
+		}
+
+		String authorizationHeader = ObjectUtils.defaultIfNull(getCurrentRequest().getHeader("Authorization"), StringUtils.EMPTY);
+		Pattern pattern = Pattern.compile("Bearer (\\w+)");
 		Matcher matcher = pattern.matcher(authorizationHeader);
 
-		String token = StringUtils.isNotEmpty(authorizationHeader) && matcher.matches() ? matcher.group(1) : StringUtils.EMPTY;
+		token = StringUtils.isNotEmpty(authorizationHeader) && matcher.matches() ? matcher.group(1) : StringUtils.EMPTY;
 
 		if(StringUtils.isNotEmpty(token))
 		{
 			return token;
 		}
 
+		return StringUtils.EMPTY;
+	}
+
+	public static String getSessionId()
+	{
+		Cookie[] cookies = getCurrentRequest().getCookies();
 		String tokenName = "iam_token";
 
 		if(Objects.nonNull(cookies))

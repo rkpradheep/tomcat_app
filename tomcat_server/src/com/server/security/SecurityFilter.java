@@ -2,6 +2,7 @@ package com.server.security;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -57,9 +58,10 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
-			String sessionId = SecurityUtil.getSessionId(httpServletRequest);
+			String authToken = SecurityUtil.getAuthToken();
+			String sessionId = StringUtils.isBlank(authToken) ? SecurityUtil.getSessionId() : null;
 
-			CURRENT_USER_TL.set(UserUtil.getUser(sessionId));
+			CURRENT_USER_TL.set(UserUtil.getUser(sessionId, authToken));
 
 			if(Configuration.getBoolean("production") && (requestURI.equals("/dbtool.jsp") || requestURI.equals("/zoho")))
 			{
@@ -101,7 +103,7 @@ public class SecurityFilter implements Filter
 				else
 				{
 					String loginPage = httpServletRequest.getContextPath() + "/login";
-					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, "UTF-8");
+					loginPage += "?redirect_uri=" + URLEncoder.encode(requestURL, StandardCharsets.UTF_8);
 
 					httpServletResponse.sendRedirect(loginPage);
 				}

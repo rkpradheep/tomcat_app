@@ -17,19 +17,20 @@ import com.server.security.DBUtil;
 public class UserUtil
 {
 	private static final Logger LOGGER = Logger.getLogger(UserUtil.class.getName());
-	public static User getUser(String sessionId)
+	public static User getUser(String sessionId, String authToken)
 	{
-		if(StringUtils.isEmpty(sessionId))
+		if(StringUtils.isBlank(sessionId) && StringUtils.isBlank(authToken))
 		{
 			return null;
 		}
 
 		String selectQuery = "SELECT * FROM Users INNER JOIN SessionManagement on  Users.id=SessionManagement.user_id where SessionManagement.id = ?";
+		selectQuery = StringUtils.isBlank(authToken) ? selectQuery :  "SELECT * FROM Users INNER JOIN AuthToken on  Users.id=AuthToken.user_id where AuthToken.token = ?";;
 
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
 			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
-			preparedStatement.setString(1, sessionId);
+			preparedStatement.setString(1, StringUtils.defaultIfBlank(sessionId, authToken));
 
 			return getUser(preparedStatement.executeQuery());
 		}

@@ -65,7 +65,7 @@ public class LoginHandler extends HttpServlet
 		String maxAge = "Max-Age=0";
 		StringBuilder header = new StringBuilder()
 			.append("iam_token" + "=")
-			.append(SecurityUtil.getSessionId(request))
+			.append(SecurityUtil.getSessionId())
 			//.append("; Secure")
 			//.append("; SameSite=None")
 			.append("; Path=/;")

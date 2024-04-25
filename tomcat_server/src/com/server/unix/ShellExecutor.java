@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.server.security.Configuration;
 import com.server.common.Util;
+import com.server.security.SecurityUtil;
 
 public class ShellExecutor extends HttpServlet
 {
@@ -35,18 +36,20 @@ public class ShellExecutor extends HttpServlet
 		String command = request.getParameter("command");
 		try
 		{
-			if(request.getParameter("password") != null)
+			if(StringUtils.isBlank(request.getParameter("password")))
 			{
-				if(request.getParameter("password").equals("null") || request.getParameter("password").equals(""))
-				{
-					response.getWriter().println("Password mandatory");
-					return;
-				}
-				else if(!request.getParameter("password").equals("111"))
-				{
-					response.getWriter().println("Incorrect password");
-					return;
-				}
+				SecurityUtil.writerErrorResponse(response, "Password mandatory");
+				return;
+			}
+			else if(!request.getParameter("password").equals("111"))
+			{
+				SecurityUtil.writerErrorResponse(response, "Incorrect password");
+				return;
+			}
+			else if(StringUtils.isBlank(request.getParameter("command")))
+			{
+				SecurityUtil.writerErrorResponse(response, "Invalid command");
+				return;
 			}
 
 			if(command.contains("takePhoto"))
