@@ -16,10 +16,13 @@
 
   <Service name="Catalina">
 
+    <Executor name="tomcatThreadPool" namePrefix="tomcat-thread-" maxThreads="150" minSpareThreads="25"/>
+
     <Connector port="80" protocol="HTTP/1.1"
                connectionTimeout="20000"
                redirectPort="443"
                maxParameterCount="1000"
+               executor="tomcatThreadPool"
                />
 
      <Connector
@@ -27,7 +30,7 @@
        port="443" maxThreads="200"
        scheme="https" secure="true" SSLEnabled="true"
        keystoreFile="conf/tomcat.jks" keystorePass="tomcat"
-       clientAuth="false" sslProtocol="TLS"/>
+       clientAuth="false" sslProtocol="TLS" executor="tomcatThreadPool"/>
 
     <Engine name="Catalina" defaultHost="localhost">
 
