@@ -23,12 +23,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import com.server.common.Util;
-import com.server.security.DBUtil;
-import com.server.security.LoginUtil;
-import com.server.security.SecurityUtil;
-import com.server.security.ThrottleHandler;
-import com.server.security.http.FormData;
+import com.server.framework.common.Util;
+import com.server.framework.security.DBUtil;
+import com.server.framework.security.LoginUtil;
+import com.server.framework.security.SecurityUtil;
+import com.server.framework.security.ThrottleHandler;
+import com.server.framework.http.FormData;
 
 public class AdminHandler extends HttpServlet
 {
@@ -111,7 +111,7 @@ public class AdminHandler extends HttpServlet
 		if(credentials.optBoolean("need_table"))
 		{
 			DatabaseMetaData databaseMetaData = connection.getMetaData();
-			//new Thread(() -> com.server.common.Util.postMessageToBot("Visitor Alert. \nIP : " + request.getServerName() + "\nSession ID : " + request.getSession().getId())).start();
+			//new Thread(() -> com.server.framework.common.Util.postMessageToBot("Visitor Alert. \nIP : " + request.getServerName() + "\nSession ID : " + request.getSession().getId())).start();
 			List<String> tableList = new ArrayList<>();
 			try
 			{

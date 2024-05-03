@@ -5,14 +5,14 @@ import java.util.jar.JarFile;
 
 import org.apache.commons.io.IOUtils;
 
-import com.server.common.Util;
+import com.server.framework.common.Util;
 
 public class CLoader
 {
 	public static String get() throws Exception
 	{
 
-		//URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new URL("file:" + com.server.common.Util.HOME_PATH + "/tomcat_build/webapps/ROOT/WEB-INF/lib/com.server.test.DynamicCP.jar")}, com.server.test.CLoader.class.getClassLoader());
+		//URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new URL("file:" + com.server.framework.common.Util.HOME_PATH + "/tomcat_build/webapps/ROOT/WEB-INF/lib/com.server.test.DynamicCP.jar")}, com.server.test.CLoader.class.getClassLoader());
 		ClassLoader classLoader = new ClassLoader()
 		{
 			@Override

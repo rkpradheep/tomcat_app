@@ -22,9 +22,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.server.security.Configuration;
-import com.server.common.Util;
-import com.server.security.SecurityUtil;
+import com.server.framework.common.Configuration;
+import com.server.framework.common.Util;
+import com.server.framework.security.SecurityUtil;
 
 public class ShellExecutor extends HttpServlet
 {

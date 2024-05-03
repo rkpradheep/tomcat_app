@@ -10,7 +10,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import com.server.common.Util;
+import com.server.framework.common.Util;
 
 @ServerEndpoint(value = "/api/v1/broadcast")
 public class BroadCast

@@ -36,18 +36,13 @@ task bundleResource {
 
         copy {
             from "${serverPath}/classes"
-            exclude "com/server/tomcat", "com/server/security"
+            exclude "com/server/tomcat", "com/server/framework"
             into "${serverPath}/build/tomcat_server/WEB-INF/classes"
         }
 
         copy {
             from "${serverPath}/resources"
             into "${serverPath}/build/tomcat_server/WEB-INF/classes"
-        }
-
-        copy{
-            from "${serverPath}/build/security.jar"
-            into "${serverPath}/build/tomcat_server/WEB-INF/lib"
         }
 
         println "Resource bundle completed"
@@ -111,6 +106,11 @@ task setupTomcatContainer{
 
         packNonROOTWebApps ()
 
+        copy{
+            from "${serverPath}/build/framework.jar"
+            into "${home}/tomcat_build/shared/lib"
+        }
+
         println "set up tomcat container completed"
     }
 }
@@ -118,10 +118,6 @@ task setupTomcatContainer{
 
 def packNonROOTWebApps()
 {
-    copy{
-        from "${serverPath}/build/security.jar"
-        into "${home}/tomcat_build/webapps/manager/WEB-INF/lib"
-    }
     copy{
         from "${serverPath}/build/tomcat_server/WEB-INF/conf/login.html"
         into "${home}/tomcat_build/webapps/manager"
@@ -149,10 +145,6 @@ def packNonROOTWebApps()
         into "${home}/tomcat_build/webapps/manager/css"
     }
 
-    copy{
-        from "${serverPath}/build/security.jar"
-        into "${home}/tomcat_build/webapps/tomcat/WEB-INF/lib"
-    }
     copy{
         from "${serverPath}/build/tomcat_server/WEB-INF/conf/login.html"
         into "${home}/tomcat_build/webapps/tomcat"
@@ -228,10 +220,10 @@ task buildTomcatValvesJar(type: Jar) {
     destinationDir = file("${serverPath}/build")
 }
 
-task buildSecurityJar(type: Jar) {
-    archiveFileName = "security.jar"
+task buildFrameworkJar(type: Jar) {
+    archiveFileName = "framework.jar"
     from "${serverPath}/classes"
-    include 'com/server/security/**'
+    include 'com/server/framework/**'
     destinationDir = file("${serverPath}/build")
 }
 
@@ -317,10 +309,10 @@ task copyProperyFile{
     doLast{
         copy {
             from "${home}/app.properties"
-            into "${serverPath}/classes/com/server/security"
+            into "${serverPath}/classes/com/server/framework/common"
         }
 
-        def appPropsFile = new File("${serverPath}/classes/com/server/security/app.properties")
+        def appPropsFile = new File("${serverPath}/classes/com/server/framework/common/app.properties")
         Properties properties = new Properties();
         properties.load(appPropsFile.newDataInputStream());
         properties.setProperty("build.label", LocalDateTime.ofInstant(Instant.ofEpochMilli(System.currentTimeMillis ()), ZoneId.of ("Asia/Calcutta")).format(DateTimeFormatter.ofPattern("MMM_dd_yyyy_HH_mm")))
@@ -336,6 +328,6 @@ task copyProperyFile{
     }
 }
 configureTaskDependencies(build, [copyProperyFile])
-configureTaskDependencies(setupServer, [build, buildSecurityJar, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, packManagerWar, packTomcatWar, deployBuild, cleanUp])
+configureTaskDependencies(setupServer, [build, buildFrameworkJar, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, packManagerWar, packTomcatWar, deployBuild, cleanUp])
 
 defaultTasks 'setupServer'

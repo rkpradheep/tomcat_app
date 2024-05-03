@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import com.server.security.SecurityUtil;
+import com.server.framework.security.SecurityUtil;
 import com.server.unix.ShellExecutor;
 
 public class HotSwap extends HttpServlet

@@ -42,11 +42,11 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.server.common.Util;
-import com.server.security.http.FormData;
-import com.server.security.http.HttpAPI;
-import com.server.security.http.HttpResponse;
-import com.server.security.SecurityUtil;
+import com.server.framework.common.Util;
+import com.server.framework.http.FormData;
+import com.server.framework.http.HttpAPI;
+import com.server.framework.http.HttpResponse;
+import com.server.framework.security.SecurityUtil;
 
 public class ConcurrencyAPIHandler extends HttpServlet
 {

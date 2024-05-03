@@ -16,7 +16,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.json.JSONObject;
 
-import com.server.common.Util;
+import com.server.framework.common.Util;
 
 @ServerEndpoint("/signal")
 public class WebRTCSignallingServer

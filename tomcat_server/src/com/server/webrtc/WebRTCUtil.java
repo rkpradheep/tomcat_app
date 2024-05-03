@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.server.security.Configuration;
-import com.server.security.SecurityUtil;
+import com.server.framework.common.Configuration;
+import com.server.framework.security.SecurityUtil;
 
 public class WebRTCUtil extends HttpServlet
 {

@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.server.security.SecurityUtil;
+import com.server.framework.security.SecurityUtil;
 
 public class DownloadText extends HttpServlet
 {

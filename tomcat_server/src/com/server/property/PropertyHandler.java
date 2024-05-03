@@ -11,9 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import com.server.security.Configuration;
-import com.server.security.DBUtil;
-import com.server.security.SecurityUtil;
+import com.server.framework.common.Configuration;
+import com.server.framework.security.SecurityUtil;
 
 public class PropertyHandler extends HttpServlet
 {

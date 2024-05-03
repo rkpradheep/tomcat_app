@@ -209,13 +209,9 @@
 <!--    <location>/WEB-INF/jsp/404.jsp</location>-->
 <!--  </error-page>-->
 
-  <listener>
-		<listener-class>com.server.security.listener.ContextListener</listener-class>
-	</listener>
-
 	<filter>
 		<filter-name>SecurityFilter</filter-name>
-		<filter-class>com.server.security.SecurityFilter</filter-class>
+		<filter-class>com.server.framework.security.SecurityFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>SecurityFilter</filter-name>
@@ -233,7 +229,7 @@
 
 	<servlet>
 		<servlet-name>LoginHandler</servlet-name>
-		<servlet-class>com.server.security.LoginHandler</servlet-class>
+		<servlet-class>com.server.framework.security.LoginHandler</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>LoginHandler</servlet-name>
@@ -241,4 +237,18 @@
 		<url-pattern>/logout</url-pattern>
 	</servlet-mapping>
 
+  		<servlet>
+		<servlet-name>HealthCheck</servlet-name>
+		<servlet-class>com.server.framework.common.HealthCheck</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>HealthCheck</servlet-name>
+		<url-pattern>/_app/health</url-pattern>
+	</servlet-mapping>
+
+	<listener>
+		<listener-class>
+		com.server.framework.listener.SessionListener
+	</listener-class>
+	</listener>
 </web-app>

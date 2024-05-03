@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import com.server.common.Util;
-import com.server.security.SecurityUtil;
+import com.server.framework.common.Util;
+import com.server.framework.security.SecurityUtil;
 
 public class OauthHandler extends HttpServlet
 {

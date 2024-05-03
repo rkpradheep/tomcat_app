@@ -54,13 +54,9 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-	<listener>
-		<listener-class>com.server.security.listener.ContextListener</listener-class>
-	</listener>
-
 	<filter>
 		<filter-name>SecurityFilter</filter-name>
-		<filter-class>com.server.security.SecurityFilter</filter-class>
+		<filter-class>com.server.framework.security.SecurityFilter</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>SecurityFilter</filter-name>
@@ -94,7 +90,7 @@
 
 	<servlet>
 		<servlet-name>LoginHandler</servlet-name>
-		<servlet-class>com.server.security.LoginHandler</servlet-class>
+		<servlet-class>com.server.framework.security.LoginHandler</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>LoginHandler</servlet-name>
@@ -152,7 +148,7 @@
 
 	<servlet>
 		<servlet-name>HealthCheck</servlet-name>
-		<servlet-class>com.server.common.HealthCheck</servlet-class>
+		<servlet-class>com.server.framework.common.HealthCheck</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>HealthCheck</servlet-name>
@@ -172,7 +168,7 @@
 
 	<servlet>
 		<servlet-name>FileManager</servlet-name>
-		<servlet-class>com.server.file.FileManager</servlet-class>
+		<servlet-class>com.server.framework.common.FileManager</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>FileManager</servlet-name>
@@ -182,7 +178,7 @@
 
 	<servlet>
 	<servlet-name>Job</servlet-name>
-		<servlet-class>com.server.job.JobAPI</servlet-class>
+		<servlet-class>com.server.framework.job.JobAPI</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Job</servlet-name>
@@ -202,7 +198,7 @@
 
 	<servlet>
 	<servlet-name>UserHandler</servlet-name>
-		<servlet-class>com.server.security.user.UserHandler</servlet-class>
+		<servlet-class>com.server.framework.user.UserHandler</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>UserHandler</servlet-name>
@@ -256,7 +252,7 @@
 	</session-config>
 	<listener>
 		<listener-class>
-		com.server.common.Listener
+		com.server.framework.listener.SessionListener
 	</listener-class>
 	</listener>
 </web-app>

@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.server.security.SecurityUtil;
-import com.server.security.ThrottleHandler;
+import com.server.framework.security.SecurityUtil;
+import com.server.framework.security.ThrottleHandler;
 
 public class AdminDBUtil
 {

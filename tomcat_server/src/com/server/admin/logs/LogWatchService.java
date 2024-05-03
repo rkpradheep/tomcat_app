@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.server.common.Util;
+import com.server.framework.common.Util;
 
 public class LogWatchService
 {

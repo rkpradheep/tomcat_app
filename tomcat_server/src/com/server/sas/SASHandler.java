@@ -25,9 +25,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
-import com.server.security.Configuration;
-import com.server.common.Util;
-import com.server.security.SecurityUtil;
+import com.server.framework.common.Configuration;
+import com.server.framework.common.Util;
+import com.server.framework.security.SecurityUtil;
 
 public class SASHandler extends HttpServlet
 {
@@ -134,7 +134,7 @@ public class SASHandler extends HttpServlet
 
 			responseMap.put("sas_limits", limitsDetails);
 
-			//com.server.common.Util.addUserDetails(server, clusterIP, schema, user, password, responseMap, (Long) limits[0], (Long) limits[1]);
+			//com.server.framework.common.Util.addUserDetails(server, clusterIP, schema, user, password, responseMap, (Long) limits[0], (Long) limits[1]);
 
 			Map<String, Object> finalResponse = new LinkedHashMap<>();
 			finalResponse.put("sas_meta", responseMap);
@@ -149,7 +149,7 @@ public class SASHandler extends HttpServlet
 		if(credentials.optBoolean("need_table"))
 		{
 			DatabaseMetaData databaseMetaData = connection.getMetaData();
-			//new Thread(() -> com.server.common.Util.postMessageToBot("Visitor Alert. \nIP : " + request.getServerName() + "\nSession ID : " + request.getSession().getId())).start();
+			//new Thread(() -> com.server.framework.common.Util.postMessageToBot("Visitor Alert. \nIP : " + request.getServerName() + "\nSession ID : " + request.getSession().getId())).start();
 			List<String> tableList = new ArrayList<>();
 			ResultSet tableResultSet = databaseMetaData.getTables(null, "jbossdb", "%", new String[] {"TABLE"});
 			while(tableResultSet.next())
