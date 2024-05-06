@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -33,9 +34,10 @@ public class ProxyServer
 
 	private static ExecutorService executorService;
 	private static ExecutorService executorServiceForRequestHandling;
-	private static final int MAX_WAIT_SECONDS = 5;
+	private static final int MAX_WAIT_SECONDS = 30;
 	private static final int MAX_WORKER_SIZE = 50;
-	private static int THREAD_NUMBER = 1;
+	private static final AtomicInteger THREAD_NUMBER = new AtomicInteger(0);
+	private static final AtomicInteger WORKER_THREAD_NUMBER =  new AtomicInteger(0);
 	private static final String TEN_HASH = Collections.nCopies(10, "#").stream().collect(Collectors.joining());
 	private static boolean stopProxy = false;
 
@@ -47,7 +49,7 @@ public class ProxyServer
 		};
 
 		ThreadFactory requestTF = run -> {
-			Thread thread = new Thread(run, "proxy-worker-thread-" + THREAD_NUMBER++);
+			Thread thread = new Thread(run, "proxy-worker-thread-" + THREAD_NUMBER.incrementAndGet());
 			return thread;
 		};
 
@@ -121,7 +123,7 @@ public class ProxyServer
 
 			LOGGER.info("Input Stream Available size before waiting " + clientIn.available());
 
-			long maxWaitLimit = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(MAX_WAIT_SECONDS);
+			long maxWaitLimit = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(3);
 
 			while(clientIn.available() == 0 && System.currentTimeMillis() < maxWaitLimit);
 
@@ -149,7 +151,7 @@ public class ProxyServer
 				outputStreamWriter.flush();
 
 				ThreadFactory forwarderThread = run -> {
-					Thread thread = new Thread(run, "forwarder-" + Thread.currentThread().getName());
+					Thread thread = new Thread(run, "forwarder-" + WORKER_THREAD_NUMBER.incrementAndGet() + "-" + Thread.currentThread().getName());
 					return thread;
 				};
 				ExecutorService executorService = Executors.newFixedThreadPool(2, forwarderThread);
@@ -159,16 +161,12 @@ public class ProxyServer
 
 				try
 				{
-					clientThread.get(MAX_WAIT_SECONDS, TimeUnit.SECONDS);
-				}
-				catch(Exception e)
-				{
-					LOGGER.log(Level.SEVERE, "Exception occurred " + e);
-				}
-				targetSocket.shutdownOutput();
-				try
-				{
-					targetThread.get(MAX_WAIT_SECONDS, TimeUnit.SECONDS);
+					maxWaitLimit = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(MAX_WAIT_SECONDS);
+					while(System.currentTimeMillis() < maxWaitLimit && !clientThread.isDone());
+					targetSocket.shutdownOutput();
+					clientSocket.shutdownInput();
+					clientThread.get(1, TimeUnit.SECONDS);
+					targetThread.get(1, TimeUnit.SECONDS);
 				}
 				catch(Exception e)
 				{
@@ -218,7 +216,6 @@ public class ProxyServer
 		Matcher matcher = pattern.matcher(targetHost.toLowerCase().replaceFirst("host: ", ""));
 		matcher.matches();
 
-		LOGGER.info("Target Host " + matcher.group(1));
 		return new String[] {matcher.group(1), matcher.group(2).length() > 0 ? matcher.group(2) : port};
 
 	}
