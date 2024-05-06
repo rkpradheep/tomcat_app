@@ -187,7 +187,7 @@
         <a target="_blank" href="/commandExecutor.jsp">Terminal Command Executor</a><br/><br/></br>
 
         <input type="file" id="file"/></br>
-        <input type="text" id="path" style="width:300px" placeholder="Destination path"/> &nbsp; &nbsp;
+        <input type="text" id="path" style="width:300px" value="tomcat_build/webapps"/> &nbsp; &nbsp;
         <button onclick="transferFile()">TRANSFER FILE</button><br/><br/></br>
 
          <button style='background-color:red;' onclick="deleteExpired()">DELETE EXPIRED</button>
