@@ -1,18 +1,18 @@
-import org.gradle.internal.os.OperatingSystem
-
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 ext.serverPath = "${home}/tomcat_server"
+ext.deploymentPath = "${home}/tomcat_build"
+ext.neededWebApps = ["ROOT", "tomcat", "manager"]
 sourceSets {
     main {
         java {
             srcDirs = ["${serverPath}/src"]
             outputDir = file ("${serverPath}/classes/")
         }
-        compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${serverPath}/tomcat/lib") + fileTree ("${serverPath}/tomcat/shared/lib")
+        compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${home}/tomcat_build/lib") + fileTree ("${serverPath}/tomcat/shared/lib")
     }
 }
 ext{
@@ -25,76 +25,56 @@ ext{
         customProperties.load(customPropertyFile.newDataInputStream())
     }
 }
-task bundleResource {
-    doLast {
-        new File ("${serverPath}/build/tomcat_server").mkdirs()
-
-        copy {
-            from "${serverPath}/webapps/"
-            into "${serverPath}/build/tomcat_server"
-        }
-
-        copy {
-            from "${serverPath}/classes"
-            exclude "com/server/tomcat", "com/server/framework"
-            into "${serverPath}/build/tomcat_server/WEB-INF/classes"
-        }
-
-        copy {
-            from "${serverPath}/resources"
-            into "${serverPath}/build/tomcat_server/WEB-INF/classes"
-        }
-
-        println "Resource bundle completed"
-
-    }
-}
 
 
 task packRootWar(type: War) {
     archiveFileName = "ROOT.war"
-    from "${serverPath}/build/tomcat_server"
-    destinationDir = file("${serverPath}/build")
+    from "${deploymentPath}/webapps/ROOT"
+    destinationDir = file("${deploymentPath}/webapps")
 }
 
 task packManagerWar(type: War) {
     archiveFileName = "manager.war"
-    from "${home}/tomcat_build/webapps/manager"
-    destinationDir = file("${home}/tomcat_build/webapps")
+    from "${deploymentPath}/webapps/manager"
+    destinationDir = file("${deploymentPath}/webapps")
 }
 
 task packTomcatWar(type: War) {
     archiveFileName = "tomcat.war"
-    from "${home}/tomcat_build/webapps/tomcat"
-    destinationDir = file("${home}/tomcat_build/webapps")
+    from "${deploymentPath}/webapps/tomcat"
+    destinationDir = file("${deploymentPath}/webapps")
 }
 
-task deployBuild{
-    doLast{
-        if(file("${home}/tomcat_build/webapps/ROOT").listFiles() != null)
-        {
-            delete file("${home}/tomcat_build/webapps/ROOT")
-        }
-        copy {
-            from "${serverPath}/build/ROOT.war"
-            into "${home}/tomcat_build/webapps"
-        }
-
-        println "deploy build completed"
-    }
-}
 
 task setupTomcatContainer{
     doLast{
-        println "Tomcat deployment path ${home}/tomcat_build"
+        println "Tomcat deployment path ${deploymentPath}"
 
-        new File ("${home}/tomcat_build").mkdirs()
         delete "${home}/tomcat_build/*"
-        new File ("${home}/tomcat_build/logs").mkdirs()
+        new File ("${deploymentPath}").mkdirs()
+
+        new File ("${deploymentPath}/logs").mkdirs()
+
+        copy {
+            from zipTree("${home}/tomcat_binary.zip")
+            into "${deploymentPath}"
+        }
+
         copy{
             from "${serverPath}/tomcat/"
-            into "${home}/tomcat_build"
+            into "${deploymentPath}"
         }
+
+        new File ("${deploymentPath}/webapps").listFiles ().each{
+            if (!neededWebApps.contains (it.getName ()))
+                delete it
+        }
+
+        def catalinaPropsFile = new File("${home}/tomcat_build/conf/catalina.properties")
+        Properties properties = new Properties();
+        properties.load(catalinaPropsFile.newDataInputStream());
+        properties.setProperty("common.loader", properties.getProperty ("common.loader") + ", \"\${catalina.base}/shared/lib/*.jar\"")
+        properties.store (catalinaPropsFile.newWriter(), null)
 
         exec {
             commandLine "sed", "-i", "s|home_ph|${home}|", "${home}/tomcat_build/run.sh"
@@ -104,208 +84,169 @@ task setupTomcatContainer{
             commandLine "sed", "-i", "s|production_ph|${getCustomProperty ("production", false)}|", "${home}/tomcat_build/run.sh"
         }
 
-        packNonROOTWebApps ()
-
-        copy{
-            from "${serverPath}/build/framework.jar"
-            into "${home}/tomcat_build/shared/lib"
-        }
-
-        println "set up tomcat container completed"
+        println "set-up tomcat container completed"
     }
 }
 
-
-def packNonROOTWebApps()
-{
-    copy{
-        from "${serverPath}/build/tomcat_server/WEB-INF/conf/login.html"
-        into "${home}/tomcat_build/webapps/manager"
-    }
-    copy{
-        from "${serverPath}/build/tomcat_server/css/login.css"
-        into "${home}/tomcat_build/webapps/manager/css"
-    }
-    copy{
-        from "${serverPath}/build/tomcat_server/js/login.js"
-        into "${home}/tomcat_build/webapps/manager/js"
-    }
-
-    replaceToken("${home}/tomcat_build/webapps/manager/js/login.js", [
-            [from: "/api/v1/authenticate",
-             to: "/manager/api/v1/authenticate"
-            ]
-    ])
-    copy{
-        from "${serverPath}/build/tomcat_server/js/common.js"
-        into "${home}/tomcat_build/webapps/manager/js"
-    }
-    copy{
-        from "${serverPath}/build/tomcat_server/css/loading.css"
-        into "${home}/tomcat_build/webapps/manager/css"
-    }
-
-    copy{
-        from "${serverPath}/build/tomcat_server/WEB-INF/conf/login.html"
-        into "${home}/tomcat_build/webapps/tomcat"
-    }
-    copy{
-        from "${serverPath}/build/tomcat_server/css/login.css"
-        into "${home}/tomcat_build/webapps/tomcat/css"
-    }
-    copy{
-        from "${serverPath}/build/tomcat_server/js/login.js"
-        into "${home}/tomcat_build/webapps/tomcat/js"
-    }
-
-    replaceToken("${home}/tomcat_build/webapps/tomcat/js/login.js", [
-            [from: "/api/v1/authenticate",
-             to: "/tomcat/api/v1/authenticate"
-            ]
-    ])
-    copy{
-        from "${serverPath}/build/tomcat_server/js/common.js"
-        into "${home}/tomcat_build/webapps/tomcat/js"
-    }
-    copy {
-        from "${serverPath}/build/tomcat_server/css/loading.css"
-        into "${home}/tomcat_build/webapps/tomcat/css"
-    }
-
-    replaceToken("${home}/tomcat_build/bin/setenv.sh", [
-            [from: "MY_HOME=",
-             to: "MY_HOME=${home}"
-            ]
-    ])
-    if (getCustomProperty ("custom.keystore.file", null) != null) {
-        copy{
-            from "${home}/custom/${getCustomProperty ("custom.keystore.file", null)}"
-            into "${home}/tomcat_build/conf/"
+task setTomcatEnvironmentValues{
+    doLast{
+        replaceToken("${home}/tomcat_build/bin/setenv.sh", [
+                [from: "MY_HOME=",
+                 to: "MY_HOME=${home}"
+                ]
+        ])
+        if (getCustomProperty ("custom.keystore.file", null) != null) {
+            copy{
+                from "${home}/custom/${getCustomProperty ("custom.keystore.file", null)}"
+                into "${home}/tomcat_build/conf/"
+            }
+            replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                    [from: "tomcat.jks",
+                     to  : "${getCustomProperty ("custom.keystore.file", null)}"
+                    ],
+                    [from: "keystorePass=\"tomcat\"",
+                     to  : "keystorePass=\"${getCustomProperty ("custom.keystore.password", null)}\""
+                    ]
+            ])
         }
-        replaceToken ("${home}/tomcat_build/conf/server.xml", [
-                [from: "tomcat.jks",
-                 to  : "${getCustomProperty ("custom.keystore.file", null)}"
-                ],
-                [from: "keystorePass=\"tomcat\"",
-                 to  : "keystorePass=\"${getCustomProperty ("custom.keystore.password", null)}\""
-                ]
-        ])
-    }
-    if (getCustomProperty("custom.tomcat.http.port", null) != null)
-    {
-        replaceToken ("${home}/tomcat_build/conf/server.xml", [
-                [from: "port=\"80\"",
-                 to  : "port=\"${getCustomProperty("custom.tomcat.http.port")}\""
-                ]
-        ])
-    }
-    if (getCustomProperty ("custom.tomcat.https.port", null) != null)
-    {
-        replaceToken ("${home}/tomcat_build/conf/server.xml", [
-                [from: "port=\"443\"",
-                 to  : "port=\"${getCustomProperty("custom.tomcat.https.port")}\""
-                ]
-        ])
-    }
-    copy{
-        from "${serverPath}/build/CustomTomcatValves.jar"
-        into "${home}/tomcat_build/lib"
+        if (getCustomProperty("custom.tomcat.http.port", null) != null)
+        {
+            replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                    [from: "port=\"80\"",
+                     to  : "port=\"${getCustomProperty("custom.tomcat.http.port")}\""
+                    ]
+            ])
+        }
+        if (getCustomProperty ("custom.tomcat.https.port", null) != null)
+        {
+            replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                    [from: "port=\"443\"",
+                     to  : "port=\"${getCustomProperty("custom.tomcat.https.port")}\""
+                    ]
+            ])
+        }
     }
 }
 
-task buildTomcatValvesJar(type: Jar) {
-    archiveFileName = "CustomTomcatValves.jar"
+task copyResourcesForNonROOTWebApps{
+
+    doLast {
+
+        def webapps = ["tomcat", "manager"]
+
+        def rootApp = "${deploymentPath}/webapps/ROOT"
+
+        copy {
+            from "${serverPath}/classes"
+            exclude "com/server/tomcat", "com/server/framework"
+            into "${rootApp}/WEB-INF/classes"
+        }
+
+        webapps.each { webapp ->
+
+            copy {
+                from "${rootApp}/WEB-INF/conf/login.html"
+                into "${deploymentPath}/webapps/${webapp}"
+            }
+
+            copy {
+                from "${rootApp}/css/login.css"
+                into "${deploymentPath}/webapps/${webapp}/css"
+            }
+
+            copy {
+                from "${rootApp}/js/login.js"
+                into "${deploymentPath}/webapps/${webapp}/js"
+            }
+
+            replaceToken ("${deploymentPath}/webapps/${webapp}/js/login.js", [
+                    [from: "/api/v1/authenticate",
+                     to  : "/${webapp}/api/v1/authenticate"
+                    ]
+            ])
+
+            copy {
+                from "${deploymentPath}/js/common.js"
+                into "${home}/tomcat_build/webapps/${webapp}/js"
+            }
+            copy {
+                from "${deploymentPath}/webapps/ROOT/css/loading.css"
+                into "${deploymentPath}/webapps/${webapp}/css"
+            }
+        }
+    }
+}
+
+task buildTomcatCustomAPIJar(type: Jar) {
+    archiveFileName = "tomcat-custom-api.jar"
     from "${serverPath}/classes"
     include "com/server/tomcat/*"
-    destinationDir = file("${serverPath}/build")
+    destinationDir = file("${deploymentPath}/lib")
 }
 
 task buildFrameworkJar(type: Jar) {
     archiveFileName = "framework.jar"
     from "${serverPath}/classes"
     include 'com/server/framework/**'
-    destinationDir = file("${serverPath}/build")
+    destinationDir = file("${deploymentPath}/shared/lib")
 }
 
 task setupServer{
     doLast{
-        println "server setup completed"
+        println "build completed"
     }
 }
 
 task cleanUp{
     doLast{
-        delete "${home}/build"
-        delete "${serverPath}/build"
+         delete "${home}/build"
         delete "${serverPath}/classes"
         println "clean up completed"
     }
 }
 
-task startTomcat{
+task doCustomPropertyChanges{
     doLast{
-        def response = new ByteArrayOutputStream()
-        def error = new ByteArrayOutputStream()
-        exec {
-            workingDir "${home}/tomcat_build"
-            commandLine getTomcatCommand(true)
-            standardOutput = response
-            errorOutput = error
-        }
-        println "tomcat started"
-    }
-}
-
-task stopTomcat{
-    doLast{
-        try {
-            def response = new ByteArrayOutputStream()
-            def error = new ByteArrayOutputStream()
-            exec {
-                workingDir "${home}/tomcat_build"
-                commandLine getTomcatCommand(false)
-                standardOutput = response
-                errorOutput = error
-            }
-            sleep(3 * 1000)
-            println "tomcat stopped"
-        }
-        catch (Exception e)
+        if (customProperties == null)
         {
-
+            println "Custom properties not found, so skipping this step"
+            return
         }
+
+        if (getCustomProperty ("custom.keystore.file", null) != null) {
+            copy {
+                from "${home}/custom/${getCustomProperty ("custom.keystore.file", null)}"
+                into "${deploymentPath}/conf/"
+            }
+            replaceToken ("${deploymentPath}/conf/server.xml", [
+                    [from: "tomcat.jks",
+                     to  : "${getCustomProperty ("custom.keystore.file", null)}"
+                    ],
+                    [from: "keystorePass=\"tomcat\"",
+                     to  : "keystorePass=\"${getCustomProperty ("custom.keystore.password", null)}\""
+                    ]
+            ])
+        }
+        if (getCustomProperty ("custom.tomcat.http.port", null) != null) {
+            replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                    [from: "port=\"80\"",
+                     to  : "port=\"${getCustomProperty ("custom.tomcat.http.port")}\""
+                    ]
+            ])
+        }
+        if (getCustomProperty ("custom.tomcat.https.port", null) != null) {
+            replaceToken ("${home}/tomcat_build/conf/server.xml", [
+                    [from: "port=\"443\"",
+                     to  : "port=\"${getCustomProperty ("custom.tomcat.https.port")}\""
+                    ]
+            ])
+        }
+
+        println "custom property changes completed"
     }
 }
 
-task updateBuild{
-    doLast{
-        println "update completed"
-    }
-}
-
-def getTomcatCommand(isStart)
-{
-    def isWindows = OperatingSystem.current().isWindows()
-    if (isWindows)
-    {
-        return isStart ? ["cmd","/c","run.bat", "start"] :  ["cmd","/c","run.bat", "stop"]
-    }
-    else {
-        return isStart ? ["sh","run.sh","start"] :  ["sh","run.sh","stop"]
-    }
-}
-
-def getCustomProperty(key, defaultValue)
-{
-    if (customProperties == null || customProperties.getProperty(key) == null)
-    {
-        return defaultValue;
-    }
-
-    return customProperties.getProperty(key)
-}
-
-task copyProperyFile{
+task doAppPropertyChanges{
     doLast{
         copy {
             from "${home}/app.properties"
@@ -324,10 +265,21 @@ task copyProperyFile{
 
         properties.store (appPropsFile.newWriter(), null)
 
-        println "Copy property file completed"
+        println "app property changes completed"
     }
 }
-configureTaskDependencies(build, [copyProperyFile])
-configureTaskDependencies(setupServer, [build, buildFrameworkJar, bundleResource, packRootWar, buildTomcatValvesJar, setupTomcatContainer, packManagerWar, packTomcatWar, deployBuild, cleanUp])
+
+def getCustomProperty(key, defaultValue)
+{
+    if (customProperties == null || customProperties.getProperty(key) == null)
+    {
+        return defaultValue;
+    }
+
+    return customProperties.getProperty(key)
+}
+
+
+configureTaskDependencies(setupServer, [setupTomcatContainer, setTomcatEnvironmentValues, doCustomPropertyChanges, build, doAppPropertyChanges, buildFrameworkJar, buildTomcatCustomAPIJar, copyResourcesForNonROOTWebApps,  packRootWar, packManagerWar, packTomcatWar, cleanUp])
 
 defaultTasks 'setupServer'

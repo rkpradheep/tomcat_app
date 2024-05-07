@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport"  content="initial-scale=0.8,user-scalable=no"/>
+    <meta charset="UTF-8">
+    <link rel='stylesheet' href='css/navbar.css'>
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        select, input, textarea {
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 20%;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 15%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #data {
+            resize: vertical;
+        }
+
+        @media (max-width: 600px) {
+            select, input, textarea, #data, button {
+                width: 70%;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav id="sidebar" class="sidebar close">
+    <header>
+        <span id="toggle">☰</span>
+    </header>
+    <br>
+    <a href="javascript:void(0)" id="closebtn" style="display:none" class="closebtn" onclick="closeNav()">×</a>
+    <br>
+    <div class="menu-bar">
+        <div class="menu">
+            <ul class="menu-links">
+                <li class="nav-link">
+                    <a href="/app">
+                        <i class='bx bx--home-alt icon'></i>
+                        <span class="text nav-text">Home</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/chat.html">
+                        <i class='bx quill--chat icon'></i>
+                        <span class="text nav-text">Text Chat</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/webrtc.html">
+                        <i class='bx icon-park-solid--phone-video-call icon'></i>
+                        <span class="text nav-text">Video Chat</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/jobs.html" style="background-color:var(--primary-color);"  onclick="return false;">
+                        <i class='bx eos-icons--cronjob icon' style="color:var(--sidebar-color);"></i>
+                        <span class="text nav-text">Scheduler</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/stream.html">
+                        <i class='bx ri--broadcast-line icon'></i>
+                        <span class="text nav-text">Broadcast</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/live.html">
+                        <i class='bx icon-park-outline--receiver icon'></i>
+                        <span class="text nav-text">Subscribe</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/tokenGen.jsp">
+                        <i class='bx logos--oauth icon'></i>
+                        <span class="text nav-text">Oauth Tool</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/network">
+                        <i class='bx ant-design--api-outlined icon'></i>
+                        <span class="text nav-text">API Tool</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/hotswap">
+                        <i class='bx devicon--java icon'></i>
+                        <span class="text nav-text">JVM HotSwap</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/csv">
+                        <i class='bx iwwa--csv icon'></i>
+                        <span class="text nav-text">CSV Parser</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/commandExecutor.jsp">
+                        <i class='bx mdi--powershell icon'></i>
+                        <span class="text nav-text">Shell</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="/admin/dbtool.jsp">
+                        <i class='bx clarity--administrator-line icon'></i>
+                        <span class="text nav-text">Admin</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="bottom-content">
+            <li class="">
+                <a href="/logout">
+                    <i class='bx bx--log-out icon'></i>
+                    <span class="text nav-text">Logout</span>
+                </a>
+            </li>
+        </div>
+    </div>
+</nav>
+
+<h1><b>Scheduler</b></h1>
+<br />
+<br />
+<label for="task">Task</label>
+<select id="task" onchange="handleFields()"></select><br><br>
+<label for="time">Delay Second(s)</label>
+<input type="text" id="time" onchange="removeDate()"/><br>Or</br>
+<label for="date">Date & Time</label>
+<input type="datetime-local" id="date" onchange="removeDelaySeconds()"><br><br>
+<textarea id="data" rows="5" cols="30" placeholder="Your message"></textarea><br><br>
+<button style="cursor:pointer" onclick="addJob()">SCHEDULE</button>
+<script src="js/jobs.js"></script>
+<script src="js/common.js"></script>
+<script src="js/navbar.js"></script>
+</body>
+</html>

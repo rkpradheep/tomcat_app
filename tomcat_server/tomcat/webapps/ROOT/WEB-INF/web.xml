@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<web-app
+		xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+		version="4.0"
+		metadata-complete="true">
+	<display-name>Main</display-name>
+	<description>
+    Main
+  </description>
+	<context-param>
+		<param-name>dname</param-name>
+		<param-value>sun.jdbc.odbc.JdbcOdbcDriver</param-value>
+	</context-param>
+
+
+	<filter>
+		<filter-name>CorsFilter</filter-name>
+		<filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+		<init-param>
+			<param-name>cors.allowed.origins</param-name>
+			<param-value>*</param-value>
+		</init-param>
+<!--	<init-param>-->
+<!--        <param-name>cors.allowed.headers</param-name>-->
+<!--        <param-value>Content-Type,X-Requested-With,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers, Cookie, x-prestige-connection-id,-->
+<!--        X-Zp-Source, X-Zoho-Include-Formatted, X-Zcsrf-Token</param-value>-->
+<!--    </init-param>-->
+<!--	  <init-param>-->
+<!--    <param-name>cors.support.credentials</param-name>-->
+<!--    <param-value>true</param-value>-->
+<!--  </init-param>-->
+	</filter>
+	<filter-mapping>
+		<filter-name>CorsFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>SecurityFilter</filter-name>
+		<filter-class>com.server.framework.security.SecurityFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>SecurityFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<servlet>
+		<servlet-name>SASHandler</servlet-name>
+		<servlet-class>com.server.sas.SASHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SASHandler</servlet-name>
+		<url-pattern>/api/v1/sas/limits/*</url-pattern>
+		<url-pattern>/api/v1/sas/execute</url-pattern>
+		<url-pattern>/api/v1/sas/meta</url-pattern>
+		<url-pattern>/api/v1/sas/services</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>AdminDBHandler</servlet-name>
+		<servlet-class>com.server.admin.AdminHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AdminDBHandler</servlet-name>
+		<url-pattern>/api/v1/admin/db/execute</url-pattern>
+		<url-pattern>/api/v1/admin/delete/expired</url-pattern>
+		<url-pattern>/api/v1/admin/file/transfer</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>LoginHandler</servlet-name>
+		<servlet-class>com.server.framework.security.LoginHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>LoginHandler</servlet-name>
+		<url-pattern>/api/v1/authenticate</url-pattern>
+		<url-pattern>/logout</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>OauthHandler</servlet-name>
+		<servlet-class>com.server.oauth.OauthHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>OauthHandler</servlet-name>
+		<url-pattern>/api/v1/oauth/tokens</url-pattern>
+		<url-pattern>/api/v1/oauth/code</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>PageHandler</servlet-name>
+		<servlet-class>com.server.page.PageHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PageHandler</servlet-name>
+		<url-pattern>/app</url-pattern>
+		<url-pattern>/zoho</url-pattern>
+		<url-pattern>/internal</url-pattern>
+		<url-pattern>/index.jsp</url-pattern>
+		<url-pattern>/login</url-pattern>
+		<url-pattern>/admin/login</url-pattern>
+		<url-pattern>/csv</url-pattern>
+		<url-pattern>/hotswap</url-pattern>
+		<url-pattern>/network</url-pattern>
+		<url-pattern>/livelogs</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>ShellExecutor</servlet-name>
+		<servlet-class>com.server.unix.ShellExecutor</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ShellExecutor</servlet-name>
+		<url-pattern>/api/v1/run</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>HotSwapHandler</servlet-name>
+		<servlet-class>com.server.common.HotSwap</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>HotSwapHandler</servlet-name>
+		<url-pattern>/api/v1/hotswap</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>HealthCheck</servlet-name>
+		<servlet-class>com.server.framework.common.HealthCheck</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>HealthCheck</servlet-name>
+		<url-pattern>/_app/health</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet-mapping>
+		<servlet-name>RequestForwarder</servlet-name>
+		<url-pattern>/api/v1/proxy</url-pattern>
+	</servlet-mapping>
+		<servlet>
+		<servlet-name>RequestForwarder</servlet-name>
+		<servlet-class>com.server.proxy.RequestForwarder</servlet-class>
+	</servlet>
+
+
+	<servlet>
+		<servlet-name>FileManager</servlet-name>
+		<servlet-class>com.server.framework.common.FileManager</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FileManager</servlet-name>
+		<url-pattern>/files</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+	<servlet-name>Job</servlet-name>
+		<servlet-class>com.server.framework.job.JobAPI</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Job</servlet-name>
+		<url-pattern>/api/v1/jobs</url-pattern>
+		<url-pattern>/api/v1/jobs/list</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+	<servlet-name>WebRTCUtil</servlet-name>
+		<servlet-class>com.server.webrtc.WebRTCUtil</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WebRTCUtil</servlet-name>
+		<url-pattern>/api/v1/webrtc/iceservers</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>UserHandler</servlet-name>
+		<servlet-class>com.server.framework.user.UserHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>UserHandler</servlet-name>
+		<url-pattern>/api/v1/admin/users</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>PropertyHandler</servlet-name>
+		<servlet-class>com.server.property.PropertyHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PropertyHandler</servlet-name>
+		<url-pattern>/api/v1/admin/properties</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>CSVParser</servlet-name>
+		<servlet-class>com.server.file.CSVParser</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CSVParser</servlet-name>
+		<url-pattern>/api/v1/csv/parse</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>ConcurrencyHandler</servlet-name>
+		<servlet-class>com.server.concurrency.ConcurrencyAPIHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ConcurrencyHandler</servlet-name>
+		<url-pattern>/api/v1/concurrency</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>DownloadText</servlet-name>
+		<servlet-class>com.server.file.DownloadText</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DownloadText</servlet-name>
+		<url-pattern>/api/v1/download/text</url-pattern>
+	</servlet-mapping>
+
+	<session-config>
+		<session-timeout>
+			30
+		</session-timeout>
+<!--		<cookie-config>-->
+<!--			<name>iam_token</name>-->
+<!--			<max-age>1800</max-age>-->
+<!--		</cookie-config>-->
+	</session-config>
+	<listener>
+		<listener-class>
+		com.server.framework.listener.SessionListener
+	</listener-class>
+	</listener>
+</web-app>

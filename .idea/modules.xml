@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/MyHome.iml" filepath="$PROJECT_DIR$/.idea/MyHome.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MyHome.iml" filepath="$PROJECT_DIR$/MyHome.iml" />
       <module fileurl="file://$PROJECT_DIR$/tomcat_server/tomcat_server.iml" filepath="$PROJECT_DIR$/tomcat_server/tomcat_server.iml" />
     </modules>
   </component>

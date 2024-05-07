@@ -41,7 +41,7 @@ public class TomcatListener implements LifecycleListener
 				ProxyServer.init();
 			}
 
-			LOGGER.log(Level.INFO, "Context Initialised for at {1}", new Object[] {SecurityUtil.getFormattedCurrentTime()});
+			LOGGER.log(Level.INFO, "Context Initialised for at {0}", new Object[] {SecurityUtil.getFormattedCurrentTime()});
 		}
 		if(Lifecycle.AFTER_DESTROY_EVENT.equals(event.getType())){
 

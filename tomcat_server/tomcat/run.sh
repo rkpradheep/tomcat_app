@@ -5,4 +5,4 @@ PRODUCTION=production_ph
 
 cd $MY_HOME/tomcat_build
 
-sh ./bin/startup.sh
+sh ./bin/catalina.sh jpda start
