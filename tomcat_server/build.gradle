@@ -162,7 +162,7 @@ task copyResourcesForNonROOTWebApps{
                 into "${deploymentPath}/webapps/${webapp}/js"
             }
 
-            replaceToken ("${rootApp}/js/login.js", [
+            replaceToken ("${deploymentPath}/webapps/${webapp}/js/login.js", [
                     [from: "/api/v1/authenticate",
                      to  : "/${webapp}/api/v1/authenticate"
                     ]
