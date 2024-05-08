@@ -3,7 +3,7 @@ package com.server.webrtc;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.websocket.Session;
+import jakarta.websocket.Session;
 
 import org.json.JSONObject;
 

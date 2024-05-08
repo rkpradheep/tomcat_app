@@ -54,12 +54,12 @@ public class RefreshManager
 
 	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, long milliseconds)
 	{
-		queue.add(new RefreshManager.RefreshElement(jobID, taskHandler, data, System.currentTimeMillis() + milliseconds));
+		queue.add(new RefreshElement(jobID, taskHandler, data, System.currentTimeMillis() + milliseconds));
 	}
 
 	public static void addJobInQueue(CustomRunnable runnable, int seconds)
 	{
-		queue.add(new RefreshManager.RefreshElement(runnable, System.currentTimeMillis() + (seconds * 1000L)));
+		queue.add(new RefreshElement(runnable, System.currentTimeMillis() + (seconds * 1000L)));
 	}
 
 	public static void addJobInQueue(String selectQuery)

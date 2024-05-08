@@ -27,10 +27,16 @@
 
      <Connector
        protocol="org.apache.coyote.http11.Http11NioProtocol"
-       port="443" maxThreads="200"
+       port="443"
        scheme="https" secure="true" SSLEnabled="true"
-       keystoreFile="conf/tomcat.jks" keystorePass="tomcat"
-       clientAuth="false" sslProtocol="TLS" executor="tomcatThreadPool"/>
+       clientAuth="false" sslProtocol="TLS" executor="tomcatThreadPool">
+       <SSLHostConfig>
+         <Certificate
+            certificateKeystoreFile="conf/tomcat.jks"
+            certificateKeystorePassword="tomcat"
+            type="RSA"/>
+       </SSLHostConfig>
+     </Connector>
 
     <Engine name="Catalina" defaultHost="localhost">
 

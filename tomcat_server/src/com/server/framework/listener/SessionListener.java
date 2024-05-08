@@ -1,7 +1,7 @@
 package com.server.framework.listener;
 
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 
 import com.server.framework.common.Util;
 import com.server.framework.security.SecurityUtil;

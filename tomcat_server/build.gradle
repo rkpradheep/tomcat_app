@@ -225,8 +225,8 @@ task doCustomPropertyChanges{
                     [from: "tomcat.jks",
                      to  : "${getCustomProperty ("custom.keystore.file", null)}"
                     ],
-                    [from: "keystorePass=\"tomcat\"",
-                     to  : "keystorePass=\"${getCustomProperty ("custom.keystore.password", null)}\""
+                    [from: "certificateKeystorePassword=\"tomcat\"",
+                     to  : "certificateKeystorePassword=\"${getCustomProperty ("custom.keystore.password", null)}\""
                     ]
             ])
         }

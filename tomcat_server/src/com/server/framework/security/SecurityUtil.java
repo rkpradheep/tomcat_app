@@ -29,15 +29,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -174,7 +174,7 @@ public class SecurityUtil
 	{
 		List<FileItem> items;
 
-		DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
+		DiskFileItemFactory diskFileItemFactory = DiskFileItemFactory.builder().get();
 		try
 		{
 			File tempFile = new File(System.getProperty("java.io.tmpdir"));
@@ -182,7 +182,7 @@ public class SecurityUtil
 			{
 				tempFile.mkdirs();
 			}
-			items = new ServletFileUpload(diskFileItemFactory).parseRequest(request);
+			items = new JakartaServletFileUpload(diskFileItemFactory).parseRequest(request);
 		}
 		catch(Exception e)
 		{
@@ -272,7 +272,7 @@ public class SecurityUtil
 
 	public static boolean isValidWebSocketEndPoint(String endPoint)
 	{
-		Object mappingResult = ((WsServerContainer) SecurityFilter.SERVLET_CONTEXT_TL.get().getAttribute("javax.websocket.server.ServerContainer")).findMapping(endPoint);
+		Object mappingResult = ((WsServerContainer) SecurityFilter.SERVLET_CONTEXT_TL.get().getAttribute("jakarta.websocket.server.ServerContainer")).findMapping(endPoint);
 		return Objects.nonNull(mappingResult);
 	}
 
