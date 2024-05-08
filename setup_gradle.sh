@@ -8,12 +8,14 @@ trap '[ $? -eq 0 ] || echo "${RED}######### GRADLE SETUP FAILED #########${NC}"'
 
 ############## GRADLE SETUP START ##############
 
-echo "Do you want to setup GRADLE? (yes/no)"
-read consent
+if [ "$AUTO_MODE" = "false" ]; then
+  echo "Do you want to setup GRADLE? (yes/no)"
+  read consent
 
-if ! [ "$consent" = "yes" ]; then
-    echo "########## GRADLE SETUP SKIPPED ##########"
-    exit 0
+  if ! [ "$consent" = "yes" ]; then
+      echo "########## GRADLE SETUP SKIPPED ##########"
+      exit 0
+  fi
 fi
 
 

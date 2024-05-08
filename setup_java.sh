@@ -8,14 +8,15 @@ trap '[ $? -eq 0 ] || echo "${RED}######### JAVA SETUP FAILED #########${NC}"' E
 
 ############## JAVA SETUP START ##############
 
-echo "Do you want to setup JAVA? (yes/no)"
-read consent
+if [ "$AUTO_MODE" = "false" ]; then
+  echo "Do you want to setup JAVA? (yes/no)"
+  read consent
 
-if ! [ "$consent" = "yes" ]; then
-    echo "########## JAVA SETUP SKIPPED ##########"
-    exit 0
+  if ! [ "$consent" = "yes" ]; then
+      echo "########## JAVA SETUP SKIPPED ##########"
+      exit 0
+  fi
 fi
-
 
 echo "############## Java setup started ##############\n"
 

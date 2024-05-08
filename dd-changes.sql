@@ -88,7 +88,7 @@ CREATE TABLE `AuthToken`(
 	`user_id` BigInt( 255 ) NOT NULL )
 CHARACTER SET = utf8
 COLLATE = utf8_general_ci
-ENGINE = InnoDB
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 

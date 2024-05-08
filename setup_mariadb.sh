@@ -8,14 +8,15 @@ trap '[ $? -eq 0 ] || echo "${RED}######### MARIADB SETUP FAILED #########${NC}"
 
 ########### MARIADB SETUP START ##############
 
-echo "Do you want to setup MARIADB? (yes/no)"
-read consent
+if [ "$AUTO_MODE" = "false" ]; then
+  echo "Do you want to setup MARIADB? (yes/no)"
+  read consent
 
-if ! [ "$consent" = "yes" ]; then
-    echo "########## MARIADB SETUP SKIPPED ##########"
-    exit 0
+  if ! [ "$consent" = "yes" ]; then
+      echo "########## MARIADB SETUP SKIPPED ##########"
+      exit 0
+  fi
 fi
-
 
 echo "############## Mariadb setup started ##############\n"
 
@@ -45,7 +46,7 @@ sudo chmod -R 777 $MARIADB_HOME
 cp mariadb_server.sh $MARIADB_HOME
 sudo chown mysql:mysql $MARIADB_HOME/mariadb_server.sh
 sudo chmod 777 $MARIADB_HOME/mariadb_server.sh
-sudo apt-get install libaio1 libaio-dev libnuma-dev libncurses6 libncurses5
+sudo apt-get --yes --force-yes install libaio1 libaio-dev libnuma-dev libncurses6 libncurses5
 cd $MARIADB_HOME
 sudo touch my.cnf
 sudo chmod -R 644 my.cnf
@@ -65,12 +66,10 @@ sudo sh ./scripts/mysql_install_db  --defaults-file=${MARIADB_HOME}/my.cnf --use
 sudo chmod -R 777 $MARIADB_HOME/data
 sudo sh ./mariadb_server.sh start
 
-echo "Please enter the password as root if prompted to reset root user password"
-sudo ./bin/mariadb --defaults-file=$MARIADB_HOME/my.cnf -u root -p -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';"
-echo "Please enter the password as root if prompted"
-sudo ./bin/mariadb --defaults-file=$MARIADB_HOME/my.cnf -u root -p < $MY_HOME/dd-changes.sql
+sudo ./bin/mariadb --defaults-file=$MARIADB_HOME/my.cnf -u root -proot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';"
 
-echo "Enter password below to stop the mariadb for now"
+sudo ./bin/mariadb --defaults-file=$MARIADB_HOME/my.cnf -u root -proot < $MY_HOME/dd-changes.sql
+
 sudo sh ./mariadb_server.sh stop
 
 sudo rm -rf /tmp/mariadb-${MARIDB_VERSION}.tar.gz

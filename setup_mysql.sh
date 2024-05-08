@@ -8,15 +8,15 @@ trap '[ $? -eq 0 ] || echo "${RED}######### MYSQL SETUP FAILED #########${NC}"' 
 
 ########### MYSQL SETUP START ##############
 
-echo "Do you want to setup MYSQL? (yes/no)"
-read consent
+if [ "$AUTO_MODE" = "false" ]; then
+  echo "Do you want to setup JAVA? (yes/no)"
+  read consent
 
-if ! [ "$consent" = "yes" ]; then
-    echo "########## MYSQL SETUP SKIPPED ##########"
-    exit 0
+  if ! [ "$consent" = "yes" ]; then
+      echo "########## JAVA SETUP SKIPPED ##########"
+      exit 0
+  fi
 fi
-
-
 
 echo "############## Mysql setup started ##############\n"
 

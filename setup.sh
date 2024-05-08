@@ -5,6 +5,11 @@
 set -e
 trap '[ $? -eq 0 ] || echo "${RED}######### SETUP FAILED #########${NC}"' EXIT
 
+export AUTO_MODE="false"
+if [ "$1" = "auto" ]; then
+  export AUTO_MODE="true"
+fi
+
 sh setup_gradle.sh
 
 sh setup_java.sh
