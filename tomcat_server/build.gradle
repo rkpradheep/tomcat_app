@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 
 ext.serverPath = "${home}/tomcat_server"
 ext.deploymentPath = "${home}/tomcat_build"
-ext.neededWebApps = ["ROOT", "tomcat", "manager"]
+ext.neededPrededinedWebApps = ["tomcat", "manager"]
 sourceSets {
     main {
         java {
@@ -58,7 +58,12 @@ task setupTomcatContainer{
         copy {
             from zipTree("${home}/tomcat_binary.zip")
             into "${deploymentPath}"
+//            filesMatching("**/ROOT/**/*") {
+//                it.path = it.path.replace("ROOT", "tomcat")
+//            }
         }
+
+        ant.move(file:"${deploymentPath}/webapps/ROOT", tofile:"${deploymentPath}/webapps/tomcat")
 
         copy{
             from "${serverPath}/tomcat/"
@@ -66,7 +71,7 @@ task setupTomcatContainer{
         }
 
         new File ("${deploymentPath}/webapps").listFiles ().each{
-            if (!neededWebApps.contains (it.getName ()))
+            if ("ROOT" != it.getName () && !neededPrededinedWebApps.contains (it.getName ()))
                 delete it
         }
 
@@ -132,8 +137,6 @@ task copyResourcesForNonROOTWebApps{
 
     doLast {
 
-        def webapps = ["tomcat", "manager"]
-
         def rootApp = "${deploymentPath}/webapps/ROOT"
 
         copy {
@@ -142,7 +145,7 @@ task copyResourcesForNonROOTWebApps{
             into "${rootApp}/WEB-INF/classes"
         }
 
-        webapps.each { webapp ->
+        neededPrededinedWebApps.each { webapp ->
 
             copy {
                 from "${rootApp}/WEB-INF/conf/login.html"
@@ -159,18 +162,18 @@ task copyResourcesForNonROOTWebApps{
                 into "${deploymentPath}/webapps/${webapp}/js"
             }
 
-            replaceToken ("${deploymentPath}/webapps/${webapp}/js/login.js", [
+            replaceToken ("${rootApp}/js/login.js", [
                     [from: "/api/v1/authenticate",
                      to  : "/${webapp}/api/v1/authenticate"
                     ]
             ])
 
             copy {
-                from "${deploymentPath}/js/common.js"
+                from "${rootApp}/js/common.js"
                 into "${home}/tomcat_build/webapps/${webapp}/js"
             }
             copy {
-                from "${deploymentPath}/webapps/ROOT/css/loading.css"
+                from "${rootApp}/css/loading.css"
                 into "${deploymentPath}/webapps/${webapp}/css"
             }
         }

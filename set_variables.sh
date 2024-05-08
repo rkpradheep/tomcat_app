@@ -15,3 +15,5 @@ export RED='\033[0;31m'
 export GREEN='\033[0;32m'
 
 export NC='\033[0m'
+
+export TOMCAT_VERSION="9.0.89"
