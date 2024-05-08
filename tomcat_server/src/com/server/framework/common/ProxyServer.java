@@ -74,7 +74,7 @@ public class ProxyServer
 				LOGGER.log(Level.INFO, "Proxy is already running ");
 				return;
 			}
-			ServerSocket serverSocket = new ServerSocket(8092);
+			ServerSocket serverSocket = new ServerSocket(3128);
 			LOGGER.info("Proxy server started");
 			while(!stopProxy)
 			{

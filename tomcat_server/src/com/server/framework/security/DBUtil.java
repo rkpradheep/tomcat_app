@@ -22,21 +22,32 @@ public class DBUtil
 
 	public static void initialiseDataSource()
 	{
-		String server =  Configuration.getProperty("db.server");
-		isMysql = StringUtils.equals("mysql", server);
+		try
+		{
+			String server = Configuration.getProperty("db.server");
+			isMysql = StringUtils.equals("mysql", server);
 
-		schemaName = Configuration.getProperty("db.server.schema");
-		BasicDataSource basicDataSource = new BasicDataSource();
+			schemaName = Configuration.getProperty("db.server.schema");
+			BasicDataSource basicDataSource = new BasicDataSource();
 
-		basicDataSource.setDriverClassName(isMysql? "com.mysql.jdbc.Driver" : "org.mariadb.jdbc.Driver");
-		basicDataSource.setUrl(MessageFormat.format("jdbc:{0}://{1}:{2}/{3}?connectTimeout=5000&useSSL=false&allowPublicKeyRetrieval=True", server, Configuration.getProperty("db.server.ip"), Configuration.getProperty("db.server.port"), DBUtil.schemaName));
-		basicDataSource.setUsername(Configuration.getProperty("db.server.user"));
-		basicDataSource.setPassword(Configuration.getProperty("db.server.password"));
-		basicDataSource.setMaxIdle(5);
-		basicDataSource.setMinIdle(2);
-		basicDataSource.setMaxTotal(20);
+			basicDataSource.setDriverClassName(isMysql ? "com.mysql.jdbc.Driver" : "org.mariadb.jdbc.Driver");
+			basicDataSource.setUrl(MessageFormat.format("jdbc:{0}://{1}:{2}/{3}?connectTimeout=5000&useSSL=false&allowPublicKeyRetrieval=True", server, Configuration.getProperty("db.server.ip"), Configuration.getProperty("db.server.port"), DBUtil.schemaName));
+			basicDataSource.setUsername(Configuration.getProperty("db.server.user"));
+			basicDataSource.setPassword(Configuration.getProperty("db.server.password"));
+			basicDataSource.setMaxIdle(5);
+			basicDataSource.setMinIdle(2);
+			basicDataSource.setMaxTotal(20);
+			basicDataSource.start();
 
-		dataSource = basicDataSource;
+			dataSource = basicDataSource;
+
+			LOGGER.info("DataSource initialised successfully");
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred while initialising data source", e);
+			throw new RuntimeException("DataSource initialisation failed");
+		}
 	}
 
 	public static Connection getServerDBConnection() throws SQLException
