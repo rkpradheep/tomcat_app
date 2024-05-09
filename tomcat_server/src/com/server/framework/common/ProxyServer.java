@@ -40,6 +40,7 @@ public class ProxyServer
 	private static final AtomicInteger WORKER_THREAD_NUMBER =  new AtomicInteger(0);
 	private static final String TEN_HASH = Collections.nCopies(10, "#").stream().collect(Collectors.joining());
 	private static boolean stopProxy = false;
+	private static final int PROXY_PORT = 3128;
 
 	public static void init()
 	{
@@ -74,7 +75,7 @@ public class ProxyServer
 				LOGGER.log(Level.INFO, "Proxy is already running ");
 				return;
 			}
-			ServerSocket serverSocket = new ServerSocket(3128);
+			ServerSocket serverSocket = new ServerSocket(PROXY_PORT);
 			LOGGER.info("Proxy server started");
 			while(!stopProxy)
 			{
@@ -102,7 +103,7 @@ public class ProxyServer
 	{
 		try
 		{
-			new Socket("127.0.0.1", 8092);
+			new Socket("127.0.0.1", PROXY_PORT);
 			return true;
 		}
 		catch(Exception e)
