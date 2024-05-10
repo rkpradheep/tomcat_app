@@ -35,7 +35,7 @@ document.getElementById('password').value = "test@123";
             {
                 window.close();
             }
-            const redirectURI =  new URLSearchParams(window.location.search).get('redirect_uri');
+            const redirectURI =  new URLSearchParams(window.location.search).get('redirect_uri') || '/';
             window.open (redirectURI, "_self");
 
           }).catch(error => {
@@ -49,3 +49,21 @@ document.addEventListener("keydown", function(event) {
     login()
   }
 });
+
+setTimeout(function() {
+    if(document.getElementById('name').value == "test")
+    {
+        toastMessage('Auto-login for test account')
+        setTimeout(login, 2000);
+    }
+}, 3000);
+
+
+function toastMessage(message) {
+    var x = document.getElementById("snackbar");
+    x.innerHTML = message;
+    x.className = "show";
+    setTimeout(function() {
+        x.className = x.className.replace("show", "");
+    }, 3000);
+}
