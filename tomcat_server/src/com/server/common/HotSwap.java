@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
+import com.server.framework.common.DateUtil;
 import com.server.framework.security.SecurityUtil;
 import com.server.unix.ShellExecutor;
 
@@ -29,7 +30,7 @@ public class HotSwap extends HttpServlet
 		JSONObject hotswapDetails = jsonObject.getJSONObject("hotswap_details");
 		List<String> classNames = hotswapDetails.keySet().stream().collect(Collectors.toList());
 
-		String fileName = "hotswap_commands_" + System.currentTimeMillis() + ".txt";
+		String fileName = "hotswap_commands_" + DateUtil.getCurrentTimeInMillis() + ".txt";
 		File tempFile = new File(System.getProperty("io.tempdir"), fileName);
 		String host = jsonObject.optString("host");
 		String port = jsonObject.optString("port");

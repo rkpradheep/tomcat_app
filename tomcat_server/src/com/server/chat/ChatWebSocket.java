@@ -22,8 +22,8 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 
+import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
-import com.server.framework.security.SecurityUtil;
 
 @ServerEndpoint(value = "/api/v1/chat")
 public class ChatWebSocket
@@ -96,7 +96,7 @@ public class ChatWebSocket
 			return;
 		}
 
-		String messageForSender = ChatWebSocketUtil.getPreviousMessage(name) + "<b style='color:green;margin: 140px'>You Joined! [ " + SecurityUtil.getFormattedCurrentTime() + " ]</b></br></br>";
+		String messageForSender = ChatWebSocketUtil.getPreviousMessage(name) + "<b style='color:green;margin: 140px'>You Joined! [ " + DateUtil.getFormattedCurrentTime() + " ]</b></br></br>";
 		String messageForReceiver = "<b style='color:green;margin:140px'>" + name + " Joined!</b></br></br>";
 
 		handleMessage.accept(new String[] {messageForSender, messageForReceiver, name});
@@ -113,7 +113,7 @@ public class ChatWebSocket
 		}
 		String leftOrDisconnected = Arrays.asList(CloseReason.CloseCodes.CLOSED_ABNORMALLY, CloseReason.CloseCodes.GOING_AWAY).contains(closeReason.getCloseCode()) ? " Disconnected!" : " Left!";
 
-		String messageForSender = "<b style='color:red;margin: 140px'>You" + leftOrDisconnected + " [ " + SecurityUtil.getFormattedCurrentTime() + " ]</b></br></br>";
+		String messageForSender = "<b style='color:red;margin: 140px'>You" + leftOrDisconnected + " [ " + DateUtil.getFormattedCurrentTime() + " ]</b></br></br>";
 		messageForSender = leftOrDisconnected.equals(" Disconnected!") ? messageForSender.replace("You", "") : messageForSender;
 		String messageForReceiver = "<b style='color:red;margin: 140px'>" + name + leftOrDisconnected + "</b></br></br>";
 
@@ -198,8 +198,8 @@ public class ChatWebSocket
 
 	private static String getFormattedMessage(String name, String message)
 	{
-		return name.equalsIgnoreCase("you") ? "<div class='container1 darker1' style='margin: 10px 250'><b class='user-name'>" + name + "</b> <br><br><p style='margin-left:15px'>" + message + "</p><span class='time-left'>" + SecurityUtil.getFormattedCurrentTime() + "</span></div><br><br>"
-			: "<div class='container darker' style='margin: 10px 0px'><b class='user-name'>" + name + "</b> <br><br><p style='margin-left:15px'>" + message + "</p><span class='time-left'>" + SecurityUtil.getFormattedCurrentTime() + "</span></div><br><br>";
+		return name.equalsIgnoreCase("you") ? "<div class='container1 darker1' style='margin: 10px 250'><b class='user-name'>" + name + "</b> <br><br><p style='margin-left:15px'>" + message + "</p><span class='time-left'>" + DateUtil.getFormattedCurrentTime() + "</span></div><br><br>"
+			: "<div class='container darker' style='margin: 10px 0px'><b class='user-name'>" + name + "</b> <br><br><p style='margin-left:15px'>" + message + "</p><span class='time-left'>" + DateUtil.getFormattedCurrentTime() + "</span></div><br><br>";
 	}
 
 	@OnError

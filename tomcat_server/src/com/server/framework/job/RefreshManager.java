@@ -14,8 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.server.framework.common.Configuration;
+import com.server.framework.common.DateUtil;
 import com.server.framework.security.DBUtil;
-import com.server.framework.security.SecurityUtil;
 
 public class RefreshManager
 {
@@ -54,12 +54,12 @@ public class RefreshManager
 
 	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, long milliseconds)
 	{
-		queue.add(new RefreshElement(jobID, taskHandler, data, System.currentTimeMillis() + milliseconds));
+		queue.add(new RefreshElement(jobID, taskHandler, data, DateUtil.getCurrentTimeInMillis() + milliseconds));
 	}
 
 	public static void addJobInQueue(CustomRunnable runnable, int seconds)
 	{
-		queue.add(new RefreshElement(runnable, System.currentTimeMillis() + (seconds * 1000L)));
+		queue.add(new RefreshElement(runnable, DateUtil.getCurrentTimeInMillis() + (seconds * 1000L)));
 	}
 
 	public static void addJobInQueue(String selectQuery)
@@ -76,7 +76,13 @@ public class RefreshManager
 				String data = resultSet.getString("data");
 				long scheduledTime = resultSet.getLong("scheduled_time");
 				long jobId = resultSet.getLong("id");
-				long delay = (scheduledTime - System.currentTimeMillis());
+
+				if(resultSet.getBoolean("is_recurring"))
+				{
+					scheduledTime = JobUtil.getNextExecutionTimeFromPreviousScheduleTime(scheduledTime, resultSet.getInt("day_interval"));
+				}
+
+				long delay = (scheduledTime - DateUtil.getCurrentTimeInMillis());
 				delay = Math.max(delay, 0);
 
 				addJobInQueue(jobId, TaskEnum.getHandler(task), data, delay);
@@ -124,7 +130,7 @@ public class RefreshManager
 
 				if(jobId != -1)
 				{
-					LOGGER.log(Level.INFO, "Executing task {0} with ID {1} at {2}", new Object[] {task.getClass().getName(), jobId, SecurityUtil.getFormattedCurrentTime()});
+					LOGGER.log(Level.INFO, "Executing task {0} with ID {1} at {2}", new Object[] {task.getClass().getName(), jobId, DateUtil.getFormattedCurrentTime()});
 				}
 
 				task.run(data);
@@ -137,7 +143,7 @@ public class RefreshManager
 			{
 				if(Objects.nonNull(jobId))
 				{
-					JobUtil.deleteJob(jobId);
+					JobUtil.handlePostProcess(jobId);
 				}
 			}
 
@@ -152,7 +158,7 @@ public class RefreshManager
 		@Override
 		public long getDelay(TimeUnit tu)
 		{
-			long delay = this.time - System.currentTimeMillis();
+			long delay = this.time - DateUtil.getCurrentTimeInMillis();
 			return tu.convert(delay, TimeUnit.MILLISECONDS);
 		}
 	}

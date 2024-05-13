@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import com.server.framework.common.DateUtil;
+
 public class ThrottleHandler
 {
 	public static final Map<String, ThrottleMeta> ipThrottleMeta = new ConcurrentHashMap<>();
@@ -36,7 +38,7 @@ public class ThrottleHandler
 		public ThrottleMeta()
 		{
 			count = 0;
-			time = System.currentTimeMillis();
+			time = DateUtil.getCurrentTimeInMillis();
 		}
 	}
 
@@ -55,7 +57,7 @@ public class ThrottleHandler
 			ThrottleMeta throttleMeta = ipThrottleMeta.getOrDefault(key, new ThrottleMeta());
 			int count = throttleMeta.incrementCount();
 			long time = throttleMeta.getTime();
-			long currentTime = System.currentTimeMillis();
+			long currentTime = DateUtil.getCurrentTimeInMillis();
 			long timeFrameStart = currentTime - (1000 * 60 * 5);
 
 			if(time < timeFrameStart)
@@ -66,7 +68,7 @@ public class ThrottleHandler
 
 			if(count > 100)
 			{
-				ipLockTimeMap.put(key, System.currentTimeMillis() + (1000 * 60 * 5));
+				ipLockTimeMap.put(key, DateUtil.getCurrentTimeInMillis() + (1000 * 60 * 5));
 				return false;
 			}
 
@@ -79,7 +81,7 @@ public class ThrottleHandler
 
 	public static void removeExpiredIPLockingAndThrottleMeta()
 	{
-		Long currentTime = System.currentTimeMillis();
+		Long currentTime = DateUtil.getCurrentTimeInMillis();
 		List<String> lockExpiredIP = ipLockTimeMap.entrySet().stream().filter(lockMap -> lockMap.getValue() < currentTime).map(Map.Entry::getKey).collect(Collectors.toList());
 		for(String ip : lockExpiredIP)
 		{

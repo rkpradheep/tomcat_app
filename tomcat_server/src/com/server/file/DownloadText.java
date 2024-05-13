@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.server.framework.common.DateUtil;
 import com.server.framework.security.SecurityUtil;
 
 public class DownloadText extends HttpServlet
@@ -47,7 +48,7 @@ public class DownloadText extends HttpServlet
 
 		try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(text.getBytes());)
 		{
-			String fileName = "text_" + System.currentTimeMillis() + ".txt";
+			String fileName = "text_" + DateUtil.getCurrentTimeInMillis() + ".txt";
 			FileOutputStream fileOutputStream = new FileOutputStream(fileName);
 			fileOutputStream.write(SecurityUtil.readAllBytes(byteArrayInputStream));
 

@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
+import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
-import com.server.framework.security.SecurityUtil;
 
 public class ReminderTask implements Task
 {
@@ -22,7 +22,7 @@ public class ReminderTask implements Task
 
 	@Override public void run(String data) throws Exception
 	{
-		LOGGER.log(Level.INFO, "Executing job at {0}", SecurityUtil.getFormattedCurrentTime());
+		LOGGER.log(Level.INFO, "Executing job at {0}", DateUtil.getFormattedCurrentTime());
 
 		String accessToken = generateAccessToken();
 		JSONObject db = new JSONObject(getDBRecord(accessToken)).getJSONObject("object");

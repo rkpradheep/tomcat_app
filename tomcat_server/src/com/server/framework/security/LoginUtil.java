@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import com.server.framework.common.DateUtil;
 import com.server.framework.user.User;
 import com.server.framework.user.UserUtil;
 
@@ -46,7 +47,7 @@ public class LoginUtil
 			PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 			preparedStatement.setString(1, sessionId);
 			preparedStatement.setLong(2, userId);
-			preparedStatement.setLong(3, System.currentTimeMillis() + expiryTime);
+			preparedStatement.setLong(3, DateUtil.getCurrentTimeInMillis() + expiryTime);
 
 			preparedStatement.executeUpdate();
 		}
@@ -63,7 +64,7 @@ public class LoginUtil
 			String deleteQuery = "DELETE FROM SessionManagement WHERE expiry_time < ?";
 
 			PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery);
-			preparedStatement.setLong(1, System.currentTimeMillis());
+			preparedStatement.setLong(1, DateUtil.getCurrentTimeInMillis());
 
 			preparedStatement.executeUpdate();
 		}

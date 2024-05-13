@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.server.framework.security.SecurityUtil;
+import com.server.framework.common.DateUtil;
 import com.server.framework.security.ThrottleHandler;
 
 public class AdminDBUtil
@@ -40,7 +40,7 @@ public class AdminDBUtil
 				rowMap.put("IP", ipUri[0]);
 				rowMap.put("URI", ipUri[1]);
 				rowMap.put("REQUEST_COUNT", throttleMeta.getCount() + "");
-				rowMap.put("TIME_FRAME_START", SecurityUtil.getFormattedTime(throttleMeta.getTime()));
+				rowMap.put("TIME_FRAME_START", DateUtil.getFormattedTime(throttleMeta.getTime()));
 
 				queryOutput.add(rowMap);
 			}

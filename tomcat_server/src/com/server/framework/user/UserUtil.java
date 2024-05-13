@@ -10,6 +10,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
+import com.server.framework.common.DateUtil;
 import com.server.framework.security.DBUtil;
 
 public class UserUtil
@@ -22,13 +23,17 @@ public class UserUtil
 			return null;
 		}
 
-		String selectQuery = "SELECT * FROM Users INNER JOIN SessionManagement on  Users.id=SessionManagement.user_id where SessionManagement.id = ?";
+		String selectQuery = "SELECT * FROM Users INNER JOIN SessionManagement on  Users.id=SessionManagement.user_id where SessionManagement.id = ? AND expiry_time > ?";
 		selectQuery = StringUtils.isBlank(authToken) ? selectQuery :  "SELECT * FROM Users INNER JOIN AuthToken on  Users.id=AuthToken.user_id where AuthToken.token = ?";;
 
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
 			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
 			preparedStatement.setString(1, StringUtils.defaultIfBlank(sessionId, authToken));
+			if(StringUtils.isNotEmpty(sessionId))
+			{
+				preparedStatement.setLong(2, DateUtil.getCurrentTimeInMillis());
+			}
 
 			return getUser(preparedStatement.executeQuery());
 		}

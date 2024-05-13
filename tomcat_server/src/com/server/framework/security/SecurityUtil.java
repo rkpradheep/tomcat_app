@@ -9,10 +9,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +44,7 @@ import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.framework.common.Configuration;
+import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 import com.server.framework.job.JobUtil;
 import com.server.framework.http.FormData;
@@ -287,26 +284,6 @@ public class SecurityUtil
 		return stringWriter.toString();
 	}
 
-	public static String getFormattedCurrentTime()
-	{
-		return getFormattedTime(System.currentTimeMillis());
-	}
-
-	public static String getFormattedCurrentTime(String format)
-	{
-		return getFormattedTime(System.currentTimeMillis(), format);
-	}
-
-	public static String getFormattedTime(Long timeInMilliseconds)
-	{
-		return getFormattedTime(timeInMilliseconds, "hh : mm a");
-	}
-
-	public static String getFormattedTime(Long timeInMilliseconds, String format)
-	{
-		return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeInMilliseconds), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern(format));
-	}
-
 	public static User getCurrentUser()
 	{
 		return SecurityFilter.CURRENT_USER_TL.get();
@@ -335,7 +312,7 @@ public class SecurityUtil
 		{
 			return;
 		}
-		String key = getFormattedCurrentTime("dd/MM/yyyy");
+		String key = DateUtil.getFormattedCurrentTime("dd/MM/yyyy");
 		List<String> visitorList = VISITOR_META.getOrDefault(key, new ArrayList<>());
 		String remoteIp = getCurrentRequest().getRemoteAddr();
 		String ip = InetAddress.getByName(remoteIp).isLoopbackAddress() ? getOriginatingUserIP() : remoteIp;

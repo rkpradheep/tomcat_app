@@ -1,13 +1,21 @@
 
     function addJob() {
-
-    const seconds = document.getElementById('time').value;
     const date = document.getElementById('date').value.replace('T', ' ');
+    const dayInterval = document.getElementById('day_interval').value;
+    const isRecurring = document.getElementById("is_recurring").checked;
 
-    if((seconds == undefined || seconds.length <1 || isNaN(seconds)) &&  date.length == 0)
+    if(date.length == 0)
     {
-        alert("Please enter either valid Delay Seconds or Date & Time");
+        alert("Please enter valid Execution Date & Time");
         return;
+    }
+    if(isRecurring)
+    {
+    if(dayInterval.length == 0)
+    {
+        alert("Please enter either valid Execution Date & Time");
+        return;
+    }
     }
 
     var data = document.getElementById('data').value;
@@ -42,8 +50,9 @@
         var payload = {
         "task" : document.getElementById('task').value,
         "data" : data,
-        "seconds" : seconds,
-        "date_time" : date
+        "execution_date_time" : date,
+        "day_interval" : dayInterval,
+        "is_recurring" : isRecurring
         }
           fetch( "/api/v1/jobs", {
                method: "POST",
@@ -105,16 +114,27 @@ function getFormattedDateVal(value)
 return value < 10 ? '0' + value : value;
 }
 
+
+function showOrHideRecurring()
+{
+    if(document.getElementById("recurring_info").style.display == "block")
+    {
+        document.getElementById("recurring_info").style.display = "none"
+    }
+    else
+    {
+        document.getElementById("recurring_info").style.display = "block"
+    }
+}
+
+
+var dayIntervalOptions = "";
+for (var i=1 ;i< 367; i++)  {
+    dayIntervalOptions += "<option >" + i + "</option>";
+}
+
+document.getElementById("day_interval").innerHTML = dayIntervalOptions;
+
 const defaultScheduleDate = new Date(new Date().getTime() + (5*60000));
 
 document.getElementById('date').value = `${defaultScheduleDate.getFullYear()}-${getFormattedDateVal(defaultScheduleDate.getMonth() + 1)}-${getFormattedDateVal(defaultScheduleDate.getDate())}T${getFormattedDateVal(defaultScheduleDate.getHours())}:${getFormattedDateVal(defaultScheduleDate.getMinutes())}`
-
-
-function removeDelaySeconds()
-{
-setElementValue('time', '')
-}
-function removeDate()
-{
-setElementValue('date', '')
-}

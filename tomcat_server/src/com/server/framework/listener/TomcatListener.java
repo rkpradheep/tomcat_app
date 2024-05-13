@@ -9,12 +9,12 @@ import org.apache.catalina.LifecycleEvent;
 import org.apache.catalina.LifecycleListener;
 
 import com.server.framework.common.Configuration;
+import com.server.framework.common.DateUtil;
 import com.server.framework.common.FileManager;
 import com.server.framework.common.ProxySelectorExtension;
 import com.server.framework.common.ProxyServer;
 import com.server.framework.job.RefreshManager;
 import com.server.framework.security.DBUtil;
-import com.server.framework.security.SecurityUtil;
 
 public class TomcatListener implements LifecycleListener
 {
@@ -24,7 +24,7 @@ public class TomcatListener implements LifecycleListener
 	public void lifecycleEvent(LifecycleEvent event) {
 		if(Lifecycle.AFTER_START_EVENT.equals(event.getType())){
 
-			LOGGER.log(Level.INFO, "Initializing Context for {0} at {1}", new Object[] {SecurityUtil.getFormattedCurrentTime()});
+			LOGGER.log(Level.INFO, "Initializing Context for {0} at {1}", new Object[] {DateUtil.getFormattedCurrentTime()});
 
 			Configuration.load();
 
@@ -41,7 +41,7 @@ public class TomcatListener implements LifecycleListener
 				ProxyServer.init();
 			}
 
-			LOGGER.log(Level.INFO, "Context Initialised for at {0}", new Object[] {SecurityUtil.getFormattedCurrentTime()});
+			LOGGER.log(Level.INFO, "Context Initialised for at {0}", new Object[] {DateUtil.getFormattedCurrentTime()});
 		}
 		if(Lifecycle.AFTER_DESTROY_EVENT.equals(event.getType())){
 
@@ -54,7 +54,7 @@ public class TomcatListener implements LifecycleListener
 				ProxyServer.shutDown();
 			}
 
-			LOGGER.log(Level.INFO, "Context Destroyed at {1}", new Object[] {SecurityUtil.getFormattedCurrentTime()});
+			LOGGER.log(Level.INFO, "Context Destroyed at {1}", new Object[] {DateUtil.getFormattedCurrentTime()});
 		}
 	}
 }

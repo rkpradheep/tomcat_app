@@ -12,8 +12,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -201,11 +199,6 @@ public class Util
 		IOUtils.copy(fileReader, stringWriter);
 
 		return stringWriter.toString();
-	}
-
-	public static long convertDateToMilliseconds(String date, String format) throws ParseException
-	{
-		return new SimpleDateFormat(format).parse(date).getTime();
 	}
 
 	public static Object getJSONFromString(String value)

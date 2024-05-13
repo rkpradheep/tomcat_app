@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
-import com.server.framework.common.Util;
+import com.server.framework.common.DateUtil;
 import com.server.framework.common.Configuration;
 import com.server.framework.security.SecurityUtil;
 
@@ -28,7 +28,10 @@ public class JobAPI extends HttpServlet
 		{
 
 			JSONObject payload = SecurityUtil.getJSONObject(request);
-			long millSeconds = payload.optLong("seconds", -1) != -1 ? payload.getLong("seconds") * 1000L : Util.convertDateToMilliseconds(payload.getString("date_time"), "yyyy-MM-dd HH:mm") - System.currentTimeMillis();
+			boolean isRecurring = payload.optBoolean("is_recurring", false);
+			int dayInterval = payload.optInt("day_interval", -1);;
+
+			long millSeconds = payload.optLong("seconds", -1) != -1 ? payload.getLong("seconds") * 1000L : DateUtil.convertDateToMilliseconds(payload.getString("execution_date_time"), "yyyy-MM-dd HH:mm") - DateUtil.getCurrentTimeInMillis();
 			if(millSeconds < -60 * 1000)
 			{
 				throw new Exception("Cannot schedule job for past time");
@@ -36,7 +39,7 @@ public class JobAPI extends HttpServlet
 
 			TaskEnum.getHandler(payload.getString("task"));
 
-			Long jobID = JobUtil.scheduleJob(payload.getString("task"), payload.optString("data"), millSeconds);
+			Long jobID = JobUtil.scheduleJob(payload.getString("task"), payload.optString("data"), millSeconds, dayInterval, isRecurring);
 
 			SecurityUtil.writeSuccessJSONResponse(response, "Job has been scheduled successfully with ID " + jobID.toString());
 		}

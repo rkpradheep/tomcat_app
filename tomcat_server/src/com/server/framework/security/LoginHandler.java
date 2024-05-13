@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.framework.common.Configuration;
+import com.server.framework.common.DateUtil;
 import com.server.framework.user.User;
 
 public class LoginHandler extends HttpServlet
@@ -26,7 +27,7 @@ public class LoginHandler extends HttpServlet
 		User user = LoginUtil.validateCredentials(jsonObject.getString("name"), jsonObject.getString("password"));
 		if(Objects.nonNull(user))
 		{
-			String sessionID = user.getId() + String.valueOf(System.currentTimeMillis());
+			String sessionID = user.getId() + String.valueOf(DateUtil.getCurrentTimeInMillis());
 			LoginUtil.addSession(sessionID, user.getId(), user.isAdmin());
 
 			String maxAge = user.isAdmin() ? "Max-Age=86400;" : "Max-Age=1800;";

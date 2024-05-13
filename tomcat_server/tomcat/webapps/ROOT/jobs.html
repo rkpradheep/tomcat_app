@@ -164,10 +164,14 @@
 <br />
 <label for="task">Task</label>
 <select id="task" onchange="handleFields()"></select><br><br>
-<label for="time">Delay Second(s)</label>
-<input type="text" id="time" onchange="removeDate()"/><br>Or</br>
-<label for="date">Date & Time</label>
-<input type="datetime-local" id="date" onchange="removeDelaySeconds()"><br><br>
+<label for="is_recurring" style="display: inline-block"> Is Recurring</label>
+<input type="checkbox" id="is_recurring" onchange="showOrHideRecurring()" style="width:10px;cursor:pointer">
+<div id="recurring_info" style="display:none">
+    <label for="day_interval">Day Interval</label>
+    <select id="day_interval" style="width: 150px;"></select><br><br>
+</div>
+<label for="date">Execution Date & Time</label>
+<input type="datetime-local" id="date"><br><br>
 <textarea id="data" rows="5" cols="30" placeholder="Your message"></textarea><br><br>
 <button style="cursor:pointer" onclick="addJob()">SCHEDULE</button>
 <script src="js/jobs.js"></script>

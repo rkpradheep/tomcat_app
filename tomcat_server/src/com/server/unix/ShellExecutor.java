@@ -23,6 +23,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.server.framework.common.Configuration;
+import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 import com.server.framework.security.SecurityUtil;
 
@@ -84,7 +85,7 @@ public class ShellExecutor extends HttpServlet
 
 		String fileName = "myImage.jpeg";
 
-		String boundary = "---" + Long.toHexString(System.currentTimeMillis());
+		String boundary = "---" + Long.toHexString(DateUtil.getCurrentTimeInMillis());
 
 		URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=" + Configuration.getProperty("cliq.zapi.key"));
 
@@ -144,7 +145,7 @@ public class ShellExecutor extends HttpServlet
 			String fileName = "video.mp4";
 			String filePath = Util.HOME_PATH + "/" + fileName;
 
-			String boundary = "---" + Long.toHexString(System.currentTimeMillis());
+			String boundary = "---" + Long.toHexString(DateUtil.getCurrentTimeInMillis());
 
 			URL url = new URL("https://cliq.zoho.com/company/64396901/api/v2/bots/myserver/files?zapikey=" + Configuration.getProperty("cliq.zapi.key"));
 
