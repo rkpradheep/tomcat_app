@@ -4,6 +4,8 @@
     <meta name="viewport"  content="initial-scale=0.8,user-scalable=no"/>
     <meta charset="UTF-8">
     <link rel='stylesheet' href='css/navbar.css'>
+    <link rel="stylesheet" href="css/loading.css">
+    <script src="js/common.js"></script>
     <title>Task Manager</title>
     <style>
         body {
@@ -34,7 +36,7 @@
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
-            width: 20%;
+            width: 15%;
         }
 
         button {
@@ -45,7 +47,13 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            width: 15%;
+            width: 200px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
         }
 
         button:hover {
@@ -158,22 +166,29 @@
         </div>
     </div>
 </nav>
-
+<div class="loading" id="loading" style="display:none">Loading…</div>
 <h1><b>Scheduler</b></h1>
 <br />
 <br />
 <label for="task">Task</label>
 <select id="task" onchange="handleFields()"></select><br><br>
-<label for="is_recurring" style="display: inline-block"> Is Recurring</label>
-<input type="checkbox" id="is_recurring" onchange="showOrHideRecurring()" style="width:10px;cursor:pointer">
+<div class="container">
+    <input type="checkbox" id="is_recurring" onchange="showOrHideRecurring()" style="width:10px;cursor:pointer">&nbsp;&nbsp;
+    <label for="is_recurring" style="display: inline-block"> Is Recurring</label>
+</div>
 <div id="recurring_info" style="display:none">
     <label for="day_interval">Day Interval</label>
     <select id="day_interval" style="width: 150px;"></select><br><br>
 </div>
 <label for="date">Execution Date & Time</label>
 <input type="datetime-local" id="date"><br><br>
-<textarea id="data" rows="5" cols="30" placeholder="Your message"></textarea><br><br>
-<button style="cursor:pointer" onclick="addJob()">SCHEDULE</button>
+<div id="emailTask" style="display:none">
+    <input type="text" id="subject"  placeholder="Subject" style="width:300px"/><br>
+    <input type="text" id="fromAddress" placeholder="From Address"  style="width:300px"/><br>
+    <input type="text" id="toAddress" placeholder="To Address"  style="width:300px"/><br>
+    <textarea id="emailMessage" rows="5" cols="30" placeholder="Compose your message" style="width:300px"></textarea><br><br>
+</div>
+<button style="cursor:pointer;" onclick="addJob()">SCHEDULE</button>
 <script src="js/jobs.js"></script>
 <script src="js/common.js"></script>
 <script src="js/navbar.js"></script>

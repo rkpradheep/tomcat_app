@@ -31,6 +31,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.jakartaee.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -141,6 +142,11 @@ public class Util
 
 	public static void sendEmail(String subject, String toAddress, String message)
 	{
+		sendEmail(subject, toAddress, null, message);
+	}
+
+	public static void sendEmail(String subject, String toAddress, String cc, String message)
+	{
 		Properties props = new Properties();
 		props.put("mail.smtp.auth", "true");
 		props.put("mail.smtp.starttls.enable", "true");
@@ -168,6 +174,10 @@ public class Util
 			mimeMessage.setContent(mp);
 			mimeMessage.setFrom(new InternetAddress(Configuration.getProperty("mail.user")));
 			mimeMessage.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toAddress));
+			if(StringUtils.isNotEmpty(cc))
+			{
+				mimeMessage.setRecipients(Message.RecipientType.CC, InternetAddress.parse(cc));
+			}
 			Transport.send(mimeMessage);
 
 			LOGGER.info("Email sent successfully");

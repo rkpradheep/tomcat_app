@@ -98,6 +98,14 @@
 		<url-pattern>/logout</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>OTPAPI</servlet-name>
+		<servlet-class>com.server.framework.common.OTPAPI</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>OTPAPI</servlet-name>
+		<url-pattern>/api/v1/initiate/otp</url-pattern>
+	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>OauthHandler</servlet-name>

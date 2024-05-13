@@ -9,6 +9,8 @@ public class MailTask implements Task
 	@Override public void run(String data) throws Exception
 	{
 		JSONObject jsonObject = new JSONObject(data);
-		Util.sendEmail("Mail Reminder", jsonObject.getString("to"), jsonObject.optString("message"));
+		String message = jsonObject.getString("message");
+		message += "<br><br><b>Note : This email is sent on behalf of " + jsonObject.getString("from_address") + "</b>";
+		Util.sendEmail(jsonObject.getString("subject"), jsonObject.getString("to_address"), jsonObject.getString("from_address"), message);
 	}
 }

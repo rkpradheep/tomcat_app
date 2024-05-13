@@ -11,10 +11,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Configuration;
+import com.server.framework.common.OTPAPI;
 import com.server.framework.security.SecurityUtil;
 
 public class JobAPI extends HttpServlet
@@ -37,7 +39,17 @@ public class JobAPI extends HttpServlet
 				throw new Exception("Cannot schedule job for past time");
 			}
 
-			TaskEnum.getHandler(payload.getString("task"));
+			TaskEnum.getHandler(payload.getString("task")).get();
+
+			if(StringUtils.equals("mail", payload.getString("task")))
+			{
+				if(StringUtils.isEmpty(payload.optString("otp_reference")))
+				{
+					SecurityUtil.writerErrorResponse(response, "OTP is required");
+					return;
+				}
+				OTPAPI.verifyOTP(payload.getString("otp_reference"), payload.getInt("otp"));
+			}
 
 			Long jobID = JobUtil.scheduleJob(payload.getString("task"), payload.optString("data"), millSeconds, dayInterval, isRecurring);
 
@@ -54,7 +66,7 @@ public class JobAPI extends HttpServlet
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
-		Map<String, String> jobList = Arrays.stream(TaskEnum.values()).filter(taskEnum -> !Configuration.getBoolean("production") || !taskEnum.getTaskName().equals(TaskEnum.REMINDER.getTaskName())).collect(Collectors.toMap(TaskEnum::getTaskName, TaskEnum::getTaskDisplayName));
+		Map<String, String> jobList = Arrays.stream(TaskEnum.values()).filter(taskEnum ->  !taskEnum.getTaskName().equals(TaskEnum.REMINDER.getTaskName()) || SecurityUtil.getCurrentUser().isAdmin()).collect(Collectors.toMap(TaskEnum::getTaskName, TaskEnum::getTaskDisplayName));
 		SecurityUtil.writeJSONResponse(response, jobList);
 	}
 }
