@@ -18,7 +18,7 @@ USE `tomcatserver`;
 
 
 -- CREATE TABLE "ChatUser" -------------------------------------
-CREATE TABLE `ChatUser`(
+CREATE TABLE `ChatUser`( 
 	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
 	`name` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	PRIMARY KEY ( `id` ) )
@@ -30,7 +30,7 @@ AUTO_INCREMENT = 1000000000004;
 
 
 -- CREATE TABLE "Job" ------------------------------------------
-CREATE TABLE `Job`(
+CREATE TABLE `Job`( 
 	`id` BigInt( 20 ) AUTO_INCREMENT NOT NULL,
 	`task_name` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`data` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
@@ -46,7 +46,7 @@ AUTO_INCREMENT = 1000000000106;
 
 
 -- CREATE TABLE "Users" ----------------------------------------
-CREATE TABLE `Users`(
+CREATE TABLE `Users`( 
 	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
 	`name` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`password` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
@@ -60,7 +60,7 @@ AUTO_INCREMENT = 1000000000003;
 
 
 -- CREATE TABLE "ChatUserDetails" ------------------------------
-CREATE TABLE `ChatUserDetails`(
+CREATE TABLE `ChatUserDetails`( 
 	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
 	`chatuserid` BigInt( 255 ) NOT NULL,
 	`message` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
@@ -73,7 +73,7 @@ AUTO_INCREMENT = 1000000000016;
 
 
 -- CREATE TABLE "SessionManagement" ----------------------------
-CREATE TABLE `SessionManagement`(
+CREATE TABLE `SessionManagement`( 
 	`id` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`user_id` BigInt( 255 ) NOT NULL,
 	`expiry_time` BigInt( 255 ) NOT NULL,
@@ -85,7 +85,7 @@ ENGINE = InnoDB;
 
 
 -- CREATE TABLE "AuthToken" ------------------------------------
-CREATE TABLE `AuthToken`(
+CREATE TABLE `AuthToken`( 
 	`token` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`user_id` BigInt( 255 ) NOT NULL )
 CHARACTER SET = utf8mb3
@@ -144,21 +144,3 @@ ALTER TABLE `AuthToken`
 -- ---------------------------------------------------------
 
 
-
-
-
-INSERT INTO `tomcatserver`.`Users`
-(
-`name`,
-`password`, `role_type`)
-VALUES(
-'admin',
-'7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358', -1);
-
-INSERT INTO `tomcatserver`.`Users`
-(
-`name`,
-`password`, `role_type`)
-VALUES(
-'test',
-'8622f0f69c91819119a8acf60a248d7b36fdb7ccf857ba8f85cf7f2767ff8265', 0);
