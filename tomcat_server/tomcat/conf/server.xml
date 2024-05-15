@@ -23,13 +23,14 @@
                redirectPort="443"
                maxParameterCount="1000"
                executor="tomcatThreadPool"
+               bindOnInit="false"
                />
 
      <Connector
        protocol="org.apache.coyote.http11.Http11NioProtocol"
        port="443"
        scheme="https" secure="true" SSLEnabled="true"
-       clientAuth="false" sslProtocol="TLS" executor="tomcatThreadPool">
+       clientAuth="false" sslProtocol="TLS" executor="tomcatThreadPool" bindOnInit="false">
        <SSLHostConfig>
          <Certificate
             certificateKeystoreFile="conf/tomcat.jks"

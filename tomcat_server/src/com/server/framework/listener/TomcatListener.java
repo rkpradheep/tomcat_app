@@ -22,9 +22,9 @@ public class TomcatListener implements LifecycleListener
 
 	@Override
 	public void lifecycleEvent(LifecycleEvent event) {
-		if(Lifecycle.AFTER_START_EVENT.equals(event.getType())){
+		if(Lifecycle.BEFORE_START_EVENT.equals(event.getType())){
 
-			LOGGER.log(Level.INFO, "Initializing Context for {0} at {1}", new Object[] {DateUtil.getFormattedCurrentTime()});
+			LOGGER.log(Level.INFO, "Initializing Context started");
 
 			Configuration.load();
 
@@ -43,7 +43,7 @@ public class TomcatListener implements LifecycleListener
 
 			LOGGER.log(Level.INFO, "Context Initialised for at {0}", new Object[] {DateUtil.getFormattedCurrentTime()});
 		}
-		if(Lifecycle.AFTER_DESTROY_EVENT.equals(event.getType())){
+		if(Lifecycle.BEFORE_DESTROY_EVENT.equals(event.getType())){
 
 			DBUtil.closeDataSource();
 
