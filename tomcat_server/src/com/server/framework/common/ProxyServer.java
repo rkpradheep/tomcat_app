@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 
 public class ProxyServer
 {
@@ -134,8 +135,25 @@ public class ProxyServer
 
 			int read = clientIn.read(bytes);
 
-			LOGGER.info("Headers received \n\n" + new String(bytes, 0, read));
-			String targetUrl = new String(bytes, 0, read).split("\\r\\n")[0].split(" ")[1];
+			String header = new String(bytes, 0, read);
+			LOGGER.info("Headers received \n\n" + header);
+			if(header.contains("Go-http-client"))
+			{
+				JSONObject jsonResponse = new JSONObject();
+				jsonResponse.put("status", "blocked");
+
+				outputStreamWriter.write("HTTP/1.0 403 Forbidden\r\n");
+				outputStreamWriter.write("Proxy-agent: Simple/0.1\r\n");
+				outputStreamWriter.write("Content-Type: application/json\r\n");
+				outputStreamWriter.write("\r\n");
+
+				outputStreamWriter.write(jsonResponse.toString());
+				outputStreamWriter.flush();
+
+				LOGGER.info("Skipping proxy request with blacklisted headers to save the resources");
+				return;
+			}
+			String targetUrl =header.split("\\r\\n")[0].split(" ")[1];
 			String targetHost = new BufferedReader(new StringReader(new String(bytes, 0, read))).lines().filter(s -> s.toLowerCase().startsWith("host")).findFirst().orElse(targetUrl);
 			String[] hostAndPort = getHostAndPort(targetHost, targetUrl);
 
@@ -144,17 +162,14 @@ public class ProxyServer
 			Socket targetSocket = new Socket();
 			targetSocket.connect(new InetSocketAddress(hostAndPort[0], Integer.parseInt(hostAndPort[1])), 5000);
 
-			if(new String(bytes, 0, read).contains("CONNECT"))
+			if(header.contains("CONNECT"))
 			{
 				outputStreamWriter.write("HTTP/1.0" + " 200 Connection established\r\n");
 				outputStreamWriter.write("Proxy-agent: Simple/0.1\r\n");
 				outputStreamWriter.write("\r\n");
 				outputStreamWriter.flush();
 
-				ThreadFactory forwarderThread = run -> {
-					Thread thread = new Thread(run, "forwarder-" + WORKER_THREAD_NUMBER.incrementAndGet() + "-" + Thread.currentThread().getName());
-					return thread;
-				};
+				ThreadFactory forwarderThread = run -> new Thread(run, "forwarder-" + WORKER_THREAD_NUMBER.incrementAndGet() + "-" + Thread.currentThread().getName());
 				ExecutorService executorService = Executors.newFixedThreadPool(2, forwarderThread);
 
 				Future<?> clientThread = executorService.submit(() -> forwardData(clientSocket, targetSocket, "Proxy's Client Socket"));
