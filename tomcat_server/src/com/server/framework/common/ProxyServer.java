@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -41,10 +42,14 @@ public class ProxyServer
 	private static final AtomicInteger WORKER_THREAD_NUMBER =  new AtomicInteger(0);
 	private static final String TEN_HASH = Collections.nCopies(10, "#").stream().collect(Collectors.joining());
 	private static boolean stopProxy = false;
-	private static final int PROXY_PORT = 3128;
+	private static int PROXY_PORT;
+	private static String PROXY_CREDENTIAL;
 
 	public static void init()
 	{
+		PROXY_PORT = Integer.parseInt(Configuration.getProperty("proxy.port"));
+		PROXY_CREDENTIAL = Configuration.getProperty("proxy.user") + ":" + Configuration.getProperty("proxy.password");
+
 		ThreadFactory tf = run -> {
 			Thread thread = new Thread(run, "proxy-server");
 			return thread;
@@ -137,12 +142,20 @@ public class ProxyServer
 
 			String header = new String(bytes, 0, read);
 			LOGGER.info("Headers received \n\n" + header);
-			if(header.contains("Go-http-client"))
+			String credentialReceived = getHeader(header, "Proxy-Authorization");
+			credentialReceived = credentialReceived.split(":").length > 1 ? credentialReceived.split(":")[1] : StringUtils.EMPTY;
+			Pattern authorizationHeaderPattern = Pattern.compile("Basic\\s+(.*)"); //No I18N
+			Matcher authorizationHeaderMatcher = authorizationHeaderPattern.matcher(credentialReceived.trim());
+			if(authorizationHeaderMatcher.matches())
+			{
+				credentialReceived = new String(Base64.decodeBase64(authorizationHeaderMatcher.group(1)));
+			}
+			if(!StringUtils.equals(PROXY_CREDENTIAL, credentialReceived))
 			{
 				JSONObject jsonResponse = new JSONObject();
-				jsonResponse.put("status", "blocked");
+				jsonResponse.put("messaged", "Invalid proxy credentials");
 
-				outputStreamWriter.write("HTTP/1.0 403 Forbidden\r\n");
+				outputStreamWriter.write("HTTP/1.0 401 Unauthorized\r\n");
 				outputStreamWriter.write("Proxy-agent: Simple/0.1\r\n");
 				outputStreamWriter.write("Content-Type: application/json\r\n");
 				outputStreamWriter.write("\r\n");
@@ -150,11 +163,11 @@ public class ProxyServer
 				outputStreamWriter.write(jsonResponse.toString());
 				outputStreamWriter.flush();
 
-				LOGGER.info("Skipping proxy request with blacklisted headers to save the resources");
+				LOGGER.info("Authorization failed for Proxy request");
 				return;
 			}
 			String targetUrl =header.split("\\r\\n")[0].split(" ")[1];
-			String targetHost = new BufferedReader(new StringReader(new String(bytes, 0, read))).lines().filter(s -> s.toLowerCase().startsWith("host")).findFirst().orElse(targetUrl);
+			String targetHost = StringUtils.defaultIfEmpty(getHeader(header, "host"), targetUrl);
 			String[] hostAndPort = getHostAndPort(targetHost, targetUrl);
 
 			LOGGER.log(Level.INFO, "Fetched Host {0} and Port {1}", new Object[] {hostAndPort[0], hostAndPort[1]});
@@ -219,6 +232,11 @@ public class ProxyServer
 		}
 	}
 
+
+	static String getHeader(String header, String headerName)
+	{
+		return new BufferedReader(new StringReader(header)).lines().filter(s -> s.toLowerCase().startsWith(headerName.toLowerCase())).findFirst().orElse(StringUtils.EMPTY).trim();
+	}
 	static String[] getHostAndPort(String targetHost, String targetURL) throws Exception
 	{
 
