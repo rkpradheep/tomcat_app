@@ -192,6 +192,7 @@
 		<servlet-name>Job</servlet-name>
 		<url-pattern>/api/v1/jobs</url-pattern>
 		<url-pattern>/api/v1/jobs/list</url-pattern>
+		<url-pattern>/scheduler/delete</url-pattern>
 	</servlet-mapping>
 
 

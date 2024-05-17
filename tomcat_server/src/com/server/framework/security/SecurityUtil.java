@@ -141,7 +141,7 @@ public class SecurityUtil
 
 	public static void writerErrorResponse(HttpServletResponse response, String message) throws IOException
 	{
-		writerErrorResponse(response, HttpStatus.SC_BAD_REQUEST, null, message);
+		writerErrorResponse(response, HttpStatus.SC_BAD_REQUEST, "error", message);
 	}
 
 	public static void writerErrorResponse(HttpServletResponse response, int statusCode, String code, String message) throws IOException

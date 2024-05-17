@@ -14,13 +14,13 @@ import org.json.JSONObject;
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 
-public class ReminderTask implements Task
+public class ReminderTask
 {
 	private static final Logger LOGGER = Logger.getLogger(ReminderTask.class.getName());
 	private static final String CHAT_ID = "2244866302561890715";
 	private static int EXECUTION_TRACKER = 0;
 
-	@Override public void run(String data) throws Exception
+	public static void run() throws Exception
 	{
 		LOGGER.log(Level.INFO, "Executing job at {0}", DateUtil.getFormattedCurrentTime());
 
@@ -40,7 +40,7 @@ public class ReminderTask implements Task
 
 		EXECUTION_TRACKER++;
 
-		JobUtil.scheduleJob(TaskEnum.REMINDER.getTaskName(), data, (5 * 60 * 1000));
+		JobUtil.scheduleJob(ReminderTask::run, (5 * 60));
 		String updateId = new JSONObject(db.getString("activityid")).optString("updateId", null);
 		String recentActivityId = new JSONObject(db.getString("activityid")).getString("recentActivityId");
 

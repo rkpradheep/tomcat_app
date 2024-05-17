@@ -4,9 +4,9 @@ import com.server.framework.common.DateUtil;
 import com.server.framework.security.LoginUtil;
 import com.server.framework.security.ThrottleHandler;
 
-public class JobDispatcher implements Task
+public class JobDispatcher
 {
-	@Override public void run(String value) throws Exception
+	public static void run() throws Exception
 	{
 		try
 		{
@@ -14,11 +14,11 @@ public class JobDispatcher implements Task
 			LoginUtil.deleteExpiredSessions();
 
 			String pendingJobQuery = "SELECT * FROM Job where scheduled_time <= " + (DateUtil.getCurrentTimeInMillis() + 5000);
-			RefreshManager.addJobInQueue(pendingJobQuery);
+			JobUtil.addJobInQueue(pendingJobQuery);
 		}
 		finally
 		{
-			RefreshManager.addJobInQueue(-1L, JobDispatcher::new, null, 5);
+			JobUtil.scheduleJob(JobDispatcher::run, 5);
 		}
 	}
 }

@@ -93,6 +93,16 @@ COLLATE = utf8mb3_general_ci
 ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
+-- CREATE TABLE "Configuration" --------------------------------
+CREATE TABLE `Configuration`(
+	`ckey` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	`cvalue` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
 
 -- CREATE INDEX "chatuserdetails_fk1" --------------------------
 CREATE INDEX `chatuserdetails_fk1` USING BTREE ON `ChatUserDetails`( `chatuserid` );

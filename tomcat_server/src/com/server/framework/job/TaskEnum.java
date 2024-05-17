@@ -1,16 +1,21 @@
 package com.server.framework.job;
 
 import java.util.Arrays;
-import java.util.function.Supplier;
 
 public enum TaskEnum
 {
-	MAIL("mail", "Mail Scheduler", MailTask::new),
-	REMINDER("reminder", "Invitation Reminder Job", ReminderTask::new);
+	MAIL("mail", "Mail Scheduler", MailTask::run, true),
+	REMINDER("reminder", "Invitation Reminder Job", ReminderTask::run, false);
 
 	private final String taskName;
 	private final String taskDisplayName;
-	private final Supplier<Task> taskHandler;
+	private final CustomRunnable runnable;
+	private final boolean needDBEntry;
+
+	public boolean isNeedDBEntry()
+	{
+		return needDBEntry;
+	}
 
 	public String getTaskName()
 	{
@@ -22,22 +27,27 @@ public enum TaskEnum
 		return taskDisplayName;
 	}
 
-	public Supplier<Task> getTaskHandler()
+	public CustomRunnable getRunnable()
 	{
-		return taskHandler;
+		return runnable;
 	}
 
-	TaskEnum(String taskName, String taskDisplayName, Supplier<Task> taskHandler)
+	TaskEnum(String taskName, String taskDisplayName, CustomRunnable runnable, boolean needDBEntry)
 	{
 		this.taskName = taskName;
 		this.taskDisplayName = taskDisplayName;
-		this.taskHandler = taskHandler;
+		this.runnable = runnable;
+		this.needDBEntry = needDBEntry;
 	}
 
-	public static Supplier<Task> getHandler(String taskName) throws Exception
+	public static TaskEnum getTask(String taskName) throws Exception
 	{
 		return Arrays.stream(values()).filter(taskEnum -> taskEnum.taskName.equals(taskName))
-			.map(TaskEnum::getTaskHandler)
 			.findFirst().orElseThrow(() -> new Exception("task with given name doesn't exist"));
+	}
+
+	public static CustomRunnable getRunnable(String taskName) throws Exception
+	{
+		return getTask(taskName).getRunnable();
 	}
 }

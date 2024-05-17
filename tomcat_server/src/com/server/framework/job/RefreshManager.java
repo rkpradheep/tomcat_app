@@ -1,21 +1,19 @@
 package com.server.framework.job;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
-import com.server.framework.security.DBUtil;
 
 public class RefreshManager
 {
@@ -33,12 +31,12 @@ public class RefreshManager
 
 		if(Configuration.getBoolean("can.add.job.dispatcher"))
 		{
-			addJobInQueue(-1L, JobDispatcher::new, null, 1);
+			addJobInQueue(-1L);
 		}
 		else
 		{
 			String pendingJobQuery = "SELECT * FROM Job";
-			addJobInQueue(pendingJobQuery);
+			JobUtil.addJobInQueue(pendingJobQuery);
 		}
 	}
 
@@ -47,93 +45,57 @@ public class RefreshManager
 		executor.shutdownNow();
 	}
 
-	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, int seconds)
+	public static void removeJobFromQueue(long jobID)
 	{
-		addJobInQueue(jobID, taskHandler, data, seconds * 1000L);
-	}
-
-	public static void addJobInQueue(Long jobID, Supplier<Task> taskHandler, String data, long milliseconds)
-	{
-		queue.add(new RefreshElement(jobID, taskHandler, data, DateUtil.getCurrentTimeInMillis() + milliseconds));
-	}
-
-	public static void addJobInQueue(CustomRunnable runnable, int seconds)
-	{
-		queue.add(new RefreshElement(runnable, DateUtil.getCurrentTimeInMillis() + (seconds * 1000L)));
-	}
-
-	public static void addJobInQueue(String selectQuery)
-	{
-		try(Connection connection = DBUtil.getServerDBConnection())
+		Iterator<RefreshElement> refreshManagerIterator = queue.iterator();
+		while(refreshManagerIterator.hasNext())
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
-
-			ResultSet resultSet = preparedStatement.executeQuery();
-
-			while(resultSet.next())
+			RefreshElement refreshElement = refreshManagerIterator.next();
+			if(refreshElement.jobMeta.getId() == jobID)
 			{
-				String task = resultSet.getString("task_name");
-				String data = resultSet.getString("data");
-				long scheduledTime = resultSet.getLong("scheduled_time");
-				long jobId = resultSet.getLong("id");
-
-				if(resultSet.getBoolean("is_recurring"))
-				{
-					scheduledTime = JobUtil.getNextExecutionTimeFromPreviousScheduleTime(scheduledTime, resultSet.getInt("day_interval"));
-				}
-
-				long delay = (scheduledTime - DateUtil.getCurrentTimeInMillis());
-				delay = Math.max(delay, 0);
-
-				addJobInQueue(jobId, TaskEnum.getHandler(task), data, delay);
+				queue.remove(refreshElement);
+				LOGGER.info("Job with ID " + jobID + " removed from queue");
 			}
 		}
-		catch(Exception e)
-		{
-			LOGGER.log(Level.SEVERE, "Exception occurred while adding jobs in queue", e);
-		}
+	}
+
+	public static void addJobInQueue(Long jobID)
+	{
+		queue.add(new RefreshElement(jobID));
+	}
+
+	public static void addJobInQueue(CustomRunnable runnable, String data, long millisecond)
+	{
+		queue.add(new RefreshElement(runnable, data, DateUtil.getCurrentTimeInMillis() + millisecond));
 	}
 
 	private static class RefreshElement implements Delayed, Runnable
 	{
-		Long jobId;
-		Supplier<Task> taskSupplier;
-		String data;
-		long time;
-		CustomRunnable runnable;
+		JobMeta jobMeta;
 
-		RefreshElement(Long jobId, Supplier<Task> taskSupplier, String data, long time)
+		RefreshElement(Long jobId)
 		{
-			this.jobId = jobId;
-			this.taskSupplier = taskSupplier;
-			this.data = data;
-			this.time = time;
+			jobMeta = JobUtil.getJobMeta(jobId);
 		}
 
-		RefreshElement(CustomRunnable runnable, long time)
+		RefreshElement(CustomRunnable runnable, String data, long time)
 		{
-			this.runnable = runnable;
-			this.time = time;
+			jobMeta = new JobMeta.Builder()
+				.setId(-1L)
+				.setData(data)
+				.setRecurring(false)
+				.setScheduledTime(time)
+				.setRunnable(runnable)
+				.build();
 		}
 
-		public void run()
+		@Override public void run()
 		{
 			try
 			{
-				if(Objects.nonNull(runnable))
-				{
-					runnable.run();
-					return;
-				}
-
-				Task task = taskSupplier.get();
-
-				if(jobId != -1)
-				{
-					LOGGER.log(Level.INFO, "Executing task {0} with ID {1} at {2}", new Object[] {task.getClass().getName(), jobId, DateUtil.getFormattedCurrentTime()});
-				}
-
-				task.run(data);
+				JobUtil.SCHEDULER_TL.set(jobMeta);
+				LOGGER.info("Job started for runnable " + jobMeta.getTaskName());
+				jobMeta.getRunnable().run();
 			}
 			catch(Exception e)
 			{
@@ -141,10 +103,7 @@ public class RefreshManager
 			}
 			finally
 			{
-				if(Objects.nonNull(jobId))
-				{
-					JobUtil.handlePostProcess(jobId);
-				}
+				JobUtil.handlePostProcess(jobMeta);
 			}
 
 		}
@@ -152,13 +111,13 @@ public class RefreshManager
 		@Override
 		public int compareTo(Delayed delayed)
 		{
-			return Long.compare(this.time, ((RefreshElement) delayed).time);
+			return Long.compare(jobMeta.getScheduledTime(), ((RefreshElement) delayed).jobMeta.getScheduledTime());
 		}
 
 		@Override
 		public long getDelay(TimeUnit tu)
 		{
-			long delay = this.time - DateUtil.getCurrentTimeInMillis();
+			long delay = jobMeta.getScheduledTime() - DateUtil.getCurrentTimeInMillis();
 			return tu.convert(delay, TimeUnit.MILLISECONDS);
 		}
 	}
