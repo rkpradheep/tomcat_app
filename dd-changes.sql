@@ -19,19 +19,18 @@ USE `tomcatserver`;
 
 -- CREATE TABLE "ChatUser" -------------------------------------
 CREATE TABLE `ChatUser`(
-	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
+	`id` BigInt( 255 ) NOT NULL,
 	`name` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb3
 COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB
-AUTO_INCREMENT = 1000000000004;
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
 -- CREATE TABLE "Job" ------------------------------------------
 CREATE TABLE `Job`(
-	`id` BigInt( 20 ) AUTO_INCREMENT NOT NULL,
+	`id` BigInt( 20 )  NOT NULL,
 	`task_name` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`data` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`scheduled_time` BigInt( 20 ) NOT NULL,
@@ -40,35 +39,32 @@ CREATE TABLE `Job`(
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb3
 COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB
-AUTO_INCREMENT = 1000000000106;
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
 -- CREATE TABLE "Users" ----------------------------------------
 CREATE TABLE `Users`(
-	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
+	`id` BigInt( 255 )  NOT NULL,
 	`name` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`password` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`role_type` Int( 11 ) NOT NULL,
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb3
 COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB
-AUTO_INCREMENT = 1000000000003;
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
 -- CREATE TABLE "ChatUserDetails" ------------------------------
 CREATE TABLE `ChatUserDetails`(
-	`id` BigInt( 255 ) AUTO_INCREMENT NOT NULL,
+	`id` BigInt( 255 )  NOT NULL,
 	`chatuserid` BigInt( 255 ) NOT NULL,
 	`message` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	PRIMARY KEY ( `id` ) )
 CHARACTER SET = utf8mb3
 COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB
-AUTO_INCREMENT = 1000000000016;
+ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
@@ -97,6 +93,16 @@ ENGINE = InnoDB;
 CREATE TABLE `Configuration`(
 	`ckey` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`cvalue` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
+-- CREATE TABLE "BatchDetails" ---------------------------------
+CREATE TABLE `BatchDetails`(
+	`sas_id` BigInt( 255 ) NOT NULL,
+	`batch_start` BigInt( 255 ) NOT NULL )
 CHARACTER SET = utf8mb3
 COLLATE = utf8mb3_general_ci
 ENGINE = InnoDB;
@@ -154,21 +160,22 @@ ALTER TABLE `AuthToken`
 -- ---------------------------------------------------------
 
 
-
-
-
 INSERT INTO `tomcatserver`.`Users`
 (
+`id`,
 `name`,
 `password`, `role_type`)
 VALUES(
+1000000000001,
 'admin',
 '7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358', -1);
 
 INSERT INTO `tomcatserver`.`Users`
 (
+`id`,
 `name`,
 `password`, `role_type`)
 VALUES(
+1000000000002,
 'test',
 '8622f0f69c91819119a8acf60a248d7b36fdb7ccf857ba8f85cf7f2767ff8265', 0);

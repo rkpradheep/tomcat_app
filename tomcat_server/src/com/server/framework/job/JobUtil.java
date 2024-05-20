@@ -11,7 +11,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import com.server.framework.common.Configuration;
 import com.server.framework.common.ConfigurationTableUtil;
 import com.server.framework.common.DateUtil;
-import com.server.framework.security.DBUtil;
+import com.server.framework.persistence.DBUtil;
 
 public class JobUtil
 {

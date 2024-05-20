@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import com.server.framework.common.DateUtil;
+import com.server.framework.persistence.DBUtil;
 import com.server.framework.user.User;
 import com.server.framework.user.UserUtil;
 

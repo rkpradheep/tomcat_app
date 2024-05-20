@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.framework.common.Util;
-import com.server.framework.security.DBUtil;
+import com.server.framework.persistence.DBUtil;
 import com.server.framework.security.LoginUtil;
 import com.server.framework.security.SecurityUtil;
 import com.server.framework.security.ThrottleHandler;

@@ -14,7 +14,7 @@ import com.server.framework.common.FileManager;
 import com.server.framework.common.ProxySelectorExtension;
 import com.server.framework.common.ProxyServer;
 import com.server.framework.job.RefreshManager;
-import com.server.framework.security.DBUtil;
+import com.server.framework.persistence.DBUtil;
 
 public class TomcatListener implements LifecycleListener
 {

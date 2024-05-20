@@ -9,9 +9,10 @@ public class JobMeta
 	private final long scheduledTime;
 	private final int intervalInDays;
 
-	private JobMeta(long id, String data, boolean isRecurring, String taskName, long scheduledTime, int intervalInDays)
+	private JobMeta(long id, CustomRunnable runnable, String data, boolean isRecurring, String taskName, long scheduledTime, int intervalInDays)
 	{
 		this.id = id;
+		this.runnable = runnable;
 		this.data = data;
 		this.isRecurring = isRecurring;
 		this.taskName = taskName;
@@ -110,7 +111,7 @@ public class JobMeta
 
 		public JobMeta build()
 		{
-			return new JobMeta(this.id, this.data, this.isRecurring, this.taskName, this.scheduledTime, this.intervalInDays);
+			return new JobMeta(this.id, this.runnable, this.data, this.isRecurring, this.taskName, this.scheduledTime, this.intervalInDays);
 		}
 
 	}

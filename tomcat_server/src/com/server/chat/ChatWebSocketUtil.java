@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.server.framework.security.DBUtil;
+import com.server.framework.persistence.DBUtil;
 
 public class ChatWebSocketUtil
 {

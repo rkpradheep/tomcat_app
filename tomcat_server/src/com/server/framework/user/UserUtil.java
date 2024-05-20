@@ -11,11 +11,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.framework.common.DateUtil;
-import com.server.framework.security.DBUtil;
+import com.server.framework.persistence.DBUtil;
+import com.server.framework.persistence.DataAccess;
+import com.server.framework.persistence.DataObject;
+import com.server.framework.persistence.Row;
 
 public class UserUtil
 {
 	private static final Logger LOGGER = Logger.getLogger(UserUtil.class.getName());
+
 	public static User getUser(String sessionId, String authToken)
 	{
 		if(StringUtils.isBlank(sessionId) && StringUtils.isBlank(authToken))
@@ -24,7 +28,8 @@ public class UserUtil
 		}
 
 		String selectQuery = "SELECT * FROM Users INNER JOIN SessionManagement on  Users.id=SessionManagement.user_id where SessionManagement.id = ? AND expiry_time > ?";
-		selectQuery = StringUtils.isBlank(authToken) ? selectQuery :  "SELECT * FROM Users INNER JOIN AuthToken on  Users.id=AuthToken.user_id where AuthToken.token = ?";;
+		selectQuery = StringUtils.isBlank(authToken) ? selectQuery : "SELECT * FROM Users INNER JOIN AuthToken on  Users.id=AuthToken.user_id where AuthToken.token = ?";
+		;
 
 		try(Connection connection = DBUtil.getServerDBConnection())
 		{
@@ -52,16 +57,14 @@ public class UserUtil
 	public static void addUser(JSONObject userJSON) throws Exception
 	{
 
-		String selectQuery = "Insert into Users (name, password, role_type) values (?, ?, ?)";
+		DataObject dataObject = new DataObject();
+		Row row = new Row("Users");
 
-		try(Connection connection = DBUtil.getServerDBConnection())
-		{
-			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
-			preparedStatement.setString(1, userJSON.getString("name"));
-			preparedStatement.setString(2, DigestUtils.sha256Hex(userJSON.getString("password").trim()));
-			preparedStatement.setInt(3, RoleEnum.getType(userJSON.getString("role")));
+		row.set("name", userJSON.getString("name"));
+		row.set("password", DigestUtils.sha256Hex(userJSON.getString("password").trim()));
+		row.set("role_type", RoleEnum.getType(userJSON.getString("role")));
 
-			preparedStatement.executeUpdate();
-		}
+		dataObject.addRow(row);
+		DataAccess.add(dataObject);
 	}
 }
