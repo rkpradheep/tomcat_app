@@ -12,7 +12,7 @@ sourceSets {
             srcDirs = ["${serverPath}/src"]
             outputDir = file ("${serverPath}/classes/")
         }
-        compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${home}/tomcat_build/lib") + fileTree ("${serverPath}/tomcat/shared/lib")
+        compileClasspath = fileTree ("${serverPath}/webapps/WEB-INF/lib/") + fileTree ("${home}/tomcat_build/lib") + fileTree ("${home}/tomcat_build/shared/lib")
     }
 }
 ext{
@@ -61,6 +61,9 @@ task setupTomcatContainer{
 //            filesMatching("**/ROOT/**/*") {
 //                it.path = it.path.replace("ROOT", "tomcat")
 //            }
+        }
+        exec{
+            commandLine "sudo", "chmod", "+777", "-R",  "${deploymentPath}"
         }
 
         ant.move(file:"${deploymentPath}/webapps/ROOT", tofile:"${deploymentPath}/webapps/tomcat")
@@ -283,6 +286,59 @@ def getCustomProperty(key, defaultValue)
 }
 
 
-configureTaskDependencies(setupServer, [setupTomcatContainer, setTomcatEnvironmentValues, doCustomPropertyChanges, build, doAppPropertyChanges, buildFrameworkJar, buildTomcatCustomAPIJar, copyResourcesForNonROOTWebApps,  packRootWar, packManagerWar, packTomcatWar, cleanUp])
+task generateTableConstantFiles {
+    doLast {
+
+        def buildToolsDir = "${serverPath}/build-tools"
+        new File ("${buildToolsDir}/tmp/classes").mkdirs()
+
+        def dependenciesJarPath = ""
+        file("${serverPath}/tomcat/shared/lib").eachFile { file ->
+            if (file.name.endsWith('.jar')) {
+                dependenciesJarPath += ":${file.absolutePath}"
+            }
+        }
+
+
+        ant.javac(
+                srcdir: "${buildToolsDir}/src",
+                destdir: "${buildToolsDir}/tmp/classes",
+                classpath: "${buildToolsDir}/lib/velocity-1.3.1.jar:${dependenciesJarPath}"
+        )
+
+        ant.java(
+                classpath: "${buildToolsDir}/tmp/classes:${buildToolsDir}/lib/velocity-1.3.1.jar:${buildToolsDir}/lib/velocity-dep-1.3.1.jar" + dependenciesJarPath,
+                classname: 'TableConstantGenerator',
+        ){
+            arg(value: getCustomProperty ("db.server", "mariadb"))
+            arg(value: getCustomProperty ("db.server.port", "4000"))
+            arg(value: getCustomProperty ("db.server.user", "root"))
+            arg(value: getCustomProperty ("db.server.password", "root"))
+            arg(value: getCustomProperty ("db.server.schema", "tomcatserver"))
+        }
+
+        delete "${buildToolsDir}/tmp/classes"
+        new File ("${buildToolsDir}/tmp/classes").mkdirs()
+
+        ant.javac(
+                srcdir: "${buildToolsDir}/tmp",
+                destdir: "${buildToolsDir}/tmp/classes"
+        )
+
+        ant.jar(
+                destfile: "${buildToolsDir}/tmp/table-constants.jar",
+                basedir: "${buildToolsDir}/tmp/classes"
+        )
+
+        copy{
+            from "${buildToolsDir}/tmp/table-constants.jar"
+            into "${home}/tomcat_build/shared/lib"
+        }
+
+        delete "${buildToolsDir}/tmp"
+    }
+}
+
+configureTaskDependencies(setupServer, [setupTomcatContainer, generateTableConstantFiles, setTomcatEnvironmentValues, doCustomPropertyChanges, build, doAppPropertyChanges, buildFrameworkJar, buildTomcatCustomAPIJar, copyResourcesForNonROOTWebApps,  packRootWar, packManagerWar, packTomcatWar, cleanUp])
 
 defaultTasks 'setupServer'

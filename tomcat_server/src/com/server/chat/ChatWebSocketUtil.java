@@ -1,12 +1,15 @@
 package com.server.chat;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.server.framework.persistence.DBUtil;
+import com.server.framework.persistence.Criteria;
+import com.server.framework.persistence.DataAccess;
+import com.server.framework.persistence.DataObject;
+import com.server.framework.persistence.Row;
+import com.server.framework.persistence.SelectQuery;
+import com.server.table.constants.CHATUSER;
+import com.server.table.constants.CHATUSERDETAIL;
 
 public class ChatWebSocketUtil
 {
@@ -15,29 +18,26 @@ public class ChatWebSocketUtil
 	static long addOrGetUser(String name)
 	{
 		name = name.toUpperCase().trim();
-
-		String selectQuery = "SELECT * FROM ChatUser where name = ?";
-
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
-			preparedStatement.setString(1, name);
+			SelectQuery selectQuery = new SelectQuery(CHATUSER.TABLE);
+			selectQuery.setCriteria(new Criteria(CHATUSER.TABLE, CHATUSER.NAME, name, Criteria.Constants.EQUAL));
 
-			ResultSet resultSet = preparedStatement.executeQuery();
-			if(resultSet.next())
+			DataObject dataObject = DataAccess.get(selectQuery);
+
+			if(!dataObject.getRows().isEmpty())
 			{
-				return resultSet.getLong(1);
+				return (long) dataObject.getRows().get(0).get(CHATUSER.ID);
 			}
-			String insertQuery = "INSERT INTO ChatUser (name) VALUES (?)";
 
-			preparedStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS);
-			preparedStatement.setString(1, name);
+			Row row = new Row(CHATUSER.TABLE);
+			row.set(CHATUSER.NAME, name);
 
-			preparedStatement.executeUpdate();
-			resultSet = preparedStatement.getGeneratedKeys();
-			resultSet.next();
+			dataObject.addRow(row);
 
-			return resultSet.getLong(1);
+			DataAccess.add(dataObject);
+
+			return (long) dataObject.getRows().get(0).get(CHATUSER.ID);
 		}
 		catch(Exception e)
 		{
@@ -48,18 +48,20 @@ public class ChatWebSocketUtil
 
 	static String getPreviousMessage(String name)
 	{
-		String selectQuery = "SELECT message FROM ChatUser INNER JOIN ChatUserDetails ON ChatUser.id = ChatUserDetails.chatuserid where ChatUser.name = '" + name + "'";
-
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
 
-			ResultSet resultSet = preparedStatement.executeQuery();
+			SelectQuery selectQuery = new SelectQuery(CHATUSER.TABLE);
+			selectQuery.setCriteria(new Criteria(CHATUSER.TABLE, CHATUSER.NAME, name, Criteria.Constants.EQUAL));
+			SelectQuery.Join join = new SelectQuery.Join(CHATUSER.TABLE, CHATUSER.ID, CHATUSERDETAIL.TABLE, CHATUSERDETAIL.CHATUSERID);
+			selectQuery.addJoin(join, SelectQuery.Join.Constants.INNER_JOIN);
+
+			DataObject dataObject = DataAccess.get(selectQuery);
 
 			StringBuilder previousMessage = new StringBuilder();
-			while(resultSet.next())
+			for(Row row : dataObject.getRows())
 			{
-				previousMessage.append(resultSet.getString("message"));
+				previousMessage.append(row.get(CHATUSERDETAIL.TABLE, CHATUSERDETAIL.MESSAGE));
 			}
 			return previousMessage.toString();
 		}
@@ -72,15 +74,13 @@ public class ChatWebSocketUtil
 
 	static void addMessage(String name, String message)
 	{
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			String insertQuery = "INSERT INTO ChatUserDetails (chatuserid, message) VALUES (?,?)";
+			Row row = new Row(CHATUSERDETAIL.TABLE);
+			row.set(CHATUSERDETAIL.CHATUSERID, addOrGetUser(name));
+			row.set(CHATUSERDETAIL.MESSAGE, message);
 
-			PreparedStatement preparedStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS);
-			preparedStatement.setString(2, message);
-			preparedStatement.setLong(1, addOrGetUser(name));
-
-			preparedStatement.executeUpdate();
+			DataAccess.add(row);
 		}
 		catch(Exception e)
 		{

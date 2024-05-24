@@ -57,7 +57,7 @@ public class JobAPI extends HttpServlet
 			}
 			else
 			{
-				JobUtil.scheduleJob(TaskEnum.getRunnable(payload.getString("tak")), millSeconds);
+				JobUtil.scheduleJob(TaskEnum.getRunnable(payload.getString("task")), millSeconds);
 			}
 
 		}

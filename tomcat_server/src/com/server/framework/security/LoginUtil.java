@@ -8,9 +8,15 @@ import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import com.server.framework.common.DateUtil;
+import com.server.framework.persistence.Criteria;
 import com.server.framework.persistence.DBUtil;
+import com.server.framework.persistence.DataAccess;
+import com.server.framework.persistence.Row;
+import com.server.framework.persistence.SelectQuery;
 import com.server.framework.user.User;
 import com.server.framework.user.UserUtil;
+import com.server.table.constants.SESSIONMANAGEMENT;
+import com.server.table.constants.USER;
 
 public class LoginUtil
 {
@@ -20,15 +26,14 @@ public class LoginUtil
 	{
 		name = name.toUpperCase().trim();
 
-		String selectQuery = "SELECT * FROM Users where name = ? AND password = ?";
-
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
-			preparedStatement.setString(1, name.toUpperCase().trim());
-			preparedStatement.setString(2, DigestUtils.sha256Hex(password.trim()));
+			SelectQuery selectQuery = new SelectQuery(USER.TABLE);
+			Criteria criteria = new Criteria(USER.TABLE, USER.NAME, name, Criteria.Constants.EQUAL);
+			criteria = criteria.and(new Criteria(USER.TABLE, USER.PASSWORD,  DigestUtils.sha256Hex(password.trim()), Criteria.Constants.EQUAL));
+			selectQuery.setCriteria(criteria);
 
-			return UserUtil.getUser(preparedStatement.executeQuery());
+			return UserUtil.getUser(DataAccess.get(selectQuery).getRows().get(0));
 		}
 		catch(Exception e)
 		{
@@ -39,18 +44,18 @@ public class LoginUtil
 
 	public static void addSession(String sessionId, Long userId, boolean isAdminLogin)
 	{
-		try(Connection connection = DBUtil.getServerDBConnection())
+
+		try
 		{
 			long expiryTime = isAdminLogin ? (1000 * 60 * 60 * 24) : (1000 * 60 * 30);
 
-			String insertQuery = "INSERT INTO SessionManagement (id, user_id, expiry_time) VALUES (?,?,?)";
+			Row row = new Row(SESSIONMANAGEMENT.TABLE);
+			row.set(SESSIONMANAGEMENT.SESSIONID, sessionId);
+			row.set(SESSIONMANAGEMENT.EXPIRYTIME, DateUtil.getCurrentTimeInMillis() + expiryTime);
+			row.set(SESSIONMANAGEMENT.USERID, userId);
 
-			PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
-			preparedStatement.setString(1, sessionId);
-			preparedStatement.setLong(2, userId);
-			preparedStatement.setLong(3, DateUtil.getCurrentTimeInMillis() + expiryTime);
+			DataAccess.add(row);
 
-			preparedStatement.executeUpdate();
 		}
 		catch(Exception e)
 		{
@@ -60,14 +65,10 @@ public class LoginUtil
 
 	public static void deleteExpiredSessions() throws Exception
 	{
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			String deleteQuery = "DELETE FROM SessionManagement WHERE expiry_time < ?";
-
-			PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery);
-			preparedStatement.setLong(1, DateUtil.getCurrentTimeInMillis());
-
-			preparedStatement.executeUpdate();
+			Criteria criteria = new Criteria(SESSIONMANAGEMENT.TABLE, SESSIONMANAGEMENT.EXPIRYTIME, DateUtil.getCurrentTimeInMillis(), Criteria.Constants.LESS_THAN);
+			DataAccess.delete(SESSIONMANAGEMENT.TABLE, criteria);
 		}
 		catch(Exception e)
 		{

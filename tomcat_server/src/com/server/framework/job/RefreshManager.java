@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
+import com.server.framework.persistence.SelectQuery;
+import com.server.table.constants.JOB;
 
 public class RefreshManager
 {
@@ -35,8 +37,8 @@ public class RefreshManager
 		}
 		else
 		{
-			String pendingJobQuery = "SELECT * FROM Job";
-			JobUtil.addJobInQueue(pendingJobQuery);
+			SelectQuery selectQuery = new SelectQuery(JOB.TABLE);
+			JobUtil.addJobInQueue(selectQuery);
 		}
 	}
 
@@ -111,7 +113,8 @@ public class RefreshManager
 		@Override
 		public int compareTo(Delayed delayed)
 		{
-			return Long.compare(jobMeta.getScheduledTime(), ((RefreshElement) delayed).jobMeta.getScheduledTime());
+			long delayedTime = ((RefreshElement) delayed).jobMeta.getScheduledTime();
+			return Long.compare(jobMeta.getScheduledTime(), delayedTime);
 		}
 
 		@Override

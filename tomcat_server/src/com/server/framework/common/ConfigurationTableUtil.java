@@ -6,7 +6,12 @@ import java.sql.ResultSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.server.framework.persistence.Criteria;
 import com.server.framework.persistence.DBUtil;
+import com.server.framework.persistence.DataAccess;
+import com.server.framework.persistence.Row;
+import com.server.framework.persistence.SelectQuery;
+import com.server.table.constants.CONFIGURATION;
 
 public class ConfigurationTableUtil
 {
@@ -14,55 +19,35 @@ public class ConfigurationTableUtil
 
 	public static String getValue(String key)
 	{
-		String jobSelectQuery = "SELECT * FROM Configuration where ckey = ?";
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(jobSelectQuery);
-			preparedStatement.setString(1, key);
+			SelectQuery selectQuery = new SelectQuery(CONFIGURATION.TABLE);
 
-			ResultSet resultSet = preparedStatement.executeQuery();
-			resultSet.next();
+			Criteria criteria = new Criteria(CONFIGURATION.TABLE, CONFIGURATION.CKEY, key, Criteria.Constants.EQUAL);
+			selectQuery.setCriteria(criteria);
 
-			return resultSet.getString("cvalue");
+			return (String) DataAccess.get(selectQuery).getRows().get(0).get(CONFIGURATION.CVALUE);
 		}
 		catch(Exception e)
 		{
-			LOGGER.log(Level.SEVERE, "Exception occurred",e );
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 			return null;
 		}
 	}
 
-	public static void setValue(String key, String value)
+	public static void setValue(String key, String value) throws Exception
 	{
-		try(Connection connection = DBUtil.getServerDBConnection())
-		{
-			PreparedStatement preparedStatement;
-			String updateJobQuery = "Insert into Configuration values (?, ?)";
-			preparedStatement = connection.prepareStatement(updateJobQuery);
-			preparedStatement.setString(1, key);
-			preparedStatement.setString(2, value);
+		Row row = new Row(CONFIGURATION.TABLE);
+		row.set(CONFIGURATION.CKEY, key);
+		row.set(CONFIGURATION.CVALUE, value);
 
-			preparedStatement.execute();
-		}
-		catch(Exception e)
-		{
-			LOGGER.log(Level.SEVERE, "Exception occurred",e );
-		}
+		DataAccess.add(row);
 	}
 
-	public static void delete(String key)
+	public static void delete(String key) throws Exception
 	{
-		try(Connection connection = DBUtil.getServerDBConnection())
-		{
-			PreparedStatement preparedStatement;
-			String updateJobQuery = "Delete from Configuration where ckey= (?)";
-			preparedStatement = connection.prepareStatement(updateJobQuery);
-			preparedStatement.setString(1, key);
-			preparedStatement.execute();
-		}
-		catch(Exception e)
-		{
-			LOGGER.log(Level.SEVERE, "Exception occurred",e );
-		}
+		Criteria criteria = new Criteria(CONFIGURATION.TABLE, CONFIGURATION.CKEY, key, Criteria.Constants.EQUAL);
+
+		DataAccess.delete(CONFIGURATION.TABLE, criteria);
 	}
 }

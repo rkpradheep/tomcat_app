@@ -1,8 +1,6 @@
 package com.server.framework.job;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,7 +9,13 @@ import org.apache.commons.codec.digest.DigestUtils;
 import com.server.framework.common.Configuration;
 import com.server.framework.common.ConfigurationTableUtil;
 import com.server.framework.common.DateUtil;
-import com.server.framework.persistence.DBUtil;
+import com.server.framework.persistence.Criteria;
+import com.server.framework.persistence.DataAccess;
+import com.server.framework.persistence.DataObject;
+import com.server.framework.persistence.Row;
+import com.server.framework.persistence.SelectQuery;
+import com.server.framework.persistence.UpdateQuery;
+import com.server.table.constants.JOB;
 
 public class JobUtil
 {
@@ -25,43 +29,53 @@ public class JobUtil
 
 	public static Long scheduleJob(String taskName, String data, long milliSeconds, int dayInterval, boolean isRecurring) throws Exception
 	{
-		String insertQuery = "INSERT INTO Job (task_name, data, scheduled_time, day_interval, is_recurring) VALUES (?, ?, ?, ?, ?)";
-		long id;
-		long executionTime = DateUtil.getCurrentTimeInMillis() + milliSeconds;
-		try(Connection connection = DBUtil.getServerDBConnection())
+
+		try
 		{
+			DataAccess.Transaction.begin();
 
-			PreparedStatement preparedStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS);
-			preparedStatement.setString(1, taskName);
-			preparedStatement.setString(2, data);
-			preparedStatement.setLong(3, executionTime);
-			preparedStatement.setInt(4, dayInterval);
-			preparedStatement.setBoolean(5, isRecurring);
+			long executionTime = DateUtil.getCurrentTimeInMillis() + milliSeconds;
 
-			preparedStatement.executeUpdate();
-			ResultSet resultSet = preparedStatement.getGeneratedKeys();
-			resultSet.next();
+			DataObject dataObject = new DataObject();
+			Row row = new Row(JOB.TABLE);
+			row.set(JOB.TASKNAME, taskName);
+			row.set(JOB.DATA, data);
+			row.set(JOB.SCHEDULEDTIME, executionTime);
+			row.set(JOB.DAYINTERVAL, dayInterval);
+			row.set(JOB.ISRECURRING, isRecurring);
 
-			id = resultSet.getLong(1);
+			dataObject.addRow(row);
+			DataAccess.add(dataObject);
+
+			long id = (long) dataObject.getRows().get(0).get(JOB.ID);
 			if(isRecurring)
 			{
 				ConfigurationTableUtil.setValue(DigestUtils.sha1Hex(String.valueOf(id)), String.valueOf(id));
 			}
-		}
 
-		if(!Configuration.getBoolean("can.add.job.dispatcher"))
+			DataAccess.Transaction.commit();
+
+			if(!Configuration.getBoolean("can.add.job.dispatcher"))
+			{
+				RefreshManager.addJobInQueue(id);
+			}
+
+			LOGGER.log(Level.INFO, "Job added with ID {0} for task {1} with delay {2} seconds. Formatted execution time : {3}", new Object[] {Long.toString(id), taskName, milliSeconds / 1000, DateUtil.getFormattedTime(executionTime)});
+			return id;
+		}
+		catch(Exception e)
 		{
-			RefreshManager.addJobInQueue(id);
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			DataAccess.Transaction.rollback();
+			throw e;
 		}
-
-		LOGGER.log(Level.INFO, "Job added with ID {0} for task {1} with delay {2} seconds. Formatted execution time : {3}", new Object[] {Long.toString(id), taskName, milliSeconds / 1000, DateUtil.getFormattedTime(executionTime)});
-		return id;
 	}
 
 	public static void scheduleJob(CustomRunnable runnable, int seconds)
 	{
 		scheduleJob(runnable, seconds * 1000L);
 	}
+
 	public static void scheduleJob(CustomRunnable runnable, long millisecond)
 	{
 		scheduleJob(runnable, null, millisecond);
@@ -77,20 +91,19 @@ public class JobUtil
 		if(jobId == -1)
 			return null;
 
-		String jobSelectQuery = "SELECT * FROM Job where id = ?";
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(jobSelectQuery);
-			preparedStatement.setLong(1, jobId);
+			SelectQuery selectQuery = new SelectQuery(JOB.TABLE);
+			selectQuery.setCriteria(new Criteria(JOB.TABLE, JOB.ID, jobId, Criteria.Constants.EQUAL));
+			DataObject dataObject = DataAccess.get(selectQuery);
 
-			ResultSet resultSet = preparedStatement.executeQuery();
-			resultSet.next();
+			Row row = dataObject.getRows().get(0);
 
-			String task = resultSet.getString("task_name");
-			String data = resultSet.getString("data");
-			long scheduledTime = resultSet.getLong("scheduled_time");
-			boolean isRecurring = resultSet.getBoolean("is_recurring");
-			int dayInterval = resultSet.getInt("day_interval");
+			String task = (String) row.get(JOB.TASKNAME);
+			String data = (String) row.get(JOB.DATA);
+			long scheduledTime = (long) row.get(JOB.SCHEDULEDTIME);
+			boolean isRecurring = (int) row.get(JOB.ISRECURRING) == 1;
+			int dayInterval = (int) row.get(JOB.DAYINTERVAL);
 
 			return new JobMeta.Builder()
 				.setId(jobId)
@@ -129,15 +142,13 @@ public class JobUtil
 
 	static void updateNextExecutionTime(long jobId, long nextExecutionTime)
 	{
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			PreparedStatement preparedStatement;
-			String updateJobQuery = "Update Job set scheduled_time=? where id=?";
-			preparedStatement = connection.prepareStatement(updateJobQuery);
-			preparedStatement.setLong(1, nextExecutionTime);
-			preparedStatement.setLong(2, jobId);
+			UpdateQuery updateQuery = new UpdateQuery(JOB.TABLE);
+			updateQuery.setValue(JOB.SCHEDULEDTIME, nextExecutionTime);
+			updateQuery.setCriteria(new Criteria(JOB.TABLE, JOB.ID, jobId, Criteria.Constants.EQUAL));
 
-			preparedStatement.executeUpdate();
+			DataAccess.update(updateQuery);
 		}
 		catch(Exception e)
 		{
@@ -152,21 +163,22 @@ public class JobUtil
 			return;
 		}
 
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			String deleteQuery = "DELETE FROM Job WHERE id = ?";
+			DataAccess.Transaction.begin();
 
-			PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery);
-			preparedStatement.setLong(1, id);
-
-			preparedStatement.executeUpdate();
+			Criteria criteria = new Criteria(JOB.TABLE, JOB.ID, id, Criteria.Constants.EQUAL);
+			DataAccess.delete(JOB.TABLE, criteria);
 
 			ConfigurationTableUtil.delete((DigestUtils.sha1Hex(String.valueOf(id))));
+
+			DataAccess.Transaction.commit();
 
 			LOGGER.log(Level.INFO, "Job with ID {0} is deleted", new Object[] {id});
 		}
 		catch(Exception e)
 		{
+			DataAccess.Transaction.rollback();
 			LOGGER.log(Level.SEVERE, "Exception occurred while delete job", e);
 		}
 	}
@@ -196,20 +208,18 @@ public class JobUtil
 		return nextExecutionTime;
 	}
 
-	public static void addJobInQueue(String selectQuery)
+	public static void addJobInQueue(SelectQuery selectQuery)
 	{
-		try(Connection connection = DBUtil.getServerDBConnection())
+		try
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
+			List<Row> rowList = DataAccess.get(selectQuery).getRows();
 
-			ResultSet resultSet = preparedStatement.executeQuery();
-
-			while(resultSet.next())
+			for(Row row : rowList)
 			{
-				long jobId = resultSet.getLong("id");
-				long executionTime = resultSet.getLong("scheduled_time");
-				int dayInterval = resultSet.getInt("day_interval");
-				if(DateUtil.getCurrentTimeInMillis() > executionTime)
+				long jobId = (long) row.get(JOB.ID);
+				long executionTime = (long) row.get(JOB.SCHEDULEDTIME);
+				int dayInterval = (int) row.get(JOB.DAYINTERVAL);
+				if(dayInterval != -1 && DateUtil.getCurrentTimeInMillis() > executionTime)
 				{
 					executionTime = getNextExecutionTimeFromPreviousScheduleTime(executionTime, dayInterval);
 					updateNextExecutionTime(jobId, executionTime);

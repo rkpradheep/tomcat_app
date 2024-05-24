@@ -17,7 +17,7 @@ public class HealthCheck extends HttpServlet
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
 		SelectQuery selectQuery = new SelectQuery("Users");
-		selectQuery.setCriteria(new Criteria("Users", "id", Arrays.asList(1000000000001L, 1000000000002L), Criteria.Constants.IN));
+		selectQuery.setCriteria(new Criteria("Users", "name", Arrays.asList("admin"), Criteria.Constants.IN));
 
 		try
 		{

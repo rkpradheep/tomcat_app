@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class DataAccess
 {
 	public static class Transaction
@@ -40,9 +38,11 @@ public class DataAccess
 					connection.rollback();
 					connection.close();
 				}
+
+				TRANSACTION_TL.remove();
 			}
 
-			TRANSACTION_TL.set(DBUtil.getServerDBConnection());
+			TRANSACTION_TL.set(DBUtil.getServerDBConnectionForTxn());
 		}
 
 		public static void commit() throws Exception
@@ -54,6 +54,7 @@ public class DataAccess
 			}
 
 			connection.commit();
+   connection.close();
 			TRANSACTION_TL.remove();
 		}
 
@@ -68,6 +69,7 @@ public class DataAccess
 				}
 
 				connection.rollback();
+    connection.close();
 				TRANSACTION_TL.remove();
 			}
 			catch(Exception e)
@@ -203,6 +205,11 @@ public class DataAccess
 			}
 
 			preparedStatement.executeUpdate();
+
+			if(Objects.isNull(Transaction.getActiveTxnFromTL()))
+			{
+				connection.commit();
+			}
 		}
 		catch(Exception e)
 		{
@@ -231,6 +238,11 @@ public class DataAccess
 			}
 
 			preparedStatement.execute();
+
+			if(Objects.isNull(Transaction.getActiveTxnFromTL()))
+			{
+				connection.commit();
+			}
 		}
 		catch(Exception e)
 		{

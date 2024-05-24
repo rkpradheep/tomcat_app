@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.server.table.constants.BATCHTABLE;
+
 public class DataAccessUtil
 {
 	private static final AtomicLong BATCH_END = new AtomicLong(-1L);
@@ -20,13 +22,13 @@ public class DataAccessUtil
 
 		if(Objects.equals(CURRENT_PK.get(), -1L) || Objects.equals(CURRENT_PK.get(), BATCH_END.get()))
 		{
-			SelectQuery selectQuery = new SelectQuery("BatchDetails");
+			SelectQuery selectQuery = new SelectQuery(BATCHTABLE.TABLE);
 			DataObject dataObject = DataAccess.get(selectQuery);
 			if(dataObject.getRows().isEmpty())
 			{
-				Row row = new Row("BatchDetails");
-				row.set("sas_id", 1);
-				row.set("batch_start", 1000000001000L);
+				Row row = new Row(BATCHTABLE.TABLE);
+				row.set(BATCHTABLE.ACCOUNTID, 1);
+				row.set(BATCHTABLE.BATCHSTART, 1000000001000L);
 
 				dataObject.addRow(row);
 
@@ -36,14 +38,14 @@ public class DataAccessUtil
 				BATCH_END.set(1000000001000L - 1L);
 			}
 
-			Long batchStart = (Long) dataObject.getRows().get(0).get("batch_start");
+			Long batchStart = (Long) dataObject.getRows().get(0).get(BATCHTABLE.BATCHSTART);
 			Long updatedBatchEnd = batchStart + 1000L;
 
 			CURRENT_PK.set(batchStart);
 			BATCH_END.set(updatedBatchEnd - 1L);
 
-			UpdateQuery updateQuery = new UpdateQuery("BatchDetails");
-			updateQuery.setValue("batch_start", updatedBatchEnd);
+			UpdateQuery updateQuery = new UpdateQuery(BATCHTABLE.TABLE);
+			updateQuery.setValue(BATCHTABLE.BATCHSTART, updatedBatchEnd);
 
 			DataAccess.update(updateQuery);
 		}

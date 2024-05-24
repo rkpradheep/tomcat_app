@@ -1,9 +1,8 @@
 
    async function addJob() {
     const date = document.getElementById('date').value.replace('T', ' ');
-    const dayInterval = document.getElementById('day_interval').value;
     const isRecurring = document.getElementById("is_recurring").checked;
-
+    const dayInterval = isRecurring ? document.getElementById('day_interval').value : -1;
     if(date.length == 0)
     {
         alert("Please enter valid Execution Date & Time");
@@ -17,7 +16,7 @@
         return;
     }
     }
-
+   
     var data;
 
     var otpReference;

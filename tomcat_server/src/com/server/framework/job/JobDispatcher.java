@@ -1,8 +1,11 @@
 package com.server.framework.job;
 
 import com.server.framework.common.DateUtil;
+import com.server.framework.persistence.Criteria;
+import com.server.framework.persistence.SelectQuery;
 import com.server.framework.security.LoginUtil;
 import com.server.framework.security.ThrottleHandler;
+import com.server.table.constants.JOB;
 
 public class JobDispatcher
 {
@@ -13,8 +16,9 @@ public class JobDispatcher
 			ThrottleHandler.removeExpiredIPLockingAndThrottleMeta();
 			LoginUtil.deleteExpiredSessions();
 
-			String pendingJobQuery = "SELECT * FROM Job where scheduled_time <= " + (DateUtil.getCurrentTimeInMillis() + 5000);
-			JobUtil.addJobInQueue(pendingJobQuery);
+			SelectQuery selectQuery = new SelectQuery(JOB.TABLE);
+			selectQuery.setCriteria(new Criteria(JOB.TABLE, JOB.SCHEDULEDTIME, DateUtil.getCurrentTimeInMillis() + 5000, Criteria.Constants.LESS_THAN));
+			JobUtil.addJobInQueue(selectQuery);
 		}
 		finally
 		{
