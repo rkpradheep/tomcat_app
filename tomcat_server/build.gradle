@@ -56,16 +56,12 @@ task setupTomcatContainer{
         new File ("${deploymentPath}/logs").mkdirs()
 
         copy {
-            from zipTree("${home}/tomcat_binary.zip")
+            from zipTree ("${home}/tomcat_binary.zip")
             into "${deploymentPath}"
 //            filesMatching("**/ROOT/**/*") {
 //                it.path = it.path.replace("ROOT", "tomcat")
 //            }
         }
-        exec{
-            commandLine "sudo", "chmod", "+777", "-R",  "${deploymentPath}"
-        }
-
         ant.move(file:"${deploymentPath}/webapps/ROOT", tofile:"${deploymentPath}/webapps/tomcat")
 
         copy{
@@ -194,7 +190,25 @@ task buildFrameworkJar(type: Jar) {
     archiveFileName = "framework.jar"
     from "${serverPath}/classes"
     include 'com/server/framework/**'
+    exclude 'com/server/framework/instrumentation/**'
     destinationDir = file("${deploymentPath}/shared/lib")
+}
+
+
+task buildInstrumentationJar(type: Jar) {
+    archiveFileName = "instrumentation.jar"
+    from "${serverPath}/classes"
+    include 'com/server/framework/instrumentation/**'
+    destinationDir = file("${deploymentPath}/shared/lib")
+
+    manifest {
+        attributes(
+                'Agent-Class': 'com.server.framework.instrumentation.InstrumentationAPI',
+                'Can-Redefine-Classes': 'true',
+                'Can-Retransform-Classes': 'true',
+                'Premain-Class': 'com.server.framework.instrumentation.InstrumentationAPI'
+        )
+    }
 }
 
 task setupServer{
@@ -339,6 +353,6 @@ task generateTableConstantFiles {
     }
 }
 
-configureTaskDependencies(setupServer, [setupTomcatContainer, generateTableConstantFiles, setTomcatEnvironmentValues, doCustomPropertyChanges, build, doAppPropertyChanges, buildFrameworkJar, buildTomcatCustomAPIJar, copyResourcesForNonROOTWebApps,  packRootWar, packManagerWar, packTomcatWar, cleanUp])
+configureTaskDependencies(setupServer, [setupTomcatContainer, generateTableConstantFiles, setTomcatEnvironmentValues, doCustomPropertyChanges, build, doAppPropertyChanges, buildFrameworkJar, buildTomcatCustomAPIJar, buildInstrumentationJar, copyResourcesForNonROOTWebApps,  packRootWar, packManagerWar, packTomcatWar, cleanUp])
 
 defaultTasks 'setupServer'
