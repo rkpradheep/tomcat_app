@@ -18,10 +18,12 @@ export JAVA_HOME=/opt/java/zulu$JAVA_VERSION
 
 export MY_HOME=$MY_HOME
 
+sudo systemctl stop tomcat
+
 sudo rm -rf tomcat_build
 
 $GRADLE setUpServer
 
-sudo systemctl restart tomcat
+sudo systemctl start tomcat
 
 echo "${GREEN}############## Build completed ##############${NC}\n"

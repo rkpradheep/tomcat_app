@@ -105,7 +105,7 @@ task setTomcatEnvironmentValues{
                 into "${home}/tomcat_build/conf/"
             }
             replaceToken ("${home}/tomcat_build/conf/server.xml", [
-                    [from: "tomcat.jks",
+                    [from: "server.pfx",
                      to  : "${getCustomProperty ("custom.keystore.file", null)}"
                     ],
                     [from: "keystorePass=\"tomcat\"",
@@ -239,7 +239,7 @@ task doCustomPropertyChanges{
                 into "${deploymentPath}/conf/"
             }
             replaceToken ("${deploymentPath}/conf/server.xml", [
-                    [from: "tomcat.jks",
+                    [from: "server.pfx",
                      to  : "${getCustomProperty ("custom.keystore.file", null)}"
                     ],
                     [from: "certificateKeystorePassword=\"tomcat\"",

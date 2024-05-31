@@ -46,4 +46,68 @@ su - $USER
 
 To generate self signed certificate
 
-keytool -genkeypair -v  -keystore tomcat.jks   -keyalg RSA   -keysize 2048   -validity 365   -storepass tomcat   -keypass tomcat
+keytool -genkeypair -v  -keystore server.jks   -keyalg RSA   -keysize 2048   -validity 365   -storepass tomcat   -keypass tomcat
+
+
+To import certificate into truststore (it will create trusstore file if not exists already)
+
+keytool -import -alias ${name} -file ${crt_path} -keystore truststore.jks
+
+
+To delete certificate from truststore
+
+keytool -delete -alias ${name} -keystore truststore.jks
+
+
+
+To create csr file for signing
+
+openssl req -new -key ${key_name} -out ${csr_name}.csr
+
+
+
+To create key for CA or Client or Server
+
+openssl genpkey -algorithm RSA -out ${keyname}.key  -aes256 -pkeyopt rsa_keygen_bits:2048
+
+
+To sign and get cert using for CA itself
+
+openssl x509 -req -in ${csr_file} -signkey ${ca_key} -out {cert_name}.cer -days 365
+
+
+To sign and get cert using create CA key from csr
+
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -out server.crt -CAcreateserial  -days 10950 -sha256
+
+
+To combine the certificate and key into single file (pfx)
+
+openssl pkcs12 -export -out server.pfx -inkey server.key -in server.crt
+
+
+Complete example :
+
+openssl genpkey -algorithm RSA -out server.key  -aes256 -pkeyopt rsa_keygen_bits:2048
+
+openssl req -new -key server.key -out server.csr
+
+openssl genpkey -algorithm RSA -out ca.key  -aes256 -pkeyopt rsa_keygen_bits:2048
+
+openssl req -new -key ca.key -out ca.csr
+
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -out server.crt -CAcreateserial  -days 10950 -sha256
+
+cat server.crt ca.crt > bundle.crt
+
+openssl pkcs12 -export -out server.pfx -inkey server.key -in bundle.crt
+
+openssl genpkey -algorithm RSA -out client.key  -aes256 -pkeyopt rsa_keygen_bits:2048
+
+openssl req -new -key client.key -out client.csr
+
+openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -out client.crt -CAcreateserial  -days 10950 -sha256
+
+openssl pkcs12 -export -out client.pfx -inkey client.key -in client.crt
+
+keytool -import -alias tomcat -file ca.crt -keystore truststore.jks
