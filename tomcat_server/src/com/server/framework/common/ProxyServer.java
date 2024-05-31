@@ -155,8 +155,8 @@ public class ProxyServer
 				JSONObject jsonResponse = new JSONObject();
 				jsonResponse.put("messaged", "Invalid proxy credentials");
 
-				outputStreamWriter.write("HTTP/1.0 401 Unauthorized\r\n");
-				outputStreamWriter.write("Proxy-agent: Simple/0.1\r\n");
+				outputStreamWriter.write("HTTP/1.1 407 Proxy Authentication Required\r\n");
+				outputStreamWriter.write("Proxy-Authenticate: Basic realm=\"Proxy\"");
 				outputStreamWriter.write("Content-Type: application/json\r\n");
 				outputStreamWriter.write("\r\n");
 
