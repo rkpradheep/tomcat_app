@@ -306,6 +306,19 @@ public class SecurityUtil
 		return SecurityFilter.CURRENT_REQUEST_TL.get();
 	}
 
+	public static String getCurrentRequestDomain()
+	{
+		try
+		{
+			URL url = new URL(getCurrentRequest().getRequestURL().toString());
+			return url.getProtocol() + "://" + url.getHost();
+		}
+		catch(Exception e)
+		{
+			return getCurrentRequest().getRequestURL().toString();
+		}
+	}
+
 	static void sendVisitorNotification() throws UnknownHostException
 	{
 		if(!isLoggedIn())

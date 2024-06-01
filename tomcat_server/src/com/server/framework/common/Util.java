@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -31,7 +32,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.tomcat.jakartaee.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -192,6 +193,8 @@ public class Util
 
 	public static JSONObject getZohoSecrets(String dc)
 	{
+		dc = Arrays.asList("local","dev").contains(dc) ? dc : "us";
+
 		JSONObject oauthCredentials = new JSONObject();
 
 		oauthCredentials.put("client_id", Configuration.getProperty("oauth.$.client.id".replace("$", dc)));

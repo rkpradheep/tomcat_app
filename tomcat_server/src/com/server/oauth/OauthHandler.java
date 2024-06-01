@@ -92,7 +92,8 @@ public class OauthHandler extends HttpServlet
 			.append("&prompt=consent")
 			.append("&redirect_uri=" + secretJson.getString("redirect_uri"))
 			.append("&response_type=code")
-			.append("&access_type=offline");
+			.append("&access_type=offline")
+			.append("&state=" + SecurityUtil.getCurrentRequestDomain() + "/tokenGen.jsp");
 
 		return new JSONObject().put("redirect_uri", queryString.toString()).toString();
 	}

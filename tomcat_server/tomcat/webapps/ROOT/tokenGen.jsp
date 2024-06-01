@@ -131,22 +131,34 @@
     </div>
 </nav>
 <br><br><br>
-<h1><b>Token Generator for Zoho</b></h1>
+<h1><b>OAuth 2.0 Token Generator for Zoho</b></h1>
 <br/>
-To generate token using custom secrets <a target="_blank" href="/tokenGenCustom.jsp">click here</a>
+To generate token using own secrets <a target="_blank" href="/tokenGenCustom.jsp">click here</a>
 <br/>
 <br/>
 <br/>
 <form>
   DC :
   <input type="radio" id="dev" name="dc" value="dev">
-  <label for="dev">Development</label>
+  <label id="devLabel" for="dev">Development</label>
   <input type="radio" id="local" name="dc" value="local">
-  <label for="local">Local</label>
+  <label id="localLabel" for="local">Local</label>
   <input type="radio" id="in" name="dc" value="in">
   <label for="in">IN</label>
   <input type="radio" id="us" name="dc" value="us">
-  <label for="us">US</label><br><br>
+  <label for="us">US</label>
+  <input type="radio" id="eu" name="dc" value="eu">
+  <label for="eu">EU</label>
+  <input type="radio" id="au" name="dc" value="au">
+  <label for="au">AU</label>
+  <input type="radio" id="jp" name="dc" value="jp">
+  <label for="jp">JP</label>
+  <input type="radio" id="uk" name="dc" value="uk">
+  <label for="uk">UK</label>
+  <input type="radio" id="ca" name="dc" value="ca">
+  <label for="ca">CA</label>
+  <input type="radio" id="sa" name="dc" value="sa">
+  <label for="SA">SA</label><br><br>
 </form>
 
 <input type="text" name="scope" id="scope" style="width:400px;height:25px" placeholder="Enter scope"><br><br>
@@ -161,11 +173,16 @@ To generate token using custom secrets <a target="_blank" href="/tokenGenCustom.
 <script src="js/navbar.js"></script>
 <script src="js/common.js"></script>
 <script>
-if (getCookie('production') == 'true')
-{
-window.open(new URL(window.location.href).origin + "/tokenGenCustom.jsp" , "_self");
-}
-forceHttpsRedirect();
+          window.onload = function() {
+                forceHttpsRedirect();
+                if (getCookie('production') == 'true')
+                {
+                hideElement('dev')
+                hideElement('devLabel')
+                hideElement('local')
+                hideElement('localLabel')
+                }
+           }
 const code =  new URLSearchParams(window.location.search).get('code');
 if(code!=null && code.length > 10 && localStorage.getItem('dc') != null)
 {
@@ -173,17 +190,29 @@ const url = new URL(window.location.href);
 window.history.replaceState({}, document.title, `${window.location.origin}/tokenGen.jsp`);
 getTokens(code)
 }
-function getDomain()
+function getDomainUrl()
 {
 let dc = document.querySelector('input[name="dc"]:checked').value;
 if(dc == "dev")
 return "https://accounts.csez.zohocorpin.com/oauth/v2";
 if(dc == "local")
 return "https://accounts.localzoho.com/oauth/v2";
-if(dc == "us")
-return "https://accounts.zoho.com/oauth/v2";
 if(dc == "in")
 return "https://accounts.zoho.in/oauth/v2";
+if(dc == "us")
+return "https://accounts.zoho.com/oauth/v2";
+if(dc == "eu")
+return "https://accounts.zoho.eu/oauth/v2";
+if(dc == "au")
+return "https://accounts.zoho.com.au/oauth/v2";
+if(dc == "jp")
+return "https://accounts.zoho.jp/oauth/v2";
+if(dc == "ca")
+return "https://accounts.zohocloud.ca/oauth/v2";
+if(dc == "sa")
+return "https://accounts.zoho.sa/oauth/v2";
+if(dc == "uk")
+return "https://accounts.zoho.uk/oauth/v2";
 }
 function redirect()
 {
@@ -203,7 +232,7 @@ function redirect()
 
     const data = {
             'scope' : document.getElementById("scope").value,
-            'url' : getDomain() + "/auth"
+            'url' : getDomainUrl() + "/auth"
     }
 
       fetch( "/api/v1/oauth/code", {
@@ -241,7 +270,7 @@ document.getElementById("output").value = "Generating ........";
 
 const data = {
 'code': code,
-'url': getDomain() + "/token"
+'url': getDomainUrl() + "/token"
 }
 
 fetch( "/api/v1/oauth/tokens", {
@@ -303,7 +332,7 @@ if(!isRefreshTokenAvailable())
 
 const data = {
   'refresh_token':refreshToken,
-  'url': getDomain() + "/token"
+  'url': getDomainUrl() + "/token"
 }
 
 fetch( "/api/v1/oauth/tokens", {
