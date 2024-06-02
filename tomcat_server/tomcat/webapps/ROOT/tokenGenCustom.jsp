@@ -316,7 +316,26 @@ document.getElementById("output").value = JSON.stringify(res, null, 2);
 }
 
 
+function doChangesForGenerateTokens()
+{
+unHideElement('steps_container')
+hideElement('refresh_button')
+hideElement('refresh_token_field')
+unHideElement('redirect_uri_field')
+unHideElement('authorize_uri_field')
+unHideElement('scope_field')
+}
 
+function doChangesForRefreshToken()
+{
+unHideElement('refresh_token_field')
+hideElement('steps_container')
+unHideElement('refresh_button')
+hideElement('redirect_uri_field')
+hideElement('authorize_uri_field')
+hideElement('redirected_uri_field')
+hideElement('scope_field')
+}
 
 
 
@@ -380,24 +399,40 @@ function reset(auto)
 <br/>
 <br/>
 
-Client ID &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_id" id="client_id" style="width:400px;height:25px"><br><br>
-Client Secret &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_secret" id="client_secret" style="width:400px;height:25px"><br><br>
-Scope  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="scope" id="scope" style="width:400px;height:25px"><br><br>
-Redirect URI  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="redirect_uri" id="redirect_uri" style="width:400px;height:25px"><br><br>
+<div id="client_id_field">
+<label for="client_id">Client ID </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_id" id="client_id" style="width:400px;height:25px"><br><br>
+</div>
+<div id="client_secret_field">
+<label for="client_secret">Client Secret</label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="client_secret" id="client_secret" style="width:400px;height:25px"><br><br>
+</div>
+<div id="scope_field">
+<label for="scope">Scope </label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="scope" id="scope" style="width:400px;height:25px"><br><br>
+</div>
+<div id="redirect_uri_field">
+<label for="redirect_uri">Redirect URI </label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="redirect_uri" id="redirect_uri" style="width:400px;height:25px"><br><br>
+</div>
 <div id="refresh_token_field" style="display:none">
-Refresh Token &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="refresh_token" name="refresh_token" style="width:400px;height:25px"><br><br>
+<label for="refresh_token">Refresh Token </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="refresh_token" name="refresh_token" style="width:400px;height:25px"><br><br>
 </div>
 <div id="redirected_uri_field" style="display:none">
-Redirected URI  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="redirected_uri" name="redirected_uri" style="width:400px;height:25px"><br><br>
+<label for="redirect_uri">Redirected URI  </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="redirected_uri" name="redirected_uri" style="width:400px;height:25px"><br><br>
 </div>
- <label for="authorization_uri">Authorize URL</label> &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<input type="text" id="authorization_uri" style="width:400px;height:25px"><br><br>
- <label for="access_token_uri"> Access Token URL </label> &nbsp;<input type="text" id="access_token_uri" style="width:400px;height:25px"><br><br>
+<div id="authorize_uri_field">
+<label for="authorization_uri">Authorize URL</label> &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<input type="text" id="authorization_uri" style="width:400px;height:25px"><br><br>
+</div>
+<label for="access_token_uri"> Access Token URL </label> &nbsp;<input type="text" id="access_token_uri" style="width:400px;height:25px"><br><br>
 <button onclick="reset(false)"> Reset </button>
 <br><br>
 <div id="response" style="display:none;">
 <button onclick="copyAT()"> Copy Access Token </button> <button onclick="copyRT()"> Copy Refresh Token </button> <button onclick="copyAll()"> Copy All </button> <br>
 <textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black "></textarea>
 </div>
+ <br><br>
+  <input type="radio" id="create_tokens" name="token_gen_option" value="create_tokens" checked onclick="doChangesForGenerateTokens()">
+  <label  for="create_tokens">Create Access Token and Refresh Token</label>
+  <input type="radio" id="refresh_access_token" name="token_gen_option" value="refresh_access_token" onclick="doChangesForRefreshToken()">
+  <label for="refresh_access_token">Generate Access Token From Refresh Token</label>
+  <br><br>
 <div style="background-color:#D3D3D3" id="steps_container">
 <h3><b>Step 1: Code Generation</h3>
 <button onclick="redirect()" title="You will be redirected to a consent page now. After giving consent, you will be redirected to another page and make sure to copy the the url of that page and paste it in above Redirected URI field."> Generate Code </button> <br>

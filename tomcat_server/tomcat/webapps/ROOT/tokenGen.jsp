@@ -133,34 +133,16 @@
 <br><br><br>
 <h1><b>OAuth 2.0 Token Generator for Zoho</b></h1>
 <br/>
-To generate token using own secrets <a target="_blank" href="/tokenGenCustom.jsp">click here</a>
+To generate token using your own secrets <a target="_blank" href="/tokenGenCustom.jsp">click here</a>
 <br/>
 <br/>
 <br/>
 <form>
   DC :
-  <input type="radio" id="dev" name="dc" value="dev">
-  <label id="devLabel" for="dev">Development</label>
-  <input type="radio" id="local" name="dc" value="local">
-  <label id="localLabel" for="local">Local</label>
-  <input type="radio" id="in" name="dc" value="in">
-  <label for="in">IN</label>
-  <input type="radio" id="us" name="dc" value="us">
-  <label for="us">US</label>
-  <input type="radio" id="eu" name="dc" value="eu">
-  <label for="eu">EU</label>
-  <input type="radio" id="au" name="dc" value="au">
-  <label for="au">AU</label>
-  <input type="radio" id="jp" name="dc" value="jp">
-  <label for="jp">JP</label>
-  <input type="radio" id="uk" name="dc" value="uk">
-  <label for="uk">UK</label>
-  <input type="radio" id="ca" name="dc" value="ca">
-  <label for="ca">CA</label>
-  <input type="radio" id="sa" name="dc" value="sa">
-  <label for="SA">SA</label><br><br>
+<select id="dcList">
+</select>
 </form>
-
+<br><br>
 <input type="text" name="scope" id="scope" style="width:400px;height:25px" placeholder="Enter scope"><br><br>
 
 <button id="tokenButton" name="tokenButton" onclick="redirect()"> Generate Token </button> <br>
@@ -173,14 +155,22 @@ To generate token using own secrets <a target="_blank" href="/tokenGenCustom.jsp
 <script src="js/navbar.js"></script>
 <script src="js/common.js"></script>
 <script>
+ var dcListOptions = ""
+ const dcList = ['dev', 'local', 'us', 'in', 'uk', 'eu', 'au', 'jp', 'ca', 'sa']
+ for (var i in dcList) {
+      var dc = dcList[i]
+      var val = dc == 'dev' ? 'DEVELOPMENT' : dc.toUpperCase()
+      dcListOptions += "<option id=" + dc + " value=" + dc + ">" + val + "</option>";
+ }
+ document.getElementById('dcList').innerHTML = dcListOptions
+ document.getElementById('dcList').value='us'
+
           window.onload = function() {
                 forceHttpsRedirect();
                 if (getCookie('production') == 'true')
                 {
                 hideElement('dev')
-                hideElement('devLabel')
                 hideElement('local')
-                hideElement('localLabel')
                 }
            }
 const code =  new URLSearchParams(window.location.search).get('code');
@@ -192,7 +182,7 @@ getTokens(code)
 }
 function getDomainUrl()
 {
-let dc = document.querySelector('input[name="dc"]:checked').value;
+let dc = getElementValue('dcList');
 if(dc == "dev")
 return "https://accounts.csez.zohocorpin.com/oauth/v2";
 if(dc == "local")
@@ -216,18 +206,13 @@ return "https://accounts.zoho.uk/oauth/v2";
 }
 function redirect()
 {
-    if(document.querySelector('input[name="dc"]:checked') == null)
-    {
-        alert("Please choose DC");
-        return;
-    }
      if(document.getElementById("scope").value == "")
      {
          alert("Scope is mandatory");
          return;
       }
 
-      localStorage.setItem('dc', document.querySelector('input[name="dc"]:checked').value);
+      localStorage.setItem('dc', getElementValue('dcList'));
       localStorage.setItem('scope', document.getElementById("scope").value);
 
     const data = {
@@ -261,7 +246,7 @@ if(handleRedirection(res))
 function getTokens(code)
 {
 
-document.getElementById(localStorage.getItem('dc')).checked = true;
+setElementValue('dcList', localStorage.getItem('dc'))
 document.getElementById("scope").value = localStorage.getItem('scope')
 localStorage.clear()
 
@@ -311,12 +296,6 @@ return false;
 
 function refresh()
 {
-if(document.querySelector('input[name="dc"]:checked') == null)
-    {
-        alert("Please choose DC");
-        return;
-}
-
 if(!isRefreshTokenAvailable())
 {
         alert("Refresh token is unavailable. Please generate it first.");
@@ -398,7 +377,6 @@ function copyAll(){
 copyToClipboard(document.getElementById("output").value);
 alert("copied");
 }
-
 </script>
 </body>
 </html>
