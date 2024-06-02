@@ -1,5 +1,6 @@
+    var otpReference;
 
-   async function addJob() {
+   async function addJob(otp) {
     const date = document.getElementById('date').value.replace('T', ' ');
     const isRecurring = document.getElementById("is_recurring").checked;
     const dayInterval = isRecurring ? document.getElementById('day_interval').value : -1;
@@ -18,12 +19,7 @@
     }
    
     var data;
-
-    var otpReference;
-
-    var otp;
-
-    if(document.getElementById('task').value == "mail")
+    if(document.getElementById('task').value == "mail" && otp == null)
     {
     const subject = document.getElementById('subject').value;
     const fromAddress = document.getElementById('fromAddress').value;
@@ -61,18 +57,14 @@
     "to_address" : toAddress
     }
 
-    data = JSON.stringify(email)
+   data = JSON.stringify(email)
 
    unHideElement("loading");
    otpReference = await initiateOTP(fromAddress)
    hideElement("loading");
 
-   otp = prompt("Please enter the OTP sent to your from email to verify it.")
-   if(otp == undefined)
-   {
-    alert("Invalid OTP")
-    return
-    }
+   openPrompt()
+   return
 
     }
 
@@ -99,7 +91,10 @@
           }
           ).then(data=> {
             const res = JSON.parse(data);
-            alert(res["message"] != undefined ? res["message"] : res["error"])
+            var apiMessage = res["message"] != undefined ? res["message"] : res["error"]
+            alert(apiMessage)
+            if(apiMessage.includes('Job has been scheduled successfully'))
+              resetInput()
           }).catch(error => {
              alert("Something went wrong. Server might be down");
           });
@@ -183,9 +178,38 @@ function showOrHideRecurring()
 }
 
 
+        function openPrompt() {
+            setElementValue('otp_value','')
+            document.getElementById('promptOverlay').style.display = 'flex';
+        }
+
+        function closePrompt() {
+            document.getElementById('promptOverlay').style.display = 'none';
+        }
+
+function submitPrompt() {
+closePrompt();
+var otp = getElementValue('otp_value');
+   if(otp == '' || isNaN(otp))
+   {
+    alert("Invalid OTP")
+    return
+    }
+   addJob(otp)
+}
+
+
 var dayIntervalOptions = "";
 for (var i=1 ;i< 367; i++)  {
     dayIntervalOptions += "<option >" + i + "</option>";
+}
+
+function resetInput()
+{
+setElementValue('subject','')
+setElementValue('fromAddress', '')
+setElementValue('toAddress', '')
+setElementValue('emailMessage', '')
 }
 
 document.getElementById("day_interval").innerHTML = dayIntervalOptions;

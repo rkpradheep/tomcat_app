@@ -58,6 +58,7 @@ public class JobAPI extends HttpServlet
 			else
 			{
 				JobUtil.scheduleJob(TaskEnum.getRunnable(payload.getString("task")), millSeconds);
+				SecurityUtil.writeSuccessJSONResponse(response, "Job has been scheduled successfully");
 			}
 
 		}
