@@ -20,4 +20,17 @@ public class DataObject
 	{
 		return rowList;
 	}
+
+	public List<Row> getRows(Criteria criteria)
+	{
+		List<Row> filteredRowList = new ArrayList<>();
+		for(Row row : rowList)
+		{
+			if(criteria.matches(row))
+			{
+				filteredRowList.add(row);
+			}
+		}
+		return filteredRowList;
+	}
 }
