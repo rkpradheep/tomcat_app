@@ -1,6 +1,5 @@
 package com.server.framework.persistence;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,15 +31,21 @@ public class Criteria
 
 	static class Criterion
 	{
-		String tableName;
-		String columnName;
+		Column column;
 		Object columnValue;
 		String comparator;
+		Function function;
 
-		private Criterion(String tableName, String columnName, Object value, String comparator)
+		private Criterion(Column column, Object value, String comparator)
 		{
-			this.tableName = tableName;
-			this.columnName = columnName;
+			this.column = column;
+			this.columnValue = value;
+			this.comparator = comparator;
+		}
+
+		private Criterion(Function function, Object value, String comparator)
+		{
+			this.function = function;
 			this.columnValue = value;
 			this.comparator = comparator;
 		}
@@ -68,16 +73,28 @@ public class Criteria
 
 		public boolean matches(Row row)
 		{
-			Object lhsValue = row.get(tableName, columnName);
+			Object lhsValue = row.get(column);
 			Object rhsValue = columnValue;
 
 			return this.matches(lhsValue, rhsValue);
 		}
 	}
 
+	public Criteria(Column column, Object columnValue, String comparator)
+	{
+		this.criterion = new Criterion(column, columnValue, comparator);
+		this.leftCriteria = null;
+		this.rightCriteria = null;
+	}
+
 	public Criteria(String tableName, String columnName, Object columnValue, String comparator)
 	{
-		this.criterion = new Criterion(tableName, columnName, columnValue, comparator);
+		this(Column.getColumn(tableName, columnName), columnValue, comparator);
+	}
+
+	public Criteria(Function function, Object columnValue, String comparator)
+	{
+		this.criterion = new Criterion(function, columnValue, comparator);
 		this.leftCriteria = null;
 		this.rightCriteria = null;
 	}

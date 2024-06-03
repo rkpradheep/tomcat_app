@@ -1,7 +1,6 @@
 package com.server.framework.persistence;
 
 import java.sql.Connection;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +80,7 @@ public class DataAccessUtil
 
 	public static String getCriteriaString(Criteria criteria, List<Object> criteriaPlaceHolderList)
 	{
-		if(criteria.leftCriteria == null)
+		if(Objects.isNull(criteria.leftCriteria))
 		{
 			Criteria.Criterion criterion = criteria.criterion;
 			if(criterion == null)
@@ -89,15 +88,40 @@ public class DataAccessUtil
 				return StringUtils.EMPTY;
 			}
 
-			if(criteria.criterion.columnValue instanceof List<?> placeHolderValueList)
+			if(Objects.nonNull(criterion.function))
+			{
+				Function function = criterion.function;
+
+				StringBuilder functionContent = new StringBuilder();
+				for(Object arg : function.args)
+				{
+					if(arg instanceof Column column)
+					{
+						functionContent.append(column.tableName).append(".").append(column.columnName);
+						functionContent.append(",");
+					}
+					else
+					{
+						criteriaPlaceHolderList.add(arg);
+						functionContent.append("?");
+						functionContent.append(",");
+					}
+				}
+				functionContent.deleteCharAt(functionContent.length() - 1);
+				functionContent.append(criterion.comparator).append("?");
+				criteriaPlaceHolderList.add(criterion.columnValue);
+				return "(" + function.name + "(" + functionContent  + ")" +  ")";
+			}
+
+			if(criterion.columnValue instanceof List<?> placeHolderValueList)
 			{
 				criteriaPlaceHolderList.addAll(placeHolderValueList);
 				String placeHolders = String.join(",", "?".repeat(placeHolderValueList.size()).split(StringUtils.EMPTY));
-				return "(" + criterion.tableName + "." + criterion.columnName + StringUtils.SPACE + criterion.comparator + StringUtils.SPACE + "(" + placeHolders + "))";
+				return "(" + criterion.column.tableName + "." + criterion.column.columnName + StringUtils.SPACE + criterion.comparator + StringUtils.SPACE + "(" + placeHolders + "))";
 			}
 
 			criteriaPlaceHolderList.add(criteria.criterion.columnValue);
-			return "(" + criterion.tableName + "." + criterion.columnName + StringUtils.SPACE + criterion.comparator + StringUtils.SPACE + "?" + ")";
+			return "(" + criterion.column.tableName + "." + criterion.column.columnName + StringUtils.SPACE + criterion.comparator + StringUtils.SPACE + "?" + ")";
 		}
 
 		String left = getCriteriaString(criteria.leftCriteria, criteriaPlaceHolderList);

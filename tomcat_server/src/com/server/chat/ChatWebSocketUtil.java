@@ -3,13 +3,16 @@ package com.server.chat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.server.framework.persistence.Column;
 import com.server.framework.persistence.Criteria;
 import com.server.framework.persistence.DataAccess;
 import com.server.framework.persistence.DataObject;
+import com.server.framework.persistence.Function;
 import com.server.framework.persistence.Row;
 import com.server.framework.persistence.SelectQuery;
 import com.server.table.constants.CHATUSER;
 import com.server.table.constants.CHATUSERDETAIL;
+import com.server.table.constants.USER;
 
 public class ChatWebSocketUtil
 {
@@ -17,11 +20,11 @@ public class ChatWebSocketUtil
 
 	static long addOrGetUser(String name)
 	{
-		name = name.toUpperCase().trim();
 		try
 		{
 			SelectQuery selectQuery = new SelectQuery(CHATUSER.TABLE);
-			selectQuery.setCriteria(new Criteria(CHATUSER.TABLE, CHATUSER.NAME, name, Criteria.Constants.EQUAL));
+			Function function = Function.createFunction(Function.Constants.UPPER, Column.getColumn(CHATUSER.TABLE, CHATUSER.NAME));
+			selectQuery.setCriteria(new Criteria(function, name.toUpperCase().trim(), Criteria.Constants.EQUAL));
 
 			DataObject dataObject = DataAccess.get(selectQuery);
 

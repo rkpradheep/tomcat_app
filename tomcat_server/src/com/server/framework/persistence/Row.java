@@ -54,6 +54,10 @@ public class Row
 	{
 		return rowMap.get(tableName + "." + columnName);
 	}
+	public Object get(Column column)
+	{
+		return rowMap.get(column.tableName + "." + column.columnName);
+	}
 
 	public Map<String, Object> getRowMap()
 	{
