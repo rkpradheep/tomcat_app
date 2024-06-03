@@ -24,6 +24,7 @@ import jakarta.websocket.server.ServerEndpoint;
 
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
+import com.server.framework.persistence.DataAccess;
 
 @ServerEndpoint(value = "/api/v1/chat")
 public class ChatWebSocket
@@ -88,7 +89,15 @@ public class ChatWebSocket
 		LOGGER.info("New Session connected with id " + session.getId());
 
 		String name = session.getRequestParameterMap().get("name").get(0);
-		ChatWebSocketUtil.addOrGetUser(name);
+		try
+		{
+			DataAccess.executeInNewTxn(() -> ChatWebSocketUtil.addOrGetUser(name));
+		}
+		catch(Exception e)
+		{
+			session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "internal_error"));
+			return;
+		}
 
 		if(Boolean.parseBoolean(session.getRequestParameterMap().get("rejoin").get(0)))
 		{

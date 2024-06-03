@@ -6,6 +6,9 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
+
+import com.server.framework.job.CustomRunnable;
 
 public class DataAccess
 {
@@ -76,6 +79,37 @@ public class DataAccess
 			{
 
 			}
+		}
+	}
+
+	public static <T> T executeInNewTxn(Supplier<T> supplier) throws Exception
+	{
+		try
+		{
+			Transaction.begin();
+			T returnValue = supplier.get();
+			Transaction.commit();
+			return returnValue;
+		}
+		catch(Exception e)
+		{
+			Transaction.rollback();
+			throw e;
+		}
+	}
+
+	public static void executeInNewTxn(CustomRunnable runnable) throws Exception
+	{
+		try
+		{
+			Transaction.begin();
+			runnable.run();
+			Transaction.commit();
+		}
+		catch(Exception e)
+		{
+			Transaction.rollback();
+			throw e;
 		}
 	}
 
