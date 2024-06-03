@@ -161,6 +161,20 @@ public class DataAccessUtil
 			selectQueryBuilder.append(" FOR UPDATE");
 		}
 
+		SortColumn sortColumn = selectQuery.sortColumn;
+		if(Objects.nonNull(sortColumn))
+		{
+			selectQueryBuilder.append(" ORDER BY ").append(sortColumn.column.tableName).append(".").append(sortColumn.column.columnName);
+			selectQueryBuilder.append(StringUtils.SPACE).append(sortColumn.isAscending ? "ASC" : "DESC");
+		}
+
+		Range range = selectQuery.range;
+
+		if(Objects.nonNull(range))
+		{
+			selectQueryBuilder.append(" LIMIT ").append(range.startIndex).append(",").append(range.numOfObjects);
+		}
+
 		return selectQueryBuilder.toString();
 	}
 

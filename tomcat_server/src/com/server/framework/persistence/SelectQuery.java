@@ -9,6 +9,8 @@ public class SelectQuery
 	Criteria criteria;
 	List<Join> joinList = new ArrayList<>();
 	boolean needLock = false;
+	SortColumn sortColumn;
+	Range range;
 
 	public static class Join
 	{
@@ -43,6 +45,16 @@ public class SelectQuery
 	public void setCriteria(Criteria criteria)
 	{
 		this.criteria = criteria;
+	}
+
+	public void setSortColumn(SortColumn sortColumn)
+	{
+		this.sortColumn = sortColumn;
+	}
+
+	public void setRange(Range range)
+	{
+		this.range = range;
 	}
 
 	public void setLock()
