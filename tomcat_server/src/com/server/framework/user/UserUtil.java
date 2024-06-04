@@ -12,6 +12,7 @@ import com.server.framework.common.DateUtil;
 import com.server.framework.persistence.Criteria;
 import com.server.framework.persistence.DataAccess;
 import com.server.framework.persistence.DataObject;
+import com.server.framework.persistence.Join;
 import com.server.framework.persistence.Row;
 import com.server.framework.persistence.SelectQuery;
 import com.server.table.constants.AUTHTOKEN;
@@ -30,10 +31,10 @@ public class UserUtil
 		}
 
 		SelectQuery selectQuery = new SelectQuery(USER.TABLE);
-		SelectQuery.Join join = new SelectQuery.Join(USER.TABLE, USER.ID, SESSIONMANAGEMENT.TABLE, SESSIONMANAGEMENT.USERID);
+		Join join = new Join(USER.TABLE, USER.ID, SESSIONMANAGEMENT.TABLE, SESSIONMANAGEMENT.USERID);
 		if(StringUtils.isNotEmpty(authToken))
 		{
-			join = new SelectQuery.Join(USER.TABLE, USER.ID, AUTHTOKEN.TABLE, AUTHTOKEN.USERID);
+			join = new Join(USER.TABLE, USER.ID, AUTHTOKEN.TABLE, AUTHTOKEN.USERID);
 			Criteria criteria = new Criteria(AUTHTOKEN.TABLE, AUTHTOKEN.TOKEN, authToken, Criteria.Constants.EQUAL);
 			selectQuery.setCriteria(criteria);
 		}
@@ -44,7 +45,7 @@ public class UserUtil
 			selectQuery.setCriteria(criteria);
 		}
 
-		selectQuery.addJoin(join, SelectQuery.Join.Constants.INNER_JOIN);
+		selectQuery.addJoin(join, Join.Constants.INNER_JOIN);
 
 		try
 		{

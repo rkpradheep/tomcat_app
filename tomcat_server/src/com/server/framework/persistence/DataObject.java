@@ -33,4 +33,16 @@ public class DataObject
 		}
 		return filteredRowList;
 	}
+
+	public String toString()
+	{
+		StringBuilder dataObjectBuilder = new StringBuilder();
+		dataObjectBuilder.append("<Rows>").append(System.lineSeparator());
+		for(Row row : rowList)
+		{
+			dataObjectBuilder.append(row).append(System.lineSeparator());
+		}
+		dataObjectBuilder.append("</Rows>").append(System.lineSeparator());
+		return dataObjectBuilder.toString();
+	}
 }

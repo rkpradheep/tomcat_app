@@ -91,7 +91,7 @@ public class ChatWebSocket
 		String name = session.getRequestParameterMap().get("name").get(0);
 		try
 		{
-			DataAccess.executeInNewTxn(() -> ChatWebSocketUtil.addOrGetUser(name));
+			DataAccess.executeInTxn(() -> ChatWebSocketUtil.addOrGetUser(name));
 		}
 		catch(Exception e)
 		{

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.server.framework.job.CustomRunnable;
 
@@ -57,7 +59,7 @@ public class DataAccess
 			}
 
 			connection.commit();
-   connection.close();
+			connection.close();
 			TRANSACTION_TL.remove();
 		}
 
@@ -72,7 +74,7 @@ public class DataAccess
 				}
 
 				connection.rollback();
-    connection.close();
+				connection.close();
 				TRANSACTION_TL.remove();
 			}
 			catch(Exception e)
@@ -82,7 +84,7 @@ public class DataAccess
 		}
 	}
 
-	public static <T> T executeInNewTxn(Supplier<T> supplier) throws Exception
+	public static <T> T executeInTxn(Supplier<T> supplier) throws Exception
 	{
 		try
 		{
@@ -98,7 +100,7 @@ public class DataAccess
 		}
 	}
 
-	public static void executeInNewTxn(CustomRunnable runnable) throws Exception
+	public static void executeInTxn(CustomRunnable runnable) throws Exception
 	{
 		try
 		{
@@ -172,9 +174,12 @@ public class DataAccess
 		{
 			connection = DBUtil.getServerDBConnectionForTxn();
 
+			List<String> selectColumnList = new ArrayList<>();
 			List<Object> placeHolderList = new ArrayList<>();
 
-			PreparedStatement preparedStatement = connection.prepareStatement(DataAccessUtil.getSelectQueryString(selectQuery, placeHolderList));
+			DataAccessUtil.populateSelectColumnAndPlaceHolderListForSelectQuery(selectQuery, selectColumnList, placeHolderList);
+
+			PreparedStatement preparedStatement = connection.prepareStatement(DataAccessUtil.getSelectQueryString(selectQuery, selectColumnList, placeHolderList));
 
 			int i = 1;
 			for(Object columnValue : placeHolderList)
@@ -186,30 +191,15 @@ public class DataAccess
 
 			while(resultSet.next())
 			{
-				List<String> tableResultList = new ArrayList<>();
-				tableResultList.add(selectQuery.tableName);
-				for(SelectQuery.Join join : selectQuery.joinList)
+				Row row = new RowWrapper(selectQuery.tableName);
+
+				for(String selectColumn : selectColumnList)
 				{
-					if(!tableResultList.contains(join.baseTableName))
-					{
-						tableResultList.add(join.baseTableName);
-					}
-					if(!tableResultList.contains(join.referenceTableName))
-					{
-						tableResultList.add(join.referenceTableName);
-					}
-				}
+					Pattern pattern = Pattern.compile(".* AS \"(.*)\"");
+					Matcher matcher = pattern.matcher(selectColumn);
 
-				Row row = new Row(selectQuery.tableName);
-
-				for(String tableName : tableResultList)
-				{
-					List<String> columnList = DBUtil.columnList(tableName);
-
-					for(String columnName : columnList)
-					{
-						row.set(tableName, columnName, resultSet.getObject(tableName + "." + columnName));
-					}
+					selectColumn = matcher.matches() ? matcher.group(1) : selectColumn;
+					row.set(selectColumn, resultSet.getObject(selectColumn));
 				}
 				dataObject.addRow(row);
 			}

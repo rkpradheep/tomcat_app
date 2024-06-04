@@ -1,14 +1,18 @@
 package com.server.framework.persistence;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.server.framework.common.CustomConsumer;
 import com.server.table.constants.BATCHTABLE;
 
 public class DataAccessUtil
@@ -16,7 +20,7 @@ public class DataAccessUtil
 	private static final AtomicLong BATCH_END = new AtomicLong(-1L);
 	private static final AtomicLong CURRENT_PK = new AtomicLong(-1L);
 
-	public static long getNextPK() throws Exception
+	static long getNextPK() throws Exception
 	{
 
 		if(Objects.equals(CURRENT_PK.get(), -1L) || Objects.equals(CURRENT_PK.get(), BATCH_END.get()))
@@ -52,7 +56,7 @@ public class DataAccessUtil
 		return CURRENT_PK.getAndIncrement();
 	}
 
-	public static String getInsertQueryString(Row row)
+	static String getInsertQueryString(Row row)
 	{
 		Map<String, Object> rowMap = row.getRowMap();
 		StringBuilder insertQuery = new StringBuilder("INSERT INTO " + row.getTableName());
@@ -78,7 +82,7 @@ public class DataAccessUtil
 
 	}
 
-	public static String getCriteriaString(Criteria criteria, List<Object> criteriaPlaceHolderList)
+	static String getCriteriaString(Criteria criteria, List<Object> criteriaPlaceHolderList)
 	{
 		if(Objects.isNull(criteria.leftCriteria))
 		{
@@ -88,10 +92,8 @@ public class DataAccessUtil
 				return StringUtils.EMPTY;
 			}
 
-			if(Objects.nonNull(criterion.function))
+			if(criterion.column instanceof Function function)
 			{
-				Function function = criterion.function;
-
 				StringBuilder functionContent = new StringBuilder();
 				for(Object arg : function.args)
 				{
@@ -138,13 +140,13 @@ public class DataAccessUtil
 		return "(" + left + right + ")";
 	}
 
-	public static String getSelectQueryString(SelectQuery selectQuery, List<Object> valuePlaceHolderList)
+	static String getSelectQueryString(SelectQuery selectQuery, List<String> selectColumnList, List<Object> valuePlaceHolderList)
 	{
-		StringBuilder selectQueryBuilder = new StringBuilder("SELECT * FROM " + selectQuery.tableName + " ");
+		StringBuilder selectQueryBuilder = new StringBuilder("SELECT ").append(String.join(",", selectColumnList)).append(" FROM ").append(selectQuery.tableName).append(" ");
 
-		List<SelectQuery.Join> joinList = selectQuery.joinList;
+		List<Join> joinList = selectQuery.joinList;
 
-		for(SelectQuery.Join join : joinList)
+		for(Join join : joinList)
 		{
 			selectQueryBuilder.append(join.joinType).append(" ").append(join.referenceTableName).append(" ON ");
 			selectQueryBuilder.append(join.baseTableName).append(".").append(join.baseTableColumnName);
@@ -156,16 +158,29 @@ public class DataAccessUtil
 			selectQueryBuilder.append(" WHERE ").append(getCriteriaString(selectQuery.criteria, valuePlaceHolderList));
 		}
 
-		if(selectQuery.needLock)
+		if(Objects.nonNull(selectQuery.groupByClause))
 		{
-			selectQueryBuilder.append(" FOR UPDATE");
+			GroupByClause groupByClause = selectQuery.groupByClause;
+			selectQueryBuilder.append(" GROUP BY ");
+			selectQueryBuilder.append(groupByClause.columnList.stream().map(Column::toString).collect(Collectors.joining(",")));
+			if(Objects.nonNull(groupByClause.criteria))
+			{
+				selectQueryBuilder.append(" HAVING ").append(getCriteriaString(groupByClause.criteria, valuePlaceHolderList));
+			}
 		}
 
-		SortColumn sortColumn = selectQuery.sortColumn;
-		if(Objects.nonNull(sortColumn))
+		List<SortColumn> sortColumnList = selectQuery.sortColumnList;
+		if(!sortColumnList.isEmpty())
 		{
-			selectQueryBuilder.append(" ORDER BY ").append(sortColumn.column.tableName).append(".").append(sortColumn.column.columnName);
-			selectQueryBuilder.append(StringUtils.SPACE).append(sortColumn.isAscending ? "ASC" : "DESC");
+			selectQueryBuilder.append(" ORDER BY ");
+
+			for(SortColumn sortColumn : sortColumnList)
+			{
+			 selectQueryBuilder.append(sortColumn.column.tableName).append(".").append(sortColumn.column.columnName);
+			 selectQueryBuilder.append(StringUtils.SPACE).append(sortColumn.isAscending ? "ASC" : "DESC");
+			 selectQueryBuilder.append(",");
+			}
+			selectQueryBuilder.deleteCharAt(selectQueryBuilder.length() -1 );
 		}
 
 		Range range = selectQuery.range;
@@ -175,10 +190,15 @@ public class DataAccessUtil
 			selectQueryBuilder.append(" LIMIT ").append(range.startIndex).append(",").append(range.numOfObjects);
 		}
 
+		if(selectQuery.needLock)
+		{
+			selectQueryBuilder.append(" FOR UPDATE");
+		}
+
 		return selectQueryBuilder.toString();
 	}
 
-	public static String getUpdateQueryString(UpdateQuery updateQuery, List<Object> valuePlaceHolderList)
+	static String getUpdateQueryString(UpdateQuery updateQuery, List<Object> valuePlaceHolderList)
 	{
 		StringBuilder updateQueryBuilder = new StringBuilder("UPDATE " + updateQuery.tableName + " ");
 
@@ -198,7 +218,7 @@ public class DataAccessUtil
 		return updateQueryBuilder.toString();
 	}
 
-	public static String getDeleteQueryString(String tableName, Criteria criteria, List<Object> valuePlaceHolderList)
+	static String getDeleteQueryString(String tableName, Criteria criteria, List<Object> valuePlaceHolderList)
 	{
 		StringBuilder updateQueryBuilder = new StringBuilder("DELETE FROM " + tableName + " ");
 
@@ -210,7 +230,7 @@ public class DataAccessUtil
 		return updateQueryBuilder.toString();
 	}
 
-	public static void populatePK(List<Row> rowList) throws Exception
+	static void populatePK(List<Row> rowList) throws Exception
 	{
 		Map<UVH, Long> uvhLongMap = new HashMap<>();
 
@@ -222,13 +242,14 @@ public class DataAccessUtil
 				{
 					Long generatedValue = uvhLongMap.getOrDefault(objectEntry.getValue(), getNextPK());
 					uvhLongMap.put((UVH) objectEntry.getValue(), generatedValue);
-					row.set(objectEntry.getKey(), generatedValue);
+					String[] tableNameColumnName = objectEntry.getKey().split("\\.");
+					row.set(tableNameColumnName[0], tableNameColumnName[1], generatedValue);
 				}
 			}
 		}
 	}
 
-	public static void handleExceptionForTxn(Connection connection) throws Exception
+	static void handleExceptionForTxn(Connection connection) throws Exception
 	{
 		if(Objects.isNull(DataAccess.Transaction.getActiveTxnFromTL()))
 		{
@@ -239,13 +260,70 @@ public class DataAccessUtil
 		}
 	}
 
-	public static void handlePostProcessForTxn(Connection connection) throws Exception
+	static void handlePostProcessForTxn(Connection connection) throws Exception
 	{
 		if(Objects.isNull(DataAccess.Transaction.getActiveTxnFromTL()))
 		{
 			if(Objects.nonNull(connection) && !connection.isClosed())
 			{
 				connection.close();
+			}
+		}
+	}
+
+	static void populateSelectColumnAndPlaceHolderListForSelectQuery(SelectQuery selectQuery, List<String> selectColumnList, List<Object> placeHolderList) throws Exception
+	{
+		if(selectQuery.selectColumnList.isEmpty())
+		{
+			CustomConsumer<String> generateSelectColumnForTable = tableName->
+			{
+				List<String> columnList = DBUtil.columnList(tableName);
+				for(String columnName : columnList)
+				{
+					selectColumnList.add(tableName + "." + columnName);
+				}
+			};
+
+			List<String> tableList = new ArrayList<>();
+			tableList.add(selectQuery.tableName);
+
+			generateSelectColumnForTable.accept(selectQuery.tableName);
+
+			for(Join join : selectQuery.joinList)
+			{
+				String tableName = !tableList.contains(join.baseTableName) ? join.baseTableName : !tableList.contains(join.referenceTableName) ? join.referenceTableName : StringUtils.EMPTY;
+				if(StringUtils.isNotEmpty(tableName))
+				{
+					tableList.add(tableName);
+					generateSelectColumnForTable.accept(tableName);
+				}
+			}
+		}
+
+		for(Column column : selectQuery.selectColumnList)
+		{
+			if(column instanceof Function function)
+			{
+				StringBuilder selectColumnBuilderForFunction = new StringBuilder(function.name).append("(");
+
+				for(Object arg : function.args)
+				{
+					if(arg instanceof Column functionColumn)
+					{
+						selectColumnBuilderForFunction.append(functionColumn);
+					}
+					else
+					{
+						selectColumnBuilderForFunction.append("?");
+						placeHolderList.add(arg);
+					}
+				}
+				selectColumnBuilderForFunction.append(")").append(" AS \"").append(column).append("\"");
+				selectColumnList.add(selectColumnBuilderForFunction.toString());
+			}
+			else
+			{
+				selectColumnList.add(column.toString());
 			}
 		}
 	}

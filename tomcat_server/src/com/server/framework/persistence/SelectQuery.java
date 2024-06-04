@@ -9,33 +9,10 @@ public class SelectQuery
 	Criteria criteria;
 	List<Join> joinList = new ArrayList<>();
 	boolean needLock = false;
-	SortColumn sortColumn;
+	List<SortColumn> sortColumnList = new ArrayList<>();
 	Range range;
-
-	public static class Join
-	{
-		String baseTableName;
-		String baseTableColumnName;
-		String referenceTableName;
-		String referenceTableColumnName;
-		String joinType;
-
-		public Join(String baseTableName, String baseTableColumnName, String referenceTableName, String referenceTableColumnName)
-		{
-			this.baseTableName = baseTableName;
-			this.baseTableColumnName = baseTableColumnName;
-			this.referenceTableName = referenceTableName;
-			this.referenceTableColumnName = referenceTableColumnName;
-		}
-
-		public static class Constants
-		{
-			public static final String INNER_JOIN = "INNER JOIN";
-			public static final String LEFT_JOIN = "LEFT JOIN";
-			public static final String RIGHT_JOIN = "RIGHT JOIN";
-			public static final String FULL_JOIN = "FULL JOIN";
-		}
-	}
+	List<Column> selectColumnList = new ArrayList<>();
+	GroupByClause groupByClause;
 
 	public SelectQuery(String tableName)
 	{
@@ -46,10 +23,14 @@ public class SelectQuery
 	{
 		this.criteria = criteria;
 	}
-
-	public void setSortColumn(SortColumn sortColumn)
+	public void setGroupByClause(GroupByClause groupByClause)
 	{
-		this.sortColumn = sortColumn;
+		this.groupByClause = groupByClause;
+	}
+
+	public void addSortColumn(SortColumn sortColumn)
+	{
+		this.sortColumnList.add(sortColumn);
 	}
 
 	public void setRange(Range range)
@@ -66,5 +47,10 @@ public class SelectQuery
 	{
 		join.joinType = joinType;
 		joinList.add(join);
+	}
+
+	public void addSelectColumn(Column column)
+	{
+		selectColumnList.add(column);
 	}
 }

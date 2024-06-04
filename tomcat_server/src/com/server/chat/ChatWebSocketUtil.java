@@ -8,11 +8,11 @@ import com.server.framework.persistence.Criteria;
 import com.server.framework.persistence.DataAccess;
 import com.server.framework.persistence.DataObject;
 import com.server.framework.persistence.Function;
+import com.server.framework.persistence.Join;
 import com.server.framework.persistence.Row;
 import com.server.framework.persistence.SelectQuery;
 import com.server.table.constants.CHATUSER;
 import com.server.table.constants.CHATUSERDETAIL;
-import com.server.table.constants.USER;
 
 public class ChatWebSocketUtil
 {
@@ -56,8 +56,8 @@ public class ChatWebSocketUtil
 
 			SelectQuery selectQuery = new SelectQuery(CHATUSER.TABLE);
 			selectQuery.setCriteria(new Criteria(CHATUSER.TABLE, CHATUSER.NAME, name, Criteria.Constants.EQUAL));
-			SelectQuery.Join join = new SelectQuery.Join(CHATUSER.TABLE, CHATUSER.ID, CHATUSERDETAIL.TABLE, CHATUSERDETAIL.CHATUSERID);
-			selectQuery.addJoin(join, SelectQuery.Join.Constants.INNER_JOIN);
+			Join join = new Join(CHATUSER.TABLE, CHATUSER.ID, CHATUSERDETAIL.TABLE, CHATUSERDETAIL.CHATUSERID);
+			selectQuery.addJoin(join, Join.Constants.INNER_JOIN);
 
 			DataObject dataObject = DataAccess.get(selectQuery);
 

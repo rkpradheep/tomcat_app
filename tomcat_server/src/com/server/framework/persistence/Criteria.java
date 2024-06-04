@@ -34,18 +34,10 @@ public class Criteria
 		Column column;
 		Object columnValue;
 		String comparator;
-		Function function;
 
 		private Criterion(Column column, Object value, String comparator)
 		{
 			this.column = column;
-			this.columnValue = value;
-			this.comparator = comparator;
-		}
-
-		private Criterion(Function function, Object value, String comparator)
-		{
-			this.function = function;
 			this.columnValue = value;
 			this.comparator = comparator;
 		}
@@ -90,13 +82,6 @@ public class Criteria
 	public Criteria(String tableName, String columnName, Object columnValue, String comparator)
 	{
 		this(Column.getColumn(tableName, columnName), columnValue, comparator);
-	}
-
-	public Criteria(Function function, Object columnValue, String comparator)
-	{
-		this.criterion = new Criterion(function, columnValue, comparator);
-		this.leftCriteria = null;
-		this.rightCriteria = null;
 	}
 
 	private Criteria()

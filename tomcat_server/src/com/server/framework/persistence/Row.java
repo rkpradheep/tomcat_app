@@ -25,19 +25,18 @@ public class Row
 
 			for(String pk : pkList)
 			{
-				set(tableName + "." + pk, new UVH());
+				set(tableName, pk, new UVH());
 			}
 		}
 		catch(Exception e)
 		{
-
+			throw new RuntimeException("Exception occurred while populating PK");
 		}
 	}
 
 	public void set(String columnName, Object columnValue)
 	{
-		String prefix = StringUtils.contains(columnName, ".") ? "" : tableName + ".";
-		rowMap.put(prefix + columnName, columnValue);
+		rowMap.put(tableName + "."  + columnName, columnValue);
 	}
 
 	public void set(String tableName, String columnName, Object columnValue)
@@ -68,4 +67,18 @@ public class Row
 	{
 		return tableName;
 	}
+
+	public String toString()
+	{
+		StringBuilder rowBuilder = new StringBuilder();
+		rowBuilder.append("<");
+
+		for(Map.Entry<String, Object> rowEntry : rowMap.entrySet())
+		{
+			rowBuilder.append(rowEntry.getKey()).append("=").append(rowEntry.getValue()).append(StringUtils.SPACE);
+		}
+		rowBuilder.append("/>");
+		return rowBuilder.toString();
+	}
+
 }
