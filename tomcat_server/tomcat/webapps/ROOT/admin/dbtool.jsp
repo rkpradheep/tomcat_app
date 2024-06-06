@@ -966,7 +966,7 @@
                  {
                     alert(data["message"])
                     fileInput.value = "";
-                    setElementValue("path", "")
+                    setElementValue("path", "tomcat_build/webapps")
                  }
                  else
                  {

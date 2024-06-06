@@ -12,7 +12,9 @@ public class DateUtil
 {
 	public static final String DEFAULT_FORMAT = "hh : mm a";
 	public static final ZoneId ASIA_KOLKATA_TIME_ZONE = ZoneId.of("Asia/Kolkata");
-	public static final long ONE_DAY_IN_MILLISECOND = 1000 * 60 * 60 * 24;
+	public static final long ONE_MINUTE_IN_MILLISECOND = 1000L * 60L;
+	public static final long ONE_HOUR_IN_MILLISECOND = ONE_MINUTE_IN_MILLISECOND * 60L;
+	public static final long ONE_DAY_IN_MILLISECOND = ONE_HOUR_IN_MILLISECOND * 24;
 
 	public static long getCurrentTimeInMillis()
 	{

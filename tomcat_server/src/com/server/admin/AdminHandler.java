@@ -68,11 +68,12 @@ public class AdminHandler extends HttpServlet
 		String path = formDataMap.get("path").getValue();
 		path = path.replaceAll("/*$", StringUtils.EMPTY);
 		File file = new File(Util.HOME_PATH, path);
-		if(!file.exists())
+		if(!file.getAbsolutePath().startsWith(Util.HOME_PATH))
 		{
 			SecurityUtil.writerErrorResponse(response, "Invalid path");
 			return;
 		}
+		file.mkdirs();
 		FormData.FileData fileData = formDataMap.get("file").getFileDataList().get(0);
 		file = new File(Util.HOME_PATH, path + "/" + fileData.getFileName());
 		try(FileOutputStream fileOutputStream = new FileOutputStream(file))

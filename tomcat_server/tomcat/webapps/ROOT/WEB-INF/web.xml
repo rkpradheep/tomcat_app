@@ -250,6 +250,16 @@
 		<url-pattern>/api/v1/download/text</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+	<servlet-name>SSLCertGen</servlet-name>
+		<servlet-class>com.server.framework.common.SSLCertificateGenHandler</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SSLCertGen</servlet-name>
+		<url-pattern>/api/v1/ssl/sign/initiate</url-pattern>
+		<url-pattern>/api/v1/ssl/sign/verify</url-pattern>
+	</servlet-mapping>
+
 	<session-config>
 		<session-timeout>
 			30
