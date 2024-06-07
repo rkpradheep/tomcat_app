@@ -35,6 +35,12 @@
                     </a>
                 </li>
                 <li class="nav-link">
+                    <a href="/freessl">
+                        <i class='bx material-symbols--shield-lock-outline icon'></i>
+                        <span class="text nav-text">Free SSL</span>
+                    </a>
+                </li>
+                <li class="nav-link">
                     <a href="/chat.html">
                         <i class='bx quill--chat icon'></i>
                         <span class="text nav-text">Text Chat</span>

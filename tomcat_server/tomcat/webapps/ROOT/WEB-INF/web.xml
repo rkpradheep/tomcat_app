@@ -133,6 +133,7 @@
 		<url-pattern>/hotswap</url-pattern>
 		<url-pattern>/network</url-pattern>
 		<url-pattern>/livelogs</url-pattern>
+		<url-pattern>/freessl</url-pattern>
 	</servlet-mapping>
 
 

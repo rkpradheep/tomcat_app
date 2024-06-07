@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import com.server.framework.http.FormData;
 import com.server.framework.security.SecurityUtil;
@@ -23,7 +24,7 @@ public class SSLCertificateGenHandler extends HttpServlet
 				Map<String, FormData> formDataMap = SecurityUtil.parseMultiPartFormData(request);
 				String domain = formDataMap.get("domain").getValue();
 				byte[] csr = formDataMap.get("csr_file").getFileDataList().get(0).getBytes();
-				boolean isHTTPChallenge = Boolean.parseBoolean(formDataMap.get("is_http_challenge").getValue());
+				boolean isHTTPChallenge = Objects.nonNull(formDataMap.get("is_http_challenge")) && Boolean.parseBoolean(formDataMap.get("is_http_challenge").getValue());
 				SecurityUtil.writeJSONResponse(response, ACMEClientUtil.initiate(domain, csr, isHTTPChallenge));
 			}
 			else

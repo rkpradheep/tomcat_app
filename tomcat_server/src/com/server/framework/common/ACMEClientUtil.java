@@ -96,7 +96,7 @@ public class ACMEClientUtil
 	static Map<String, Object> createDNSChallenge(Authorization auth, String domain, PKCS10CertificationRequest csr, Order order) throws Exception
 	{
 		Map<String, Object> responseMap = new HashMap<>();
-		responseMap.put("message", "Add the dns TXT record with name and value provided in challenge node for your domain with the help of your DNS provider");
+		responseMap.put("message", "Add the dns TXT record with name and value provided in challenge node for your domain in the DNS setting of your DNS provider");
 
 		Dns01Challenge challenge = (Dns01Challenge) getChallenge(auth, Dns01Challenge.TYPE);
 
@@ -179,14 +179,14 @@ public class ACMEClientUtil
 
 			if(challenge.getStatus() != Status.VALID)
 			{
-				throw new Exception("Challenge failed with error message " + challenge.getError().get().getDetail());
+				throw new Exception("Challenge failed with error message " + challenge.getError().get().getDetail().get());
 			}
 
 			order.execute(DOMAIN_IN_MEMORY_META.get(domainName).getRight());
 
 			if(order.getStatus() != Status.VALID)
 			{
-				throw new Exception("Challenge failed with error message " + order.getError().get().getDetail());
+				throw new Exception("Challenge failed with error message " + order.getError().get().getDetail().get());
 			}
 			order.update();
 
