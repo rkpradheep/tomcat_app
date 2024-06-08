@@ -17,6 +17,65 @@ USE `tomcatserver`;
 -- ---------------------------------------------------------
 
 
+-- CREATE TABLE "BatchTable" -----------------------------------
+CREATE TABLE `BatchTable`(
+	`AccountId` BigInt( 255 ) NOT NULL,
+	`BatchStart` BigInt( 255 ) NOT NULL )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
+-- CREATE TABLE "Configuration" --------------------------------
+CREATE TABLE `Configuration`(
+	`Id` BigInt( 255 ) NOT NULL,
+	`CKey` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	`CValue` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	PRIMARY KEY ( `Id` ) )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
+-- CREATE TABLE "AuthToken" ------------------------------------
+CREATE TABLE `AuthToken`(
+	`Id` BigInt( 255 ) NOT NULL,
+	`Token` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	`UserId` BigInt( 255 ) NOT NULL,
+	PRIMARY KEY ( `Id` ) )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
+-- CREATE TABLE "SessionManagement" ----------------------------
+CREATE TABLE `SessionManagement`(
+	`Id` BigInt( 255 ) NOT NULL,
+	`UserId` BigInt( 255 ) NOT NULL,
+	`ExpiryTime` BigInt( 255 ) NOT NULL,
+	`SessionId` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	PRIMARY KEY ( `Id` ) )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
+-- CREATE TABLE "ChatUserDetail" -------------------------------
+CREATE TABLE `ChatUserDetail`(
+	`Id` BigInt( 255 ) NOT NULL,
+	`ChatUserId` BigInt( 255 ) NOT NULL,
+	`Message` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	PRIMARY KEY ( `Id` ) )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
 -- CREATE TABLE "ChatUser" -------------------------------------
 CREATE TABLE `ChatUser`(
 	`Id` BigInt( 255 ) NOT NULL,
@@ -56,62 +115,8 @@ ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
--- CREATE TABLE "BatchTable" -----------------------------------
-CREATE TABLE `BatchTable`(
-	`AccountId` BigInt( 255 ) NOT NULL,
-	`BatchStart` BigInt( 255 ) NOT NULL )
-CHARACTER SET = utf8mb3
-COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB;
--- -------------------------------------------------------------
-
-
--- CREATE TABLE "Configuration" --------------------------------
-CREATE TABLE `Configuration`(
-	`Id` BigInt( 255 ) NOT NULL,
-	`CKey` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-	`CValue` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-	PRIMARY KEY ( `Id` ) )
-CHARACTER SET = utf8mb3
-COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB;
--- -------------------------------------------------------------
-
-
--- CREATE TABLE "SessionManagement" ----------------------------
-CREATE TABLE `SessionManagement`(
-	`Id` BigInt( 255 ) NOT NULL,
-	`UserId` BigInt( 255 ) NOT NULL,
-	`ExpiryTime` BigInt( 255 ) NOT NULL,
-	`SessionId` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-	PRIMARY KEY ( `Id` ) )
-CHARACTER SET = utf8mb3
-COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB;
--- -------------------------------------------------------------
-
-
--- CREATE TABLE "AuthToken" ------------------------------------
-CREATE TABLE `AuthToken`(
-	`Id` BigInt( 255 ) NOT NULL,
-	`Token` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-	`UserId` BigInt( 255 ) NOT NULL,
-	PRIMARY KEY ( `Id` ) )
-CHARACTER SET = utf8mb3
-COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB;
--- -------------------------------------------------------------
-
-
--- CREATE TABLE "ChatUserDetail" -------------------------------
-CREATE TABLE `ChatUserDetail`(
-	`Id` BigInt( 255 ) NOT NULL,
-	`ChatUserId` BigInt( 255 ) NOT NULL,
-	`Message` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-	PRIMARY KEY ( `Id` ) )
-CHARACTER SET = utf8mb3
-COLLATE = utf8mb3_general_ci
-ENGINE = InnoDB;
+-- CREATE INDEX "lnk_User_AuthToken" ---------------------------
+CREATE INDEX `lnk_User_AuthToken` USING BTREE ON `AuthToken`( `UserId` );
 -- -------------------------------------------------------------
 
 
@@ -120,22 +125,8 @@ CREATE INDEX `lnk_Users_SessionManagement` USING BTREE ON `SessionManagement`( `
 -- -------------------------------------------------------------
 
 
--- CREATE INDEX "lnk_User_AuthToken" ---------------------------
-CREATE INDEX `lnk_User_AuthToken` USING BTREE ON `AuthToken`( `UserId` );
--- -------------------------------------------------------------
-
-
 -- CREATE INDEX "chatuserdetails_fk1" --------------------------
 CREATE INDEX `chatuserdetails_fk1` USING BTREE ON `ChatUserDetail`( `ChatUserId` );
--- -------------------------------------------------------------
-
-
--- CREATE LINK "chatuserdetails_fk1" ---------------------------
-ALTER TABLE `ChatUserDetail`
-	ADD CONSTRAINT `chatuserdetails_fk1` FOREIGN KEY ( `ChatUserId` )
-	REFERENCES `ChatUser`( `Id` )
-	ON DELETE Cascade
-	ON UPDATE Cascade;
 -- -------------------------------------------------------------
 
 
@@ -143,15 +134,6 @@ ALTER TABLE `ChatUserDetail`
 ALTER TABLE `AuthToken`
 	ADD CONSTRAINT `lnk_User_AuthToken` FOREIGN KEY ( `UserId` )
 	REFERENCES `User`( `Id` )
-	ON DELETE Cascade
-	ON UPDATE Cascade;
--- -------------------------------------------------------------
-
-
--- CREATE LINK "lnk_ChatUser_ChatUserDetails" ------------------
-ALTER TABLE `ChatUserDetail`
-	ADD CONSTRAINT `lnk_ChatUser_ChatUserDetails` FOREIGN KEY ( `ChatUserId` )
-	REFERENCES `ChatUser`( `Id` )
 	ON DELETE Cascade
 	ON UPDATE Cascade;
 -- -------------------------------------------------------------
@@ -166,12 +148,31 @@ ALTER TABLE `SessionManagement`
 -- -------------------------------------------------------------
 
 
+-- CREATE LINK "chatuserdetails_fk1" ---------------------------
+ALTER TABLE `ChatUserDetail`
+	ADD CONSTRAINT `chatuserdetails_fk1` FOREIGN KEY ( `ChatUserId` )
+	REFERENCES `ChatUser`( `Id` )
+	ON DELETE Cascade
+	ON UPDATE Cascade;
+-- -------------------------------------------------------------
+
+
+-- CREATE LINK "lnk_ChatUser_ChatUserDetails" ------------------
+ALTER TABLE `ChatUserDetail`
+	ADD CONSTRAINT `lnk_ChatUser_ChatUserDetails` FOREIGN KEY ( `ChatUserId` )
+	REFERENCES `ChatUser`( `Id` )
+	ON DELETE Cascade
+	ON UPDATE Cascade;
+-- -------------------------------------------------------------
+
+
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 -- ---------------------------------------------------------
+
 
 
 INSERT INTO `tomcatserver`.`User` VALUES(1000000000001,'admin','7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358', -1);
