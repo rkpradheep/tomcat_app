@@ -160,6 +160,10 @@ public class AdminHandler extends HttpServlet
 			{
 				bigIntColumns.add(columnName);
 			}
+			if(StringUtils.equals("CreatedTime".toUpperCase(), columnName))
+			{
+				columnList.add("FormattedTime");
+			}
 		}
 		if(!bigIntColumns.isEmpty())
 		{

@@ -97,6 +97,10 @@ public class AdminDBUtil
 			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
 			{
 				row.put(resultSetMetaData.getColumnName(i).toUpperCase(), resultSet.getString(i));
+				if(StringUtils.equals("CreatedTime", resultSetMetaData.getColumnName(i)))
+				{
+					row.put("FormattedTime".toUpperCase(), DateUtil.getFormattedTime(resultSet.getLong(i), DateUtil.DATE_WITH_TIME_FORMAT));
+				}
 			}
 			queryOutput.add(row);
 		}

@@ -17,9 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +51,10 @@ import com.server.framework.common.Util;
 import com.server.framework.job.JobUtil;
 import com.server.framework.http.FormData;
 import com.server.framework.http.HttpAPI;
+import com.server.framework.persistence.DataAccess;
+import com.server.framework.persistence.Row;
 import com.server.framework.user.User;
+import com.server.table.constants.HTTPLOG;
 
 public class SecurityUtil
 {
@@ -57,7 +62,7 @@ public class SecurityUtil
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
-	public static final Map<String,List<String>> VISITOR_META = new ConcurrentHashMap<>();
+	public static final Map<String, List<String>> VISITOR_META = new ConcurrentHashMap<>();
 
 	private static final Logger LOGGER = Logger.getLogger(SecurityUtil.class.getName());
 
@@ -242,7 +247,20 @@ public class SecurityUtil
 
 	public static JSONObject getJSONObject(HttpServletRequest request) throws IOException
 	{
-		return new JSONObject(request.getReader().lines().collect(Collectors.joining()));
+		if(Objects.nonNull(request.getAttribute("JSON_PAYLOAD")))
+		{
+			return (JSONObject) request.getAttribute("JSON_PAYLOAD");
+		}
+		try
+		{
+			JSONObject jsonObject = new JSONObject(request.getReader().lines().collect(Collectors.joining()));
+			request.setAttribute("JSON_PAYLOAD", jsonObject);
+			return jsonObject;
+		}
+		catch(Exception e)
+		{
+			return null;
+		}
 	}
 
 	public static boolean isValidEndPoint(String endPoint) throws MalformedURLException
@@ -264,7 +282,7 @@ public class SecurityUtil
 			}
 		}
 
-		return apiEndPoints.contains(endPoint) || endPoint.startsWith("/manager")  ||  endPoint.startsWith("/tomcat") || isValidWebSocketEndPoint(endPoint) || Objects.nonNull(SecurityFilter.SERVLET_CONTEXT_TL.get().getResource(URLDecoder.decode(endPoint)));
+		return apiEndPoints.contains(endPoint) || endPoint.startsWith("/manager") || endPoint.startsWith("/tomcat") || isValidWebSocketEndPoint(endPoint) || Objects.nonNull(SecurityFilter.SERVLET_CONTEXT_TL.get().getResource(URLDecoder.decode(endPoint)));
 	}
 
 	public static boolean isValidWebSocketEndPoint(String endPoint)
@@ -319,12 +337,34 @@ public class SecurityUtil
 		}
 	}
 
+	static void addHTTPLog()
+	{
+		try
+		{
+			HttpServletRequest request = getCurrentRequest();
+			Row row = new Row(HTTPLOG.TABLE);
+			row.set(HTTPLOG.URL, request.getRequestURL().toString());
+			row.set(HTTPLOG.METHOD, request.getMethod());
+			row.set(HTTPLOG.IP, request.getRemoteAddr());
+			row.set(HTTPLOG.QUERYSTRING, request.getQueryString());
+			JSONObject jsonObject = getJSONObject(request);
+			row.set(HTTPLOG.JSONPAYLOAD, Objects.isNull(jsonObject) ? null : jsonObject.toString());
+
+			DataAccess.add(row);
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+		}
+	}
+
 	static void sendVisitorNotification() throws UnknownHostException
 	{
 		if(!isLoggedIn())
 		{
 			return;
 		}
+		addHTTPLog();
 		String key = DateUtil.getFormattedCurrentTime("dd/MM/yyyy");
 		List<String> visitorList = VISITOR_META.getOrDefault(key, new ArrayList<>());
 		String remoteIp = getCurrentRequest().getRemoteAddr();

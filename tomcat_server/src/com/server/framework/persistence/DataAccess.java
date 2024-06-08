@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.server.framework.common.DateUtil;
 import com.server.framework.job.CustomRunnable;
 
 public class DataAccess
@@ -137,6 +138,10 @@ public class DataAccess
 			for(Row row : rowList)
 			{
 
+				if(DBUtil.columnList(row.tableName).contains("CreatedTime"))
+				{
+					row.set("CreatedTime", DateUtil.getCurrentTimeInMillis());
+				}
 				PreparedStatement preparedStatement = connection.prepareStatement(DataAccessUtil.getInsertQueryString(row), PreparedStatement.RETURN_GENERATED_KEYS);
 
 				int i = 1;
