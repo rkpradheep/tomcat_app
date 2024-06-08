@@ -341,6 +341,10 @@ public class SecurityUtil
 	{
 		try
 		{
+			if(!Configuration.getBoolean("need.http.logs"))
+			{
+				return;
+			}
 			HttpServletRequest request = getCurrentRequest();
 			Row row = new Row(HTTPLOG.TABLE);
 			row.set(HTTPLOG.URL, request.getRequestURL().toString());
