@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,13 +30,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.*;
@@ -47,7 +41,7 @@ public class ACMEClientUtil
 {
 	private static final URI ACME_SERVER_URI = URI.create("https://acme-v02.api.letsencrypt.org/directory");
 	private static Account account;
-	private static final Map<String, Triple<Order, Challenge, PKCS10CertificationRequest>> DOMAIN_IN_MEMORY_META = new HashMap<>();
+	private static final Map<String, Triple<Order, Challenge, byte[]>> DOMAIN_IN_MEMORY_META = new HashMap<>();
 	private static final Map<String, Integer> DOMAIN_FAILURE_COUNT = new HashMap<>();
 
 	private static final Logger LOGGER = Logger.getLogger(ACMEClientUtil.class.getName());
@@ -79,7 +73,7 @@ public class ACMEClientUtil
 			throw new AppException("You have reached the maximum failure retry threshold. Try again later.");
 		}
 
-		PKCS10CertificationRequest csr = parseCSR(new InputStreamReader(new ByteArrayInputStream(csrFileBytes)));
+		byte[] parsedCSRBytes = parseCSR(csrFileBytes);
 
 		Order order = account.newOrder()
 			.domains(domain)
@@ -87,13 +81,13 @@ public class ACMEClientUtil
 
 		for(Authorization auth : order.getAuthorizations())
 		{
-			return isHTTPChallenge ? createHTTPChallenge(auth, domain, csr, order) : createDNSChallenge(auth, domain, csr, order);
+			return isHTTPChallenge ? createHTTPChallenge(auth, domain, parsedCSRBytes, order) : createDNSChallenge(auth, domain, parsedCSRBytes, order);
 		}
 
 		throw new Exception("Authorization not available");
 	}
 
-	static Map<String, Object> createDNSChallenge(Authorization auth, String domain, PKCS10CertificationRequest csr, Order order) throws Exception
+	static Map<String, Object> createDNSChallenge(Authorization auth, String domain, byte[] csr, Order order) throws Exception
 	{
 		Map<String, Object> responseMap = new HashMap<>();
 		responseMap.put("message", "Add the dns TXT record with name and value provided in challenge node for your domain in the DNS setting of your DNS provider");
@@ -117,7 +111,7 @@ public class ACMEClientUtil
 		return responseMap;
 	}
 
-	static Map<String, Object> createHTTPChallenge(Authorization auth, String domain, PKCS10CertificationRequest csr, Order order) throws Exception
+	static Map<String, Object> createHTTPChallenge(Authorization auth, String domain, byte[] csr, Order order) throws Exception
 	{
 		Map<String, Object> responseMap = new HashMap<>();
 		responseMap.put("message", "Make your server return the data present in file_content node for HTTP request from the endpoint present in path node");
@@ -182,7 +176,8 @@ public class ACMEClientUtil
 				throw new AppException("Challenge failed with error message " + challenge.getError().get().getDetail().get());
 			}
 
-			order.execute(DOMAIN_IN_MEMORY_META.get(domainName).getRight());
+			byte[] csr = DOMAIN_IN_MEMORY_META.get(domainName).getRight();
+			order.execute(csr);
 
 			if(order.getStatus() != Status.VALID)
 			{
@@ -226,20 +221,38 @@ public class ACMEClientUtil
 
 	}
 
-	private static PKCS10CertificationRequest parseCSR(Reader reader) throws Exception
+	private static byte[] parseCSR(byte[] csr) throws Exception
 	{
-		try(PemReader pemReader = new PemReader(reader))
+		try
 		{
-			PemObject pemObject = pemReader.readPemObject();
-			byte[] csrBytes = pemObject.getContent();
-			return new PKCS10CertificationRequest(csrBytes);
+			String csrString = new String(csr);
+			csrString = csrString.replaceAll("-----BEGIN CERTIFICATE REQUEST-----", "");
+			csrString = csrString.replaceAll("-----END CERTIFICATE REQUEST-----", "");
+			csrString = csrString.replaceAll("\n", "");
+
+			return Base64.getDecoder().decode(csrString.getBytes());
 		}
 		catch(Exception e)
 		{
-			LOGGER.log(Level.SEVERE, "Exception occurred",e);
-			throw new AppException("Not able to pare the given CSR file. Please ensure the file is in correct format");
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			throw new AppException("Not able to pare the given CSR file. Please ensure the csr file starts with -----BEGIN CERTIFICATE REQUEST---- and ends wih -----END CERTIFICATE REQUEST-----");
 		}
 	}
+
+	//	private static PKCS10CertificationRequest parseCSR(Reader reader) throws Exception
+	//	{
+	//		try(PemReader pemReader = new PemReader(reader))
+	//		{
+	//			PemObject pemObject = pemReader.readPemObject();
+	//			byte[] csrBytes = pemObject.getContent();
+	//			return new PKCS10CertificationRequest(csrBytes);
+	//		}
+	//		catch(Exception e)
+	//		{
+	//			LOGGER.log(Level.SEVERE, "Exception occurred",e);
+	//			throw new AppException("Not able to pare the given CSR file. Please ensure the file is in correct format");
+	//		}
+	//	}
 
 	private static Account findOrCreateAccount(Session session, KeyPair userKeyPair) throws AcmeException
 	{
@@ -264,24 +277,24 @@ public class ACMEClientUtil
 	//		return new KeyPair(getPublicKey(publicKeyPath), getPrivateKey(privateKeyPath));
 	//	}
 	//
-		private static KeyPair generateACMEClientKeyPair(String filename) throws Exception
-		{
-			String privateKeyFile = Util.HOME_PATH + "/tomcat_server/tomcat/webapps/ROOT/WEB-INF/" + filename + "_private_key.pem";
-			String publicKeyFile = Util.HOME_PATH + "/tomcat_server/tomcat/webapps/ROOT/WEB-INF/" + filename + "_public_key.pem";
+	private static KeyPair generateACMEClientKeyPair(String filename) throws Exception
+	{
+		String privateKeyFile = Util.HOME_PATH + "/tomcat_server/tomcat/webapps/ROOT/WEB-INF/" + filename + "_private_key.pem";
+		String publicKeyFile = Util.HOME_PATH + "/tomcat_server/tomcat/webapps/ROOT/WEB-INF/" + filename + "_public_key.pem";
 
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-			keyGen.initialize(2048);
-			KeyPair keyPair = keyGen.generateKeyPair();
-			try(FileOutputStream fos = new FileOutputStream(privateKeyFile))
-			{
-				fos.write(Base64.getEncoder().encode(keyPair.getPrivate().getEncoded()));
-			}
-			try(FileOutputStream fos = new FileOutputStream(publicKeyFile))
-			{
-				fos.write(Base64.getEncoder().encode(keyPair.getPublic().getEncoded()));
-			}
-			return keyPair;
+		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+		keyGen.initialize(2048);
+		KeyPair keyPair = keyGen.generateKeyPair();
+		try(FileOutputStream fos = new FileOutputStream(privateKeyFile))
+		{
+			fos.write(Base64.getEncoder().encode(keyPair.getPrivate().getEncoded()));
 		}
+		try(FileOutputStream fos = new FileOutputStream(publicKeyFile))
+		{
+			fos.write(Base64.getEncoder().encode(keyPair.getPublic().getEncoded()));
+		}
+		return keyPair;
+	}
 	//
 	//	static PublicKey getPublicKey(String publicKeyPath) throws Exception
 	//	{

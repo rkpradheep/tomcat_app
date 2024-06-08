@@ -282,7 +282,7 @@ function verifyChallenge() {
     .then(response => response.json())
     .then(data => {
         hideElement('loading')
-        if (data.code != "error") {
+        if (data.data.cert_url != undefined && data.data.cert_url != null) {
             document.getElementById('download-link').href = data.cert_url;
             document.getElementById('certificate-download').style.display = 'block';
         } else {
