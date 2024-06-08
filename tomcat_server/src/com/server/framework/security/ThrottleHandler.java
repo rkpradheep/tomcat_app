@@ -58,7 +58,7 @@ public class ThrottleHandler
 			int count = throttleMeta.incrementCount();
 			long time = throttleMeta.getTime();
 			long currentTime = DateUtil.getCurrentTimeInMillis();
-			long timeFrameStart = currentTime - (1000 * 60 * 5);
+			long timeFrameStart = currentTime - DateUtil.ONE_MINUTE_IN_MILLISECOND * 5L;
 
 			if(time < timeFrameStart)
 			{
@@ -66,9 +66,9 @@ public class ThrottleHandler
 				return true;
 			}
 
-			if(count > 100)
+			if(count > 25)
 			{
-				ipLockTimeMap.put(key, DateUtil.getCurrentTimeInMillis() + (1000 * 60 * 5));
+				ipLockTimeMap.put(key, DateUtil.getCurrentTimeInMillis() + DateUtil.ONE_HOUR_IN_MILLISECOND);
 				return false;
 			}
 
@@ -88,7 +88,7 @@ public class ThrottleHandler
 			ipLockTimeMap.remove(ip);
 		}
 
-		Long expiredTimeFrame = currentTime -  (1000 * 60 * 5);
+		Long expiredTimeFrame = currentTime -  DateUtil.ONE_MINUTE_IN_MILLISECOND * 5L;
 		List<String> throttleExpiredIP = ipThrottleMeta.entrySet().stream().filter(throttleMeta -> throttleMeta.getValue().getTime() < expiredTimeFrame).map(Map.Entry::getKey).collect(Collectors.toList());
 		for(String ip : throttleExpiredIP)
 		{
