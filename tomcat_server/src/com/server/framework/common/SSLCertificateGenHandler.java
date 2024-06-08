@@ -8,12 +8,16 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.server.framework.http.FormData;
 import com.server.framework.security.SecurityUtil;
 
 public class SSLCertificateGenHandler extends HttpServlet
 {
+	private static final Logger LOGGER = Logger.getLogger(SSLCertificateGenHandler.class.getName());
+
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException
 	{
@@ -36,9 +40,14 @@ public class SSLCertificateGenHandler extends HttpServlet
 				SecurityUtil.writeJSONResponse(response, responseMap);
 			}
 		}
-		catch(Exception e)
+		catch(AppException e)
 		{
 			SecurityUtil.writerErrorResponse(response, e.getMessage());
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			SecurityUtil.writerErrorResponse(response, "Something went wrong. Please try again later.");
 		}
 	}
 }

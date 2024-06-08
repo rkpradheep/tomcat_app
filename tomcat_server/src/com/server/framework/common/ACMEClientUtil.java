@@ -70,13 +70,13 @@ public class ACMEClientUtil
 	{
 		if(DOMAIN_IN_MEMORY_META.containsKey(domain))
 		{
-			throw new Exception("Request already initiated. Please verify it using this url /api/v1/ssl/sign/verify");
+			throw new AppException("Challenge already initiated. Please complete the verification");
 		}
 
 		if(DOMAIN_FAILURE_COUNT.getOrDefault(domain, 0) >= 3)
 		{
 			JobUtil.scheduleJob(() -> DOMAIN_FAILURE_COUNT.remove(domain), DateUtil.ONE_HOUR_IN_MILLISECOND);
-			throw new Exception("You have reached the maximum failure retry threshold. Try again later.");
+			throw new AppException("You have reached the maximum failure retry threshold. Try again later.");
 		}
 
 		PKCS10CertificationRequest csr = parseCSR(new InputStreamReader(new ByteArrayInputStream(csrFileBytes)));
@@ -102,7 +102,7 @@ public class ACMEClientUtil
 
 		if(Objects.isNull(challenge))
 		{
-			throw new Exception("DNS01 Challenge is not available for your domain");
+			throw new AppException("DNS01 Challenge is not available for your domain");
 		}
 		String dnsRecord = "_acme-challenge." + domain;
 		String dnsValue = challenge.getDigest();
@@ -160,7 +160,7 @@ public class ACMEClientUtil
 		{
 			if(!DOMAIN_IN_MEMORY_META.containsKey(domainName))
 			{
-				throw new Exception("Invalid request. Please initiate the process first using the url /ss/sign/initiate");
+				throw new AppException("No challenge initiated for the given domain yet. Please initiate the challenge first.");
 			}
 
 			DOMAIN_FAILURE_COUNT.put(domainName, DOMAIN_FAILURE_COUNT.getOrDefault(domainName, 0) + 1);
@@ -179,14 +179,14 @@ public class ACMEClientUtil
 
 			if(challenge.getStatus() != Status.VALID)
 			{
-				throw new Exception("Challenge failed with error message " + challenge.getError().get().getDetail().get());
+				throw new AppException("Challenge failed with error message " + challenge.getError().get().getDetail().get());
 			}
 
 			order.execute(DOMAIN_IN_MEMORY_META.get(domainName).getRight());
 
 			if(order.getStatus() != Status.VALID)
 			{
-				throw new Exception("Challenge failed with error message " + order.getError().get().getDetail().get());
+				throw new AppException("Challenge failed with error message " + order.getError().get().getDetail().get());
 			}
 			order.update();
 
@@ -233,6 +233,11 @@ public class ACMEClientUtil
 			PemObject pemObject = pemReader.readPemObject();
 			byte[] csrBytes = pemObject.getContent();
 			return new PKCS10CertificationRequest(csrBytes);
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred",e);
+			throw new AppException("Not able to pare the given CSR file. Please ensure the file is in correct format");
 		}
 	}
 

@@ -193,7 +193,7 @@ button:hover {
     </form>
 
     <div id="dns-record" style="display:none;">
-        <h2>Add the dns TXT record with the below Name and Key provided for your domain in the DNS setting of your DNS provider</h2>
+        <h2>Add the DNS TXT record with the below Name and Key for your domain in the DNS setting of your DNS provider</h2>
         <p><b>Name: </b><span id="dns-name"></span></p>
         <p><b>Key: </b><span id="dns-key"></span></p>
     </div>
@@ -288,6 +288,8 @@ function verifyChallenge() {
         } else {
             alert(data.error);
         }
+        hideElement('dns-record')
+        hideElement('http-challenge-box')
     })
     .catch(error => {
         hideElement('loading')
