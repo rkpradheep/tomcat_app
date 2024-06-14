@@ -47,6 +47,11 @@ public class SecurityFilter implements Filter
 			String requestURI = httpServletRequest.getRequestURI().replaceFirst(httpServletRequest.getContextPath(), StringUtils.EMPTY);
 			String requestURL = httpServletRequest.getRequestURL().toString();
 
+			if(!SecurityUtil.isResourceUri(servletRequest.getServletContext(), requestURI))
+			{
+				LOGGER.log(Level.INFO, "Request received for uri {0} Public IP {1} Originating IP {2}", new Object[] {httpServletRequest.getRequestURI(), httpServletRequest.getRemoteAddr(), SecurityUtil.getOriginatingUserIP()});
+			}
+
 			if(!SecurityUtil.isValidEndPoint(requestURI))
 			{
 				httpServletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -88,10 +93,6 @@ public class SecurityFilter implements Filter
 				{
 					httpServletResponse.sendError(HttpStatus.SC_FORBIDDEN);
 					return;
-				}
-				if(!SecurityUtil.isResourceUri(servletRequest.getServletContext(), requestURI))
-				{
-					LOGGER.log(Level.INFO, "Request received for uri {0} Public IP {1}  Session {2} Originating IP {3}", new Object[] {httpServletRequest.getRequestURI(), httpServletRequest.getRemoteAddr(), sessionId, SecurityUtil.getOriginatingUserIP()});
 				}
 				filterChain.doFilter(servletRequest, servletResponse);
 			}

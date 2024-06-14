@@ -58,7 +58,7 @@ import com.server.table.constants.HTTPLOG;
 
 public class SecurityUtil
 {
-	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/(resources|css|js)/.*)", "/api/v1/jobs", "/api/v1/admin/live/logs", "/.well-known/.*");
+	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/((resources|css|js)/.*)|favicon.ico)", "/api/v1/jobs", "/api/v1/admin/live/logs", "/.well-known/.*");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
@@ -68,7 +68,7 @@ public class SecurityUtil
 
 	public static boolean isResourceUri(ServletContext servletContext, String endPoint) throws MalformedURLException
 	{
-		return endPoint.contains(".") && Objects.nonNull(servletContext.getResource(endPoint)) && !endPoint.endsWith(".jsp") && !endPoint.endsWith(".html");
+		return endPoint.matches("(/((resources|css|js)/.*)|favicon.ico)");
 	}
 
 	public static String getAuthToken()

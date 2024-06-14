@@ -84,7 +84,7 @@ public class ACMEClientUtil
 			return isHTTPChallenge ? createHTTPChallenge(auth, domain, parsedCSRBytes, order) : createDNSChallenge(auth, domain, parsedCSRBytes, order);
 		}
 
-		throw new Exception("Authorization not available");
+		throw new AppException("Authorization not available");
 	}
 
 	static Map<String, Object> createDNSChallenge(Authorization auth, String domain, byte[] csr, Order order) throws Exception
@@ -120,7 +120,7 @@ public class ACMEClientUtil
 
 		if(Objects.isNull(challenge))
 		{
-			throw new Exception("HTTP01 Challenge is not available for your domain");
+			throw new AppException("HTTP01 Challenge is not available for your domain");
 		}
 
 		DOMAIN_IN_MEMORY_META.put(domain, new ImmutableTriple<>(order, challenge, csr));
@@ -186,21 +186,24 @@ public class ACMEClientUtil
 			order.update();
 
 			Certificate certificate = order.getCertificate();
-			domainName = domainName.replaceFirst("\\*\\.", "") + ".pem";
-			String path = Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + domainName;
+			String plainDomainName = domainName.replaceFirst("\\*\\.", "") + ".pem";
+			String path = Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + plainDomainName;
 			try(FileWriter writer = new FileWriter(path))
 			{
 				certificate.writeCertificate(writer);
 			}
 
-			IOUtils.copy(new FileReader(path), new FileWriter(Util.HOME_PATH + "/uploads/" + domainName));
-			return domainName;
+			IOUtils.copy(new FileReader(path), new FileWriter(Util.HOME_PATH + "/uploads/" + plainDomainName));
+			return plainDomainName;
 		}
 		catch(Exception e)
 		{
-			DOMAIN_IN_MEMORY_META.remove(domainName);
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 			throw e;
+		}
+		finally
+		{
+			DOMAIN_IN_MEMORY_META.remove(domainName);
 		}
 	}
 
