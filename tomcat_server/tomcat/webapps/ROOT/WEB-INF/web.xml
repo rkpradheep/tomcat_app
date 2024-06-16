@@ -134,6 +134,7 @@
 		<url-pattern>/network</url-pattern>
 		<url-pattern>/livelogs</url-pattern>
 		<url-pattern>/freessl</url-pattern>
+		<url-pattern>/snakegame</url-pattern>
 	</servlet-mapping>
 
 

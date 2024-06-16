@@ -36,11 +36,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+
 public class Util
 {
 	public static final String HOME_PATH = System.getenv("MY_HOME");
 
 	private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
+	private static final Gson GSON = new Gson();
 
 	public static String encryptData(PublicKey publicKey, String plainText)
 	{
@@ -231,6 +234,11 @@ public class Util
 				return null;
 			}
 		}
+	}
+
+	public static JSONObject covertPOJOToJSON(Object pojoObject, Class<?> type)
+	{
+		return new JSONObject(GSON.toJson(pojoObject, type));
 	}
 
 }
