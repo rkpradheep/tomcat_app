@@ -175,9 +175,30 @@ function paintPlayer(playerState, xAxisSize, yAxisSize, colour) {
      ctx.fillText(playerState.name, (cell.x * xAxisSize) - 10, (cell.y * yAxisSize) + 50);
      if(prevKeyCode == KeyCodes.UP_ARROW)
      ctx.fillText(playerState.name, (cell.x * xAxisSize) - 10, (cell.y * yAxisSize) - 20);
+
+     var eyeRadius = xAxisSize / 10;
+     var eyeOffsetX = xAxisSize / 4;
+     var eyeOffsetY = yAxisSize / 4;
      }
+
     ctx.fillStyle = colour;
     ctx.fillRect(cell.x * xAxisSize, cell.y * yAxisSize, xAxisSize, yAxisSize);
+
+    if(i == 0)
+    {
+         // Draw the left eye
+         ctx.beginPath();
+         ctx.arc((cell.x * xAxisSize) + eyeOffsetX, (cell.y * yAxisSize) + eyeOffsetY, eyeRadius, 0, Math.PI * 2, true);
+         ctx.fillStyle = "black";
+         ctx.fill();
+
+         // Draw the right eye
+         ctx.beginPath();
+         ctx.arc((cell.x * xAxisSize) + xAxisSize - eyeOffsetX, (cell.y * yAxisSize) + eyeOffsetY, eyeRadius, 0, Math.PI * 2, true);
+         ctx.fillStyle = "black";
+         ctx.fill();
+    }
+
     i = i+1;
   }
 }
