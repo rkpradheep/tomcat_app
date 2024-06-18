@@ -85,6 +85,13 @@ To combine the certificate and key into single file (pfx)
 
 openssl pkcs12 -export -out server.pfx -inkey server.key -in server.crt
 
+To convert pkcs12 to jks
+
+keytool -importkeystore -srckeystore server.pfx -srcstoretype pkcs12  -destkeystore server.jks -deststoretype JKS
+
+To convert jks to pkcs12
+
+keytool -importkeystore -srckeystore server.jks -destkeystore zohopayout.jks -deststoretype pkcs12
 
 Complete example :
 

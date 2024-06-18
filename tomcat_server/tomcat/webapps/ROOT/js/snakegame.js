@@ -18,7 +18,7 @@ const joinGameInput = document.getElementById('join-game-code');
 const gameCodeDisplay = document.getElementById('game-code');
 const joinGameButton = document.getElementById('join-game-button');
 const joinGameContainer = document.getElementById('join-game-container');
-
+const resultBox = document.getElementById('result-box');
 createGameButton.addEventListener('click', newGame);
 joinGameNow.addEventListener('click', joinGame);
 
@@ -153,6 +153,8 @@ function paintGame(state) {
   paintPlayer(state.players[0], xAxisSize, yAxisSize, state.players[0].color);
   for(var i=1 ; i < state.players.length ; i++)
   paintPlayer(state.players[i], xAxisSize, yAxisSize, state.players[i].color);
+
+  updateResultBox(state.players)
 }
 
 function paintPlayer(playerState, xAxisSize, yAxisSize, colour) {
@@ -252,7 +254,9 @@ function reset() {
 
 }
 
-
+function updateResultBox(players) {
+        resultBox.innerHTML = players.map(player => `<strong>${player.name}</strong>: ${player.points}`).join('<br>');
+}
 
 document.getElementById('up').addEventListener('click', () => { moveSnake(KeyCodes.UP_ARROW); });
 document.getElementById('left').addEventListener('click', () => { moveSnake(KeyCodes.LEFT_ARROW); });

@@ -109,10 +109,32 @@
       display:none
       }
     }
+
      #game-code {
       font-size: 24px;
       margin-bottom: 10px;
     }
+
+.result-box {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 150px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 16px;
+    z-index: 10;
+}
+
+   @media (max-width: 600px) {
+    .result-box {
+        top: 50px;
+        right: 18px;
+        }
+    }
+
     </style>
 </head>
 <body>
@@ -129,6 +151,7 @@
 <div id="game-container" class="screen">
     <div id="game-code"></div>
     <div id="game-screen">
+        <div id="result-box" class="result-box"></div>
         <canvas id="canvas"></canvas>
     </div>
     <div id="controls">

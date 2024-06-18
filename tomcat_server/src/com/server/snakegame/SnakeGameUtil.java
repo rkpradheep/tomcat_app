@@ -123,6 +123,10 @@ public class SnakeGameUtil
 		String roomName = SESSION_ID_ROOM_NAME.get(session.getId());
 
 		RoomMeta roomMeta = NAME_ROOM_META.get(roomName);
+		if(Objects.isNull(roomMeta))
+		{
+			return;
+		}
 		roomMeta.markPlayerAsEliminated(session);
 
 		if(roomMeta.getActivePlayerCount() == 1)
