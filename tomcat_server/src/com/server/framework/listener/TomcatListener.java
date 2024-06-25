@@ -38,7 +38,7 @@ public class TomcatListener implements LifecycleListener
 
 			if(Configuration.getBoolean("proxy.server"))
 			{
-				ProxyServer.init();
+				ProxyServer.init(Configuration.getProperty("proxy.port"), Configuration.getProperty("proxy.user"),  Configuration.getProperty("proxy.password"));
 			}
 
 			LOGGER.log(Level.INFO, "Context Initialised for at {0}", new Object[] {DateUtil.getFormattedCurrentTime()});

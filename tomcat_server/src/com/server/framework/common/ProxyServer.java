@@ -7,12 +7,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -23,12 +27,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.json.JSONObject;
 
 public class ProxyServer
 {
@@ -37,51 +35,111 @@ public class ProxyServer
 	private static ExecutorService executorService;
 	private static ExecutorService executorServiceForRequestHandling;
 	private static final int MAX_WAIT_SECONDS = 30;
-	private static final int MAX_WORKER_SIZE = 50;
+	private static int MAX_WORKER_SIZE = 50;
 	private static final AtomicInteger THREAD_NUMBER = new AtomicInteger(0);
-	private static final AtomicInteger WORKER_THREAD_NUMBER =  new AtomicInteger(0);
-	private static final String TEN_HASH = Collections.nCopies(10, "#").stream().collect(Collectors.joining());
+	private static final AtomicInteger WORKER_THREAD_NUMBER = new AtomicInteger(0);
+	private static final String TEN_HASH = String.join("", Collections.nCopies(10, "#"));
 	private static boolean stopProxy = false;
 	private static int PROXY_PORT;
 	private static String PROXY_CREDENTIAL;
 
-	public static void init()
+	public static void main(String[] args)
 	{
-		PROXY_PORT = Integer.parseInt(Configuration.getProperty("proxy.port"));
-		PROXY_CREDENTIAL = Configuration.getProperty("proxy.user") + ":" + Configuration.getProperty("proxy.password");
+		String userName = null, password = null;
+		String defaultPort = "3128";
 
-		ThreadFactory tf = run -> {
-			Thread thread = new Thread(run, "proxy-server");
-			return thread;
-		};
+		Map<String, String> customPropertyMap = new HashMap<>();
 
-		ThreadFactory requestTF = run -> {
-			Thread thread = new Thread(run, "proxy-worker-thread-" + THREAD_NUMBER.incrementAndGet());
-			return thread;
-		};
+		for(String arg : args)
+		{
+			if(arg.split("=").length == 0)
+			{
+				LOGGER.log(Level.SEVERE, "Invalid property specified. Format :: key=value");
+				return;
+			}
+			customPropertyMap.put(arg.split("=")[0].trim(), arg.substring(arg.indexOf("=") + 1));
+		}
+
+		if(customPropertyMap.get("port") != null)
+		{
+			try
+			{
+				defaultPort = String.valueOf(Integer.parseInt(customPropertyMap.get("port")));
+			}
+			catch(Exception e)
+			{
+				LOGGER.log(Level.SEVERE, "Invalid port number");
+				return;
+			}
+		}
+		if(customPropertyMap.get("user") != null && customPropertyMap.get("password") != null)
+		{
+			userName = customPropertyMap.get("user");
+			password = customPropertyMap.get("password");
+		}
+
+		if(customPropertyMap.get("threads") != null)
+		{
+			try
+			{
+				MAX_WORKER_SIZE = Integer.parseInt(customPropertyMap.get("threads"));
+				if(MAX_WORKER_SIZE < 1)
+				{
+					throw new Exception();
+				}
+			}
+			catch(Exception e)
+			{
+				LOGGER.log(Level.SEVERE, "Invalid value specified for threads");
+				return;
+			}
+		}
+
+		init(defaultPort, userName, password);
+	}
+
+	public static void init(String port, String userName, String password)
+	{
+		PROXY_PORT = Integer.parseInt(port);
+
+		if(isProxyAlreadyRunning())
+		{
+			LOGGER.log(Level.INFO, "Another process with port {0} is already running", new Object[] {PROXY_PORT});
+			return;
+		}
+
+		PROXY_CREDENTIAL = (userName == null || password == null) ? null : (userName + ":" + password);
+
+		ThreadFactory tf = run -> new Thread(run, "proxy-server");
+
+		ThreadFactory requestTF = run -> new Thread(run, "proxy-worker-thread-" + THREAD_NUMBER.incrementAndGet());
 
 		executorService = Executors.newFixedThreadPool(1, tf);
 		executorServiceForRequestHandling = Executors.newFixedThreadPool(MAX_WORKER_SIZE, requestTF);
 		executorService.submit(ProxyServer::start);
+
 	}
 
 	public static void shutDown()
 	{
 		stopProxy = true;
-		executorService.shutdownNow();
-		executorServiceForRequestHandling.shutdownNow();
+		if(isProxyAlreadyRunning())
+		{
+			executorService.shutdownNow();
+			executorServiceForRequestHandling.shutdownNow();
+		}
 	}
 
 	public static void start()
 	{
-		try
+		if(isProxyAlreadyRunning())
 		{
-			if(isProxyAlreadyRunning())
-			{
-				LOGGER.log(Level.INFO, "Proxy is already running ");
-				return;
-			}
-			ServerSocket serverSocket = new ServerSocket(PROXY_PORT);
+			LOGGER.log(Level.INFO, "Proxy is already running ");
+			return;
+		}
+
+		try(ServerSocket serverSocket = new ServerSocket(PROXY_PORT))
+		{
 			LOGGER.info("Proxy server started");
 			while(!stopProxy)
 			{
@@ -89,7 +147,7 @@ public class ProxyServer
 				executorServiceForRequestHandling.submit(() -> {
 					try
 					{
-						LOGGER.info(TEN_HASH + " Got proxy request : " + Thread.currentThread().getName()  + " " + TEN_HASH);
+						LOGGER.info(TEN_HASH + " Got proxy request : " + Thread.currentThread().getName() + " " + TEN_HASH);
 						handleClientRequest(clientSocket);
 					}
 					catch(IOException e)
@@ -107,14 +165,13 @@ public class ProxyServer
 
 	private static boolean isProxyAlreadyRunning()
 	{
-		try
+		try(Socket socket = new Socket())
 		{
-			new Socket("127.0.0.1", PROXY_PORT);
+			socket.connect(new InetSocketAddress("127.0.0.1", PROXY_PORT), 3000);
 			return true;
 		}
 		catch(Exception e)
 		{
-			LOGGER.log(Level.SEVERE, "Proxy is not running. Exception : " + e);
 			return false;
 		}
 	}
@@ -128,46 +185,29 @@ public class ProxyServer
 
 			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(clientOut);
 
-			LOGGER.info("Input Stream Available size before waiting " + clientIn.available());
+			//LOGGER.info("Input Stream Available size before waiting " + clientIn.available());
 
 			long maxWaitLimit = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(3);
 
-			while(clientIn.available() == 0 && System.currentTimeMillis() < maxWaitLimit);
+			while(clientIn.available() == 0 && System.currentTimeMillis() < maxWaitLimit)
+				;
 
 			byte[] bytes = new byte[clientIn.available()];
 
-			LOGGER.info("Input Stream Available size after waiting " + clientIn.available());
+			//LOGGER.info("Input Stream Available size after waiting " + clientIn.available());
 
 			int read = clientIn.read(bytes);
 
 			String header = new String(bytes, 0, read);
-			LOGGER.info("Headers received \n\n" + header);
-			String credentialReceived = getHeader(header, "Proxy-Authorization");
-			credentialReceived = credentialReceived.split(":").length > 1 ? credentialReceived.split(":")[1] : StringUtils.EMPTY;
-			Pattern authorizationHeaderPattern = Pattern.compile("Basic\\s+(.*)"); //No I18N
-			Matcher authorizationHeaderMatcher = authorizationHeaderPattern.matcher(credentialReceived.trim());
-			if(authorizationHeaderMatcher.matches())
+			//LOGGER.info("Headers received \n\n" + header);
+
+			if(!handleAuthorization(header, outputStreamWriter))
 			{
-				credentialReceived = new String(Base64.decodeBase64(authorizationHeaderMatcher.group(1)));
-			}
-			if(!StringUtils.equals(PROXY_CREDENTIAL, credentialReceived))
-			{
-				JSONObject jsonResponse = new JSONObject();
-				jsonResponse.put("messaged", "Invalid proxy credentials");
-
-				outputStreamWriter.write("HTTP/1.1 407 Proxy Authentication Required\r\n");
-				outputStreamWriter.write("Proxy-Authenticate: Basic realm=\"Proxy\"");
-				outputStreamWriter.write("Content-Type: application/json\r\n");
-				outputStreamWriter.write("\r\n");
-
-				outputStreamWriter.write(jsonResponse.toString());
-				outputStreamWriter.flush();
-
-				LOGGER.info("Authorization failed for Proxy request");
 				return;
 			}
-			String targetUrl =header.split("\\r\\n")[0].split(" ")[1];
-			String targetHost = StringUtils.defaultIfEmpty(getHeader(header, "host"), targetUrl);
+
+			String targetUrl = header.split("\\r\\n")[0].split(" ")[1];
+			String targetHost = getHeader(header, "host");
 			String[] hostAndPort = getHostAndPort(targetHost, targetUrl);
 
 			LOGGER.log(Level.INFO, "Fetched Host {0} and Port {1}", new Object[] {hostAndPort[0], hostAndPort[1]});
@@ -186,12 +226,13 @@ public class ProxyServer
 				ExecutorService executorService = Executors.newFixedThreadPool(2, forwarderThread);
 
 				Future<?> clientThread = executorService.submit(() -> forwardData(clientSocket, targetSocket, "Proxy's Client Socket"));
-				Future<?> targetThread = executorService.submit(() -> forwardData(targetSocket, clientSocket,  "Proxy's Client's Target Socket"));
+				Future<?> targetThread = executorService.submit(() -> forwardData(targetSocket, clientSocket, "Proxy's Client's Target Socket"));
 
 				try
 				{
 					maxWaitLimit = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(MAX_WAIT_SECONDS);
-					while(System.currentTimeMillis() < maxWaitLimit && !clientThread.isDone());
+					while(System.currentTimeMillis() < maxWaitLimit && !clientThread.isDone())
+						;
 					targetSocket.shutdownOutput();
 					clientSocket.shutdownInput();
 					clientThread.get(1, TimeUnit.SECONDS);
@@ -210,7 +251,8 @@ public class ProxyServer
 				forwardData(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), targetSocket);
 
 				maxWaitLimit = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(MAX_WAIT_SECONDS);
-				while(targetSocket.getInputStream().available() < 1 && System.currentTimeMillis() < maxWaitLimit) ;
+				while(targetSocket.getInputStream().available() < 1 && System.currentTimeMillis() < maxWaitLimit)
+					;
 
 				byte[] targetOutputBytes = new byte[targetSocket.getInputStream().available()];
 				targetSocket.getInputStream().read(targetOutputBytes);
@@ -227,31 +269,64 @@ public class ProxyServer
 		}
 		finally
 		{
-			clientSocket.close();
+			if(!clientSocket.isClosed())
+			{
+				clientSocket.close();
+			}
 			LOGGER.info(TEN_HASH + " Completed proxy request " + TEN_HASH);
 		}
 	}
 
-
 	static String getHeader(String header, String headerName)
 	{
-		return new BufferedReader(new StringReader(header)).lines().filter(s -> s.toLowerCase().startsWith(headerName.toLowerCase())).findFirst().orElse(StringUtils.EMPTY).trim();
+		String headerLine = new BufferedReader(new StringReader(header)).lines().filter(s -> s.toLowerCase().startsWith(headerName.toLowerCase())).findFirst().orElse("").trim();
+		return headerLine.split(":").length > 1 ? headerLine.substring(headerLine.indexOf(":") + 1).trim() : "";
 	}
+
 	static String[] getHostAndPort(String targetHost, String targetURL) throws Exception
 	{
-
-		String port = targetURL.split(":").length > 1 ? targetURL.split(":")[1] : "80";
 		if(targetURL.startsWith("http"))
 		{
-			int portFromUrl = new URL(targetURL).getPort();
-			port = (portFromUrl == -1 ? new URL(targetURL).getDefaultPort() : portFromUrl) + StringUtils.EMPTY;
+			URL url = new URL(targetURL);
+			String port = (url.getPort() == -1 ? url.getDefaultPort() : url.getPort()) + "";
+			return new String[] {url.getHost(), port};
 		}
+
 		Pattern pattern = Pattern.compile("([\\w.-]+):?(\\d*)");
 		Matcher matcher = pattern.matcher(targetHost.toLowerCase().replaceFirst("host: ", ""));
 		matcher.matches();
 
-		return new String[] {matcher.group(1), matcher.group(2).length() > 0 ? matcher.group(2) : port};
+		return new String[] {matcher.group(1), matcher.group(2).trim().length() == 0 ? "443" : matcher.group(2).trim()};
 
+	}
+
+	private static boolean handleAuthorization(String header, Writer outputStreamWriter) throws IOException
+	{
+		if(PROXY_CREDENTIAL == null)
+		{
+			return true;
+		}
+		String credentialReceived = getHeader(header, "Proxy-Authorization");
+		Pattern authorizationHeaderPattern = Pattern.compile("Basic\\s+(.*)"); //No I18N
+		Matcher authorizationHeaderMatcher = authorizationHeaderPattern.matcher(credentialReceived);
+		if(authorizationHeaderMatcher.matches())
+		{
+			credentialReceived = new String(Base64.getDecoder().decode(authorizationHeaderMatcher.group(1)));
+		}
+		if(!PROXY_CREDENTIAL.equals(credentialReceived))
+		{
+			outputStreamWriter.write("HTTP/1.1 407 Proxy Authentication Required\r\n");
+			outputStreamWriter.write("Proxy-Authenticate: Basic realm=\"Proxy\"\r\n");
+
+			outputStreamWriter.write("\r\n");
+			outputStreamWriter.flush();
+
+			outputStreamWriter.close();
+
+			LOGGER.info("Authorization failed for Proxy request");
+			return false;
+		}
+		return true;
 	}
 
 	private static void forwardData(Socket inputSocket, Socket outputSocket, String partyName)
@@ -259,7 +334,7 @@ public class ProxyServer
 		try
 		{
 			forwardData(inputSocket.getInputStream(), outputSocket);
-			LOGGER.info(partyName + " Stream Closed");
+			//LOGGER.info(partyName + " Stream Closed");
 		}
 		catch(IOException e)
 		{
@@ -271,64 +346,19 @@ public class ProxyServer
 	{
 		try
 		{
-			IOUtils.copy(inputStream, outputSocket.getOutputStream());
+			//IOUtils.copy(inputStream, outputSocket.getOutputStream());
+			OutputStream outputStream = outputSocket.getOutputStream();
+			int n;
+			byte[] buffer = new byte[8192];
+			while((n = inputStream.read(buffer)) != -1)
+			{
+				outputStream.write(buffer, 0, n);
+			}
 		}
 		catch(IOException e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred " + e);
 		}
 	}
-
-//		private static void forwardData(Socket inputSocket, Socket outputSocket)
-//		{
-//			try
-//			{
-//				InputStream inputStream = inputSocket.getInputStream();
-//				try
-//				{
-//					OutputStream outputStream = outputSocket.getOutputStream();
-//					try
-//					{
-//						byte[] buffer = new byte[4096];
-//						int read;
-//						do
-//						{
-//							if(inputSocket.isClosed())
-//							{
-//								break;
-//							}
-//							read = inputStream.read(buffer);
-//							if(read > 0)
-//							{
-//								outputStream.write(buffer, 0, read);
-//								if(inputStream.available() < 1)
-//								{
-//									outputStream.flush();
-//								}
-//							}
-//						} while(read >= 0);
-//					}
-//					finally
-//					{
-//						if(!outputSocket.isClosed() && !outputSocket.isOutputShutdown())
-//						{
-//							outputSocket.shutdownOutput();
-//						}
-//					}
-//				}
-//				finally
-//				{
-//					if(!inputSocket.isClosed() && !inputSocket.isInputShutdown())
-//					{
-//						inputSocket.shutdownInput();
-//					}
-//					LOGGER.info("Stream Closed");
-//				}
-//			}
-//			catch(IOException e)
-//			{
-//				LOGGER.log(Level.SEVERE, "Exception occurred", e);
-//			}
-//		}
 
 }
