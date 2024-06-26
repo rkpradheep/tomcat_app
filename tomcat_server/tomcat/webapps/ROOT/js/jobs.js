@@ -19,13 +19,27 @@
     }
    
     var data;
+     if(document.getElementById('task').value == "mail")
+     {
+
+         subject = document.getElementById('subject').value;
+         fromAddress = document.getElementById('fromAddress').value;
+         toAddress = document.getElementById('toAddress').value;
+         emailMessage = document.getElementById('emailMessage').value;
+
+           const email = {
+           "to" : toAddress,
+           "message" : emailMessage,
+           "subject" : subject,
+           "from_address" : fromAddress,
+           "to_address" : toAddress
+           }
+
+          data = JSON.stringify(email)
+
+     }
     if(document.getElementById('task').value == "mail" && otp == null)
     {
-    const subject = document.getElementById('subject').value;
-    const fromAddress = document.getElementById('fromAddress').value;
-    const toAddress = document.getElementById('toAddress').value;
-    const emailMessage = document.getElementById('emailMessage').value;
-
     if(emailMessage.length < 1)
     {
         alert("Please enter valid message");
@@ -48,16 +62,6 @@
         alert("Invalid to address");
         return;
     }
-
-    const email = {
-    "to" : toAddress,
-    "message" : emailMessage,
-    "subject" : subject,
-    "from_address" : fromAddress,
-    "to_address" : toAddress
-    }
-
-   data = JSON.stringify(email)
 
    unHideElement("loading");
    otpReference = await initiateOTP(fromAddress)
