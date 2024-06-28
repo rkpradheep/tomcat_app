@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
+import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 
@@ -70,7 +71,7 @@ public class ReminderTask
 				.append("&")
 				.append("client_secret=").append(jsonObject.getString("client_secret"))
 				.append("&")
-				.append("refresh_token=1000.1a4e286c281beac4015a782812b88373.f1837651e0cfe3b36db8545e642b8a16")
+				.append("refresh_token=").append(Configuration.getProperty("remindertask.refresh_token"))
 				.append("&")
 				.append("grant_type=").append("refresh_token");
 
