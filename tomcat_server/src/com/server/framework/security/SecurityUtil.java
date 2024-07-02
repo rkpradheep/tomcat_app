@@ -364,11 +364,10 @@ public class SecurityUtil
 
 	static void sendVisitorNotification() throws UnknownHostException
 	{
-		if(!isLoggedIn())
+		if(!Configuration.getBoolean("send.visitor.notification") || !isLoggedIn())
 		{
 			return;
 		}
-		addHTTPLog();
 		String key = DateUtil.getFormattedCurrentTime("dd/MM/yyyy");
 		List<String> visitorList = VISITOR_META.getOrDefault(key, new ArrayList<>());
 		String remoteIp = getCurrentRequest().getRemoteAddr();

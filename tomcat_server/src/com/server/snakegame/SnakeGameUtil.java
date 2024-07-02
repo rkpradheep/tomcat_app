@@ -211,7 +211,14 @@ public class SnakeGameUtil
 		resultJSON.put("data", NAME_ROOM_META.get(room).getState().toJSON().put("winner", NAME_ROOM_META.get(room).getWinner()));
 		for(Session session : NAME_ROOM_META.get(room).getPlayerSessionList())
 		{
-			session.getBasicRemote().sendText(resultJSON.toString());
+			try
+			{
+				session.getBasicRemote().sendText(resultJSON.toString());
+			}
+			catch(Exception e)
+			{
+
+			}
 		}
 	}
 

@@ -230,6 +230,7 @@ function handleResults(data) {
     return;
   }
     alert("Winner is " + data.winner);
+    window.location.reload();
 }
 
 function handleGameCode(data) {

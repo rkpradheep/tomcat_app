@@ -114,10 +114,9 @@ public class SecurityFilter implements Filter
 				}
 			}
 
-			if(Configuration.getBoolean("sent.visitor.notification"))
-			{
-				SecurityUtil.sendVisitorNotification();
-			}
+			SecurityUtil.sendVisitorNotification();
+			SecurityUtil.addHTTPLog();
+
 		}
 		finally
 		{
