@@ -147,7 +147,7 @@ public class ProxyServer
 				executorServiceForRequestHandling.submit(() -> {
 					try
 					{
-						LOGGER.info(TEN_HASH + " Got proxy request : " + Thread.currentThread().getName() + " " + TEN_HASH);
+						LOGGER.info(TEN_HASH +  " Remote IP :: "  + ((InetSocketAddress)clientSocket.getRemoteSocketAddress()).getHostName() + " Got proxy request : " + Thread.currentThread().getName() + " " + TEN_HASH);
 						handleClientRequest(clientSocket);
 					}
 					catch(IOException e)
