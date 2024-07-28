@@ -58,7 +58,7 @@ import com.server.table.constants.HTTPLOG;
 
 public class SecurityUtil
 {
-	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/((resources|css|js)/.*)|favicon.ico)", "/api/v1/jobs", "/api/v1/admin/live/logs", "/.well-known/.*", "(/dbtool.jsp|/api/v1/sas/.*)");
+	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/((resources|css|js)/.*)|favicon.ico)", "/api/v1/jobs", "/api/v1/admin/live/logs", "/.well-known/.*", "(/dbtool.jsp|/api/v1/(sas|zoho)/.*)");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
@@ -232,8 +232,14 @@ public class SecurityUtil
 
 	public static void writeSuccessJSONResponse(HttpServletResponse response, String responseMessage) throws IOException
 	{
+		writeSuccessJSONResponse(response, responseMessage, null);
+	}
+
+	public static void writeSuccessJSONResponse(HttpServletResponse response, String responseMessage, String data) throws IOException
+	{
 		Map<String, String> responseMap = new HashMap<>();
 		responseMap.put("message", responseMessage);
+		responseMap.put("data", data);
 		writeJSONResponse(response, responseMap);
 	}
 

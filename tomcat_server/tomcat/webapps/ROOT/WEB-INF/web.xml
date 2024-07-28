@@ -65,7 +65,7 @@
 
 	<servlet>
 		<servlet-name>SASHandler</servlet-name>
-		<servlet-class>com.server.sas.SASHandler</servlet-class>
+		<servlet-class>com.server.zoho.SASHandler</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>SASHandler</servlet-name>
@@ -165,6 +165,15 @@
 		<url-pattern>/_app/health</url-pattern>
 	</servlet-mapping>
 
+		<servlet>
+		<servlet-name>CP</servlet-name>
+		<servlet-class>com.server.cp.CP</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CP</servlet-name>
+		<url-pattern>/migrate/jsp/CP.jsp</url-pattern>
+	</servlet-mapping>
+
 
 	<servlet-mapping>
 		<servlet-name>RequestForwarder</servlet-name>
@@ -260,6 +269,18 @@
 		<servlet-name>SSLCertGen</servlet-name>
 		<url-pattern>/api/v1/ssl/sign/initiate</url-pattern>
 		<url-pattern>/api/v1/ssl/sign/verify</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+	<servlet-name>ZohoAPI</servlet-name>
+		<servlet-class>com.server.zoho.ZohoAPI</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ZohoAPI</servlet-name>
+		<url-pattern>/api/v1/zoho/isc</url-pattern>
+		<url-pattern>/api/v1/zoho/ear</url-pattern>
+		<url-pattern>/api/v1/zoho/jobs</url-pattern>
+		<url-pattern>/api/v1/zoho/repetitions</url-pattern>
 	</servlet-mapping>
 
 	<session-config>

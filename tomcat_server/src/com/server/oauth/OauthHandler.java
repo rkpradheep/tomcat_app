@@ -44,7 +44,7 @@ public class OauthHandler extends HttpServlet
 		}
 	}
 
-	public String generateOauthTokens(JSONObject credentials) throws Exception
+	public static String generateOauthTokens(JSONObject credentials) throws Exception
 	{
 		StringBuilder stringBuilder = new StringBuilder(credentials.getString("url") + "?");
 		stringBuilder.append("client_id=" + credentials.getString("client_id"));

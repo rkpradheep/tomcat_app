@@ -1,5 +1,6 @@
 package com.server.framework.http;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,12 +12,15 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
+import org.json.JSONObject;
 
 public class HttpAPI
 {
@@ -42,6 +46,19 @@ public class HttpAPI
 	{
 		return makeNetworkCall(url, method, null, headersMap, null, null);
 	}
+
+
+	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, JSONObject jsonObject) throws IOException
+	{
+		headersMap.put("Content-Type", "application/json");
+		return makeNetworkCall(url, method, null, headersMap, new ByteArrayInputStream(jsonObject.toString().getBytes()), null);
+	}
+	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap) throws IOException
+	{
+		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet-> entrySet.getKey().concat("=").concat(entrySet.getValue())).collect(Collectors.toList());
+		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMap, null, null);
+	}
+
 	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream, Proxy proxy) throws IOException
 	{
 		if(StringUtils.isNotEmpty(queryString))

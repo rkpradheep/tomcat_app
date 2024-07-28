@@ -1,4 +1,4 @@
-package com.server.sas;
+package com.server.zoho;
 
 import java.io.IOException;
 import java.security.KeyPair;
@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
+import com.server.framework.common.AppException;
 import com.server.framework.common.Configuration;
 import com.server.framework.common.Util;
 import com.server.framework.security.SecurityUtil;
@@ -77,17 +78,8 @@ public class SASHandler extends HttpServlet
 		}
 	}
 
-	private void handleSasRequest(HttpServletRequest request, HttpServletResponse response) throws Exception
+	public static Map<String, Object> handleSasRequest(JSONObject credentials) throws Exception
 	{
-		JSONObject credentials = SecurityUtil.getJSONObject(request);
-
-		boolean is_encrypted = credentials.optBoolean("is_encrypted");
-
-		if(is_encrypted)
-		{
-			SASUtil.handleDecryption(request, credentials);
-		}
-
 		String server = credentials.getString("server");
 		String ip = credentials.getString("ip");
 		String user = credentials.getString("user");
@@ -95,16 +87,9 @@ public class SASHandler extends HttpServlet
 		String zsid = credentials.optString("zsid");
 		String pk = credentials.optString("pk");
 		String query = credentials.optString("query", "");
-		boolean tableOrColumnRequest = credentials.optBoolean("need_table") || credentials.optBoolean("need_column");
 
 		try(Connection conn = SASUtil.getDBConnection(server, ip, "jbossdb", user, password))
 		{
-			if(tableOrColumnRequest)
-			{
-				handleTableOrColumnMeta(conn, response, credentials);
-				return;
-			}
-
 			zsid = !zsid.equals("") ? zsid : SASUtil.getZSIDFromPK(conn, pk);
 			PreparedStatement statement = conn.prepareStatement("SELECT SASAccounts.ID, CustomerDatabase.SCHEMANAME, CustomerDatabase.DBMASTERID FROM SASAccounts INNER JOIN UserDomains on SASAccounts.ID = UserDomains.ID INNER JOIN CustomerDatabase on UserDomains.CUSTOMERID = CustomerDatabase.CustomerID where SASAccounts.LOGINNAME = ?");
 			statement.setString(1, zsid);
@@ -113,8 +98,7 @@ public class SASHandler extends HttpServlet
 			boolean exist = resultSet.next();
 			if(!exist)
 			{
-				SecurityUtil.writerErrorResponse(response, "Invalid zsid or pk");
-				return;
+				throw new AppException("Invalid zsid or pk");
 			}
 			long[] limits = SASUtil.getLimits(Long.valueOf(resultSet.getString("ID")));
 			String schema = resultSet.getString("SCHEMANAME");
@@ -139,35 +123,65 @@ public class SASHandler extends HttpServlet
 			Map<String, Object> finalResponse = new LinkedHashMap<>();
 			finalResponse.put("sas_meta", responseMap);
 			SASUtil.handleQuery(query, server, clusterIP, schema, user, password, finalResponse, limits[0], limits[1]);
-			SecurityUtil.writeJSONResponse(response, finalResponse);
+
+			return finalResponse;
 		}
 	}
 
-	private void handleTableOrColumnMeta(Connection connection, HttpServletResponse response, JSONObject credentials) throws Exception
+	private void handleSasRequest(HttpServletRequest request, HttpServletResponse response) throws Exception
 	{
+		JSONObject credentials = SecurityUtil.getJSONObject(request);
 
-		if(credentials.optBoolean("need_table"))
+		boolean is_encrypted = credentials.optBoolean("is_encrypted");
+
+		if(is_encrypted)
 		{
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-			//new Thread(() -> com.server.framework.common.Util.postMessageToBot("Visitor Alert. \nIP : " + request.getServerName() + "\nSession ID : " + request.getSession().getId())).start();
-			List<String> tableList = new ArrayList<>();
-			ResultSet tableResultSet = databaseMetaData.getTables(null, "jbossdb", "%", new String[] {"TABLE"});
-			while(tableResultSet.next())
-			{
-				try
-				{
-					if(!tableResultSet.getString("TABLE_NAME").equalsIgnoreCase("Table"))
-						tableList.add(tableResultSet.getString("TABLE_NAME"));
-				}
-				catch(Exception e)
-				{
-				}
-			}
-			SecurityUtil.writeJSONResponse(response, tableList);
+			SASUtil.handleDecryption(request, credentials);
+		}
+
+		boolean tableOrColumnRequest = credentials.optBoolean("need_table") || credentials.optBoolean("need_column");
+
+		if(tableOrColumnRequest)
+		{
+			handleTableOrColumnMeta(response, credentials);
 			return;
 		}
 
-		handleColumnMeta(connection, response, credentials.getString("table"));
+		SecurityUtil.writeJSONResponse(response, handleSasRequest(credentials));
+	}
+
+	private void handleTableOrColumnMeta(HttpServletResponse response, JSONObject credentials) throws Exception
+	{
+		String server = credentials.getString("server");
+		String ip = credentials.getString("ip");
+		String user = credentials.getString("user");
+		String password = credentials.getString("password");
+
+		try(Connection connection = SASUtil.getDBConnection(server, ip, "jbossdb", user, password))
+		{
+			if(credentials.optBoolean("need_table"))
+			{
+				DatabaseMetaData databaseMetaData = connection.getMetaData();
+				//new Thread(() -> com.server.framework.common.Util.postMessageToBot("Visitor Alert. \nIP : " + request.getServerName() + "\nSession ID : " + request.getSession().getId())).start();
+				List<String> tableList = new ArrayList<>();
+				ResultSet tableResultSet = databaseMetaData.getTables(null, "jbossdb", "%", new String[] {"TABLE"});
+				while(tableResultSet.next())
+				{
+					try
+					{
+						if(!tableResultSet.getString("TABLE_NAME").equalsIgnoreCase("Table"))
+							tableList.add(tableResultSet.getString("TABLE_NAME"));
+					}
+					catch(Exception e)
+					{
+					}
+				}
+				SecurityUtil.writeJSONResponse(response, tableList);
+				return;
+			}
+
+			handleColumnMeta(connection, response, credentials.getString("table"));
+		}
 	}
 
 	private void handleColumnMeta(Connection connection, HttpServletResponse response, String table) throws Exception

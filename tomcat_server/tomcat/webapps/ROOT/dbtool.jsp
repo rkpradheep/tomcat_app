@@ -72,14 +72,13 @@
         <option value="custom">CUSTOM</option>
         </select>
         <br />
-        <br />
-        <br />
+         <br />
+        <div id="credentials_box" style="display:none">
         <form>
             Server &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" id="mysql" name="server" value="mysql" />
             <label for="mysql">MySql</label>
             <input type="radio" id="postgresql" name="server" value="postgresql" />
-            <label for="postgresql">Postgresql</label><br />
-            <br />
+            <label for="postgresql">Postgresql</label>
         </form>
         Main Cluster IP &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="ip" style="width: 400px; height: 25px;" /><br />
         <br />
@@ -87,6 +86,7 @@
         <br />
         <br />
         Password &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="password" id="password" style="width: 400px; height: 25px;" /><br />
+        </div>
         <!-- <select name="columnList" id="columnList">
             <option value="" disabled selected>COLUMN</option>
         </select> -->
@@ -94,16 +94,12 @@
         <br />
       <!--  Enter either ZSID or PK Value : <br />
         <br /> -->
-        DataSpace ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="zsid" style="width: 400px; height: 25px;" /><br />
-        <br />
+        DataSpace ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="zsid" style="width: 100px; height: 25px;" /><br />
         <!-- PK Value &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --> <input type="text" id="pk" style="width: 400px; height: 25px;display: none" /><br />
-        <br />
         <!--<p>Click on <b>Enable Autocomplete and Quick Execution</b> button to enable intellisense support.</p>-->
-        <br />
-        <button id="quickExe" onclick="getTables()">Enable Quick Execution</button><br />
-        <br />
+        <button id="quickExe" onclick="getTables()">Populate tables</button><br />
         <div id="tableSelection" style="display: none;">
-            <b>Quick Execution</b> (Select the table) &nbsp;&nbsp;&nbsp;
+            Table&nbsp;&nbsp;&nbsp;
             <select name="tableList" id="tableList" onchange="getColumns()">
                 <option value="" disabled selected>Loading .. </option>
             </select>
@@ -125,14 +121,11 @@
         <br />
         <br />
 
-        <b>Manual Execution</b>(Only DQL)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+        <b>Select Query</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
         <br />
         <textarea id="query" rows="10" cols="50" style="height: 100px; width: 500px;"> </textarea><br />
         <p style="font-size: 11px; display: none;" id="suggestionHint">* Click on the matching suggestion to autocomplete</p>
         <select id="autocomplete-container" style="height: 80px; width: 250px; overflow-y: scroll; display: none;"></select>
-        <br />
-        <br />
-        <br />
         <br />
         <button onclick="execute()">Execute</button><br />
         <br />
@@ -140,6 +133,65 @@
         <div id="response" style="display: none;">
             <textarea readonly id="output" name="output" rows="10" cols="50" style="font-size: 18px; color: white; background-color: black;"></textarea>
         </div>
+
+
+        <br />
+        <br />
+        Product &nbsp;&nbsp;&nbsp;&nbsp;
+        <select id="isc_product">
+        <option value="books.dev">BOOKS CSEZ</option>
+        <option value="books.local" selected>BOOKS LOCAL</option>
+        <option value="payout.dev">PAYOUT CSEZ</option>
+        <option value="payout.local">PAYOUT LOCAL</option>
+        <option value="pay.dev">ZOHOPAY CSEZ</option>
+        </select>
+        <button onclick="generateIsc()">GENERATE ISC</button>
+        <p id="isc" style="color:red"></p>
+        <br>
+        <br>
+         Product &nbsp;
+        <select id="ear_product">
+        <option value="books.dev">BOOKS CSEZ</option>
+        <option value="books.local" selected>BOOKS LOCAL</option>
+        <option value="payout.dev">PAYOUT CSEZ</option>
+        <option value="payout.local">PAYOUT LOCAL</option>
+        </select>
+         &nbsp;&nbsp;&nbsp;Key Label &nbsp;<input type="text" id="key_label"/>
+         &nbsp;&nbsp;&nbsp;Cipher Text &nbsp;<input type="text" id="cipher_text"/>
+         &nbsp;&nbsp;&nbsp; <input type="checkbox" id="is_oek"> IS OEK &nbsp;&nbsp;
+         &nbsp;&nbsp;&nbsp;<input type="checkbox" id="is_searchable" checked> IS SEARCHABLE &nbsp;&nbsp
+        <button onclick="doEARDecrypt()">EAR DECRYPT</button>
+        <p id="ear_decrypted" style="color:red"></p>
+        <br>
+        <br>
+         Product &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <select id="taskengine_product" onchange="doTaskEngineProductSwitchChanges()">
+        <option value="payout.local" selected>PAYOUT LOCAL</option>
+        <option value="payout.in">PAYOUT IN</option>
+        <option value="books.local">BOOKS LOCAL</option>
+        </select>
+        <div id="idc_jobs_container" style="display:none">
+         User Id &nbsp;&nbsp;&nbsp;<input type="text" id="user_id"/>
+         &nbsp;&nbsp;&nbsp;Customer Id  &nbsp;<input type="text" id="customer_id"/>
+        </div>
+        <div id="local_jobs_container" style="display:block">
+         DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
+        </div>
+         Job ID &nbsp;&nbsp;<input type="text" id="job_id"/>
+         &nbsp;&nbsp;&nbsp;ThreadPool Name &nbsp;&nbsp;<input type="text" id="thread_pool"/>
+         &nbsp;&nbsp;&nbsp;Retry Repetition Name &nbsp;&nbsp;<input type="text" id="retry_repetition"/>
+         &nbsp;&nbsp;&nbsp;Class Name &nbsp;<input type="text" id="class_name"/>
+         &nbsp;&nbsp;&nbsp;Delay second(s) &nbsp;<input type="text" id="delay_seconds"/>
+        <br>
+        <button onclick="getOTJDetails()">FETCH JOB DETAILS</button>
+        <button onclick="addOrUpdateOTJ()">ADD OR UPDATE OTJ</button>
+        <button onclick="deleteOTJ()">DELETE OTJ</button>
+        <br>
+         &nbsp;&nbsp;&nbsp;Repetition Name &nbsp;<input type="text" id="repetition_name"/>
+         <button onclick="getRepetitionDetails()">FETCH REPETITION DETAILS </button>
+        <p id="taskengine" style="color:red"></p>
+        <br>
+        <br>
         <script>
         var SAS_META;
         var SERVICE_META;
@@ -148,6 +200,219 @@
         var TABLE_LIST = [];
         var COLUMN_LIST = [];
         var isEncrypted = true;
+
+
+function doTaskEngineProductSwitchChanges()
+{
+
+if(getElementValue("taskengine_product").split(".")[1] == "local")
+{
+   hideElement("idc_jobs_container");
+   unHideElement("local_jobs_container");
+}
+else
+{
+   hideElement("local_jobs_container");
+   unHideElement("idc_jobs_container");
+}
+}
+
+
+
+function getOTJDetails()
+{
+
+               const data = {
+                   "service":getElementValue("taskengine_product").split(".")[0],
+                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "zsid": getElementValue("dataspace_id"),
+                   "customer_id": getElementValue("customer_id"),
+                   "job_id": getElementValue("job_id"),
+                   "thread_pool": getElementValue("thread_pool"),
+                   "operation":"get"
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/jobs", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                alert(error)
+                                console.log(error);
+                            }
+                            else
+                             document.getElementById("taskengine").innerText= JSON.parse(data).data
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+}
+
+
+function getRepetitionDetails()
+{
+
+               const data = {
+                   "service":getElementValue("taskengine_product").split(".")[0],
+                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "zsid": getElementValue("dataspace_id"),
+                   "customer_id": getElementValue("customer_id"),
+                   "thread_pool": getElementValue("thread_pool"),
+                   "operation":"get",
+                   "repetition_name" : getElementValue("repetition_name")
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/repetitions", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                alert(error)
+                                console.log(error);
+                            }
+                            else
+                                document.getElementById("taskengine").innerText= JSON.parse(data).data
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+}
+
+function addOrUpdateOTJ()
+{
+
+               const data = {
+                   "service":getElementValue("taskengine_product").split(".")[0],
+                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "zsid": getElementValue("dataspace_id"),
+                   "user_id": getElementValue("user_id"),
+                   "customer_id": getElementValue("customer_id"),
+                   "job_id": getElementValue("job_id"),
+                   "thread_pool": getElementValue("thread_pool"),
+                   "class_name":getElementValue("class_name"),
+                   "delay": getElementValue("delay_seconds"),
+                   "retry_repetition" : getElementValue("retry_repetition"),
+                   "operation":"add"
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/jobs", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                alert(error)
+                                console.log(error);
+                            }
+                            else
+                            alert(JSON.parse(data).data)
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+}
+
+function deleteOTJ()
+{
+
+               const data = {
+                   "service":getElementValue("taskengine_product").split(".")[0],
+                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "zsid": getElementValue("dataspace_id"),
+                   "customer_id": getElementValue("customer_id"),
+                   "job_id": getElementValue("job_id"),
+                   "thread_pool": getElementValue("thread_pool"),
+                   "operation":"delete"
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/jobs", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                alert(error)
+                                console.log(error);
+                            }
+                            else
+                             alert(JSON.parse(data).data)
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+}
+
+
 
         setElementValue("zsid", "admin");
 
@@ -316,6 +581,97 @@
                     alert("Something went wrong. Please check the error response below and try again.");
                     handleQueryOutputForFailed();
                 });
+        }
+
+        function generateIsc()
+        {
+
+                    unHideElement("loading");
+
+                    var res;
+                    fetch("/api/v1/zoho/isc?service=" + getElementValue("isc_product").split(".")[0] +"&dc=" + getElementValue("isc_product").split(".")[1], {
+                      method: "POST"
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                console.log(error);
+                                throw new Error("API error")
+                            }
+
+                            document.getElementById("isc").innerText= JSON.parse(data).data
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+
+        }
+
+        function doEARDecrypt()
+        {
+
+               if (getElementValue("key_label").length == 0) {
+                   alert("Please enter a valid Key Label");
+                   return;
+               }
+                if (getElementValue("cipher_text").length == 0) {
+                    alert("Please enter a valid Cipher Text");
+                    return;
+                }
+               const data = {
+                   "service":getElementValue("ear_product").split(".")[0],
+                   "dc": getElementValue("ear_product").split(".")[1],
+                   "key_label": getElementValue("key_label"),
+                   "cipher_text": getElementValue("cipher_text"),
+                   "is_oek": document.getElementById("is_oek").checked,
+                   "is_searchable": document.getElementById("is_searchable").checked,
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/ear", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            document.getElementById("ear_decrypted").innerText= error
+                            if (error != undefined) {
+                                console.log(error);
+                                throw new Error(error)
+                            }
+
+                            document.getElementById("ear_decrypted").innerText= JSON.parse(data).data
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+
         }
 
         function generateSQL(criteria) {
@@ -599,8 +955,12 @@
                 setElementValue("zsid", "admin");
                 hideElement("queryOutputContainer");
                 hideElement("tableSelection");
-                if (product == "custom")
+                if (product == "custom"){
                     unHideElement("quickExe");
+                    unHideElement("credentials_box")
+                    }
+                  else
+                    hideElement("credentials_box")
                 setElementValue("query", "")
                 hideElement("response", "")
             }

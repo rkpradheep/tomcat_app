@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 
 public class HttpResponse
 {
@@ -14,6 +16,7 @@ public class HttpResponse
 	int status;
 	Map<String, String> responseHeaders;
 	InputStream inputStream;
+	String responseString;
 
 	public String getContentType()
 	{
@@ -52,9 +55,20 @@ public class HttpResponse
 
 	public String getStringResponse() throws IOException
 	{
+		if(StringUtils.isNotEmpty(responseString))
+		{
+			return responseString;
+		}
 		StringWriter stringWriter = new StringWriter();
 		IOUtils.copy(getInputStream(), stringWriter, StandardCharsets.UTF_8);
-		return stringWriter.toString();
+		responseString = stringWriter.toString();
+
+		return responseString;
+	}
+
+	public JSONObject getJSONResponse() throws IOException
+	{
+		return new JSONObject(getStringResponse());
 	}
 
 	public void setInputStream(InputStream inputStream)
