@@ -115,6 +115,21 @@ ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
+-- CREATE TABLE "HttLog" -----------------------------------------
+CREATE TABLE `HttpLog`(
+	`Id` BigInt( 255 ) NOT NULL,
+	`Url` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	`Method` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	`IP` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	`QueryString` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
+	`JSONPayload` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
+	PRIMARY KEY ( `Id` ) )
+CHARACTER SET = utf8mb3
+COLLATE = utf8mb3_general_ci
+ENGINE = InnoDB;
+-- -------------------------------------------------------------
+
+
 -- CREATE INDEX "lnk_User_AuthToken" ---------------------------
 CREATE INDEX `lnk_User_AuthToken` USING BTREE ON `AuthToken`( `UserId` );
 -- -------------------------------------------------------------

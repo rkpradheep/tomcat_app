@@ -23,5 +23,10 @@ fi
 
 sudo systemctl daemon-reload
 
+if test "$1" = "mysql" ; then
+  sudo systemctl start mysql
+else
+  sudo systemctl start mariadb
+fi
 
 echo "${GREEN}############## Service setup completed ##############${NC}\n\n\n"

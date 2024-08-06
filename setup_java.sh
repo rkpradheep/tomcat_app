@@ -20,6 +20,7 @@ fi
 
 echo "############## Java setup started ##############\n"
 
+sudo chmod -R +777 /opt/java
 sudo rm -rf /opt/java/zulu${JAVA_VERSION}
 
 echo "############## Downloading java zulu 17.10 ##############\n"
