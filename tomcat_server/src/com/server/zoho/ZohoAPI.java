@@ -29,6 +29,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.server.framework.common.AppException;
 import com.server.framework.common.Configuration;
 import com.server.framework.http.HttpAPI;
 import com.server.framework.http.HttpResponse;
@@ -45,6 +46,7 @@ public class ZohoAPI extends HttpServlet
 	{
 		Map<String, String> dcDomainMappingTmp = new HashMap<>();
 		dcDomainMappingTmp.put("dev", "csez.zohocorpin.com");
+		dcDomainMappingTmp.put("csez", "csez.zohocorpin.com");
 		dcDomainMappingTmp.put("local", "localzoho.com");
 		dcDomainMappingTmp.put("us", "zoho.com");
 		dcDomainMappingTmp.put("in", "zoho.in");
@@ -107,8 +109,13 @@ public class ZohoAPI extends HttpServlet
 		}
 		catch(JSONException e)
 		{
-			LOGGER.log(Level.SEVERE, "Exception occurred", e);
-			SecurityUtil.writerErrorResponse(response, "Invalid request. Please try again later.");
+			LOGGER.log(Level.INFO, "Exception occurred", e);
+			SecurityUtil.writerErrorResponse(response, "Invalid request. Please try again with valid input.");
+		}
+		catch(AppException e)
+		{
+			LOGGER.log(Level.INFO, "Exception occurred", e);
+			SecurityUtil.writerErrorResponse(response, e.getMessage());
 		}
 		catch(Exception e)
 		{
@@ -236,8 +243,12 @@ public class ZohoAPI extends HttpServlet
 
 		String dc = payload.getString("dc");
 		String serviceId = Configuration.getProperty("taskengine." + service + "." + dc + ".service.id");
-		String queueName = payload.optString("thread_pool");
-		String repetitionName = payload.optString("repetition_name");
+		String queueName = payload.getString("thread_pool");
+		String repetitionName = payload.getString("repetition_name");
+		if(StringUtils.isEmpty(repetitionName))
+		{
+			throw new AppException("Enter a valid value for repetition name");
+		}
 
 		String operation = payload.getString("operation");
 		if(StringUtils.equals("get", operation))

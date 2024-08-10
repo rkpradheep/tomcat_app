@@ -32,7 +32,7 @@ public class TomcatListener implements LifecycleListener
 
 			RefreshManager.init();
 
-			ProxySelector.setDefault(new ProxySelectorExtension());
+			//ProxySelector.setDefault(new ProxySelectorExtension());
 
 			FileManager.copyUploads();
 

@@ -4,7 +4,7 @@ plugins {
 }
 
 
-ext.home = System.getenv ("MY_HOME")
+ext.home = System.getenv ("HOME") + "/MyHome"
 
 ext.replaceToken = { filePath, entries ->
 

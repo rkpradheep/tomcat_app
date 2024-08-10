@@ -67,7 +67,7 @@ public class ShellExecutor extends HttpServlet
 			}
 			else
 			{
-				executeCommand(request, response, new String[] {"bash", "-c", command.replace("${password}", Configuration.getProperty("machine.password"))});
+				executeCommand(request, response, new String[] {"bash", "-c", command.replace("${password}", Configuration.getProperty("machine.password")).replace("${login.password}", Configuration.getProperty("machine.login.password"))});
 			}
 		}
 		catch(Exception e)

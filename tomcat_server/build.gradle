@@ -97,6 +97,9 @@ task setTomcatEnvironmentValues{
         replaceToken("${home}/tomcat_build/bin/setenv.sh", [
                 [from: "MY_HOME=",
                  to: "MY_HOME=${home}"
+                ],
+                [from: "CUSTOM_JAVA_OPTS=",
+                 to: "CUSTOM_JAVA_OPTS=\"" + getCustomProperty ("java.opts", "") + "\""
                 ]
         ])
         if (getCustomProperty ("custom.keystore.file", null) != null) {

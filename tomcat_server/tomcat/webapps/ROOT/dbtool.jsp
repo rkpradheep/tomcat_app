@@ -168,8 +168,13 @@
         <select id="taskengine_product" onchange="doTaskEngineProductSwitchChanges()">
         <option value="payout.local" selected>PAYOUT LOCAL</option>
         <option value="payout.in">PAYOUT IN</option>
+        <option value="payout.csez">PAYOUT CSEZ</option>
         <option value="books.local">BOOKS LOCAL</option>
         </select>
+         &nbsp;&nbsp;&nbsp;ThreadPool Name &nbsp;&nbsp;<select id="thread_pool">
+         </select>
+         <br>
+         <br>
         <div id="idc_jobs_container" style="display:none">
          User Id &nbsp;&nbsp;&nbsp;<input type="text" id="user_id"/>
          &nbsp;&nbsp;&nbsp;Customer Id  &nbsp;<input type="text" id="customer_id"/>
@@ -178,7 +183,6 @@
          DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
         </div>
          Job ID &nbsp;&nbsp;<input type="text" id="job_id"/>
-         &nbsp;&nbsp;&nbsp;ThreadPool Name &nbsp;&nbsp;<input type="text" id="thread_pool"/>
          &nbsp;&nbsp;&nbsp;Retry Repetition Name &nbsp;&nbsp;<input type="text" id="retry_repetition"/>
          &nbsp;&nbsp;&nbsp;Class Name &nbsp;<input type="text" id="class_name"/>
          &nbsp;&nbsp;&nbsp;Delay second(s) &nbsp;<input type="text" id="delay_seconds"/>
@@ -187,6 +191,8 @@
         <button onclick="addOrUpdateOTJ()">ADD OR UPDATE OTJ</button>
         <button onclick="deleteOTJ()">DELETE OTJ</button>
         <br>
+          <br>
+          <br>
          &nbsp;&nbsp;&nbsp;Repetition Name &nbsp;<input type="text" id="repetition_name"/>
          <button onclick="getRepetitionDetails()">FETCH REPETITION DETAILS </button>
         <p id="taskengine" style="color:red"></p>
@@ -202,10 +208,21 @@
         var isEncrypted = true;
 
 
+var serviceVsThreadPools = {};
+serviceVsThreadPools['payout'] = ['com.zoho.payout.default', 'com.zoho.payout.integrity.default', 'com.zoho.payout.framework.default', 'com.zoho.payout.feeds', 'com.zoho.payout.bbps.default', 'com.zoho.payout.common.default']
+serviceVsThreadPools['books'] = ["com.zoho.books.default","com.zoho.zs.ZSdefault","com.zoho.books.ZBThreadPool","com.zoho.zs.ZSThreadPool","com.zoho.books.cleanup","com.zoho.ze.ZEThreadPool","com.zoho.ze.AuditThreadPool","com.zoho.inventory.default","com.zoho.inventory.marketplace","com.zoho.payroll.default","com.zoho.books.invoice.default","com.zoho.finance.webhook","com.zoho.zc.ZCThreadPool","com.zoho.finance.customfunction","com.zoho.storeapi.default","com.zoho.posapi.default","com.zoho.taxfilling.default","com.zoho.finance.inventorytxnvaluation","com.zoho.finance.gltransactionposting","com.zoho.finance.customscheduler","com.zoho.books.integrations1","com.zoho.books.integrations2","com.zoho.books.externalintegrations","com.zoho.books.instant","com.zoho.books.data.migration","com.zoho.books.data.migration.export","com.zoho.inventory.customfunction","com.zoho.subscriptions.customfunction","com.zoho.expense.customfunction","com.zoho.payroll.customfunction","com.zoho.invoice.customfunction","com.zoho.inventory.valuation","com.zoho.inventory.stock","com.zoho.inventory.automation.entitycycle","com.zoho.books.automation.entitycycle","com.zoho.import.async","com.zoho.inventory.import.async","com.zoho.pos.import.async","com.zoho.ze.OCRThreadPool","com.zoho.ze.ocr.zlabs","com.zoho.accountant.default","com.zoho.finance.core.dimentionalentities","com.zoho.ze.AddOnMonitoringThreadPool","com.zoho.books.reports","com.zoho.expense.reports","com.zoho.invoice.reports","com.zoho.inventory.reports","com.zoho.subscriptions.reports","com.zoho.payroll.reports","com.zoho.ondc.default","com.zoho.finance.core.modules","com.zoho.billing.IntegrityThreadPool","com.zoho.revacc.IntegrityThreadPool","com.zoho.bills.default","com.zoho.fixedasset.default","com.zoho.storeapi.import.async"]
+
+doTaskEngineProductSwitchChanges();
 function doTaskEngineProductSwitchChanges()
 {
 
-if(getElementValue("taskengine_product").split(".")[1] == "local")
+var threadPoolsOptions;
+const threadPoolsList = serviceVsThreadPools[getElementValue("taskengine_product").split(".")[0]];
+ for (var i in threadPoolsList) {
+      threadPoolsOptions += "<option value=" + threadPoolsList[i] + ">" + threadPoolsList[i] + "</option>";
+ }
+document.getElementById('thread_pool').innerHTML = threadPoolsOptions
+if(getElementValue("taskengine_product").split(".")[1] == "local" || getElementValue("taskengine_product").split(".")[1] == "csez")
 {
    hideElement("idc_jobs_container");
    unHideElement("local_jobs_container");

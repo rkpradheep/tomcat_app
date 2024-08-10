@@ -31,3 +31,5 @@ fi
 sh setup_services.sh
 
 sh build.sh
+
+sudo systemcl enable tomcat

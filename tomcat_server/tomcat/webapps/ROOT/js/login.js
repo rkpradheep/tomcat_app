@@ -1,7 +1,4 @@
 
-document.getElementById('name').value = "test";
-document.getElementById('password').value = "test@123";
-
     function login() {
     const name = document.getElementById('name').value;
     const password = document.getElementById('password').value;
@@ -50,13 +47,15 @@ document.addEventListener("keydown", function(event) {
   }
 });
 
-setTimeout(function() {
-    if(document.getElementById('name').value == "test")
-    {
-        toastMessage('Auto-login for test account')
-        setTimeout(login, 2000);
-    }
-}, 3000);
+//document.getElementById('name').value = "test";
+//document.getElementById('password').value = "test@123";
+//setTimeout(function() {
+//    if(document.getElementById('name').value == "test")
+//    {
+//        toastMessage('Auto-login for test account')
+//        setTimeout(login, 2000);
+//    }
+//}, 3000);
 
 
 function toastMessage(message) {
