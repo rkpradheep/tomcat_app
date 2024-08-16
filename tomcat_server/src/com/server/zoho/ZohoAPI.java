@@ -164,7 +164,7 @@ public class ZohoAPI extends HttpServlet
 
 		String accessToken = new JSONObject(OauthHandler.generateOauthTokens(tokenGeneratePayload)).getString("access_token");
 
-		String subDomain = dc.equals("dev") || dc.equals("local") ? "encryption" : "keystore";
+		String subDomain = dc.equals("csez") || dc.equals("local") ? "encryption" : "keystore";
 		String resourceURI = isOEK ? "/kms/getDEK" : "/getKeyIv";
 		String earURL = getDomainUrl(subDomain, resourceURI, dc);
 
@@ -202,7 +202,7 @@ public class ZohoAPI extends HttpServlet
 		return new String(decryptedDataBytes);
 	}
 
-	static String handleJob(JSONObject payload) throws Exception
+	static Object handleJob(JSONObject payload) throws Exception
 	{
 		String service = payload.getString("service");
 		Pair<Long, Long> userIdCustomerIdPair = JobAPI.getUserIdCustomerIdPair(payload);
@@ -213,27 +213,27 @@ public class ZohoAPI extends HttpServlet
 		String serviceId = Configuration.getProperty("taskengine." + service + "." + dc + ".service.id");
 		String queueName = payload.optString("thread_pool");
 		String className = payload.optString("class_name");
-		int delaySeconds = payload.optInt("delay");
+		Integer delaySeconds = StringUtils.isEmpty((String) payload.opt("delay")) ? null : Integer.parseInt((String) payload.opt("delay"));
 		long jobId = payload.getLong("job_id");
 		String retryRepetition = payload.optString("retry_repetition");
+		String repetition = payload.optString("repetition");
 
 		String operation = payload.getString("operation");
 		if(StringUtils.equals("add", operation))
 		{
-			return JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateOTJ(jobId, className, retryRepetition, delaySeconds, userId, customerId);
+			return StringUtils.isEmpty(repetition) ? JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateOTJ(jobId, className, retryRepetition, delaySeconds, userId, customerId) : JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateRepetitiveJob(jobId, className, repetition, retryRepetition, delaySeconds, userId, customerId);
 		}
 		else if(StringUtils.equals("delete", operation))
 		{
-			JobAPI.getInstance(dc, serviceId, queueName).deleteOTJ(jobId, customerId);
-			return "Job deleted successfully";
+			return JobAPI.getInstance(dc, serviceId, queueName).deleteJob(jobId, customerId);
 		}
 		else
 		{
-			return JobAPI.getInstance(dc, serviceId, queueName).getOTJDetails(jobId, customerId).toString();
+			return JobAPI.getInstance(dc, serviceId, queueName).getJobDetails(jobId, customerId);
 		}
 	}
 
-	static String handleRepetition(JSONObject payload) throws Exception
+	static Object handleRepetition(JSONObject payload) throws Exception
 	{
 		String service = payload.getString("service");
 
@@ -250,10 +250,29 @@ public class ZohoAPI extends HttpServlet
 			throw new AppException("Enter a valid value for repetition name");
 		}
 
+		boolean isCommon = payload.optBoolean("is_common");
 		String operation = payload.getString("operation");
 		if(StringUtils.equals("get", operation))
 		{
-			return JobAPI.getInstance(dc, serviceId, queueName).getRepetitionDetails(repetitionName, userId, customerId).toString();
+			return JobAPI.getInstance(dc, serviceId, queueName).getRepetitionDetails(repetitionName, userId, customerId);
+		}
+		else if(StringUtils.equals("add_periodic", operation))
+		{
+			Integer periodicity = Integer.parseInt(StringUtils.defaultIfEmpty(payload.optString("periodicity"), "-1"));
+			periodicity = periodicity == -1 ? null : periodicity;
+			Boolean isExecutionStartTimePolicy = (Boolean) payload.opt("is_execution_start_time_policy");
+			return JobAPI.getInstance(dc, serviceId, queueName).addOrUpdatePeriodicRepetition(repetitionName, userId, customerId, periodicity, isCommon, isExecutionStartTimePolicy);
+		}
+		else if(StringUtils.equals("add_calender", operation))
+		{
+			String hourMinSec = payload.optString("time");
+			String frequency = payload.optString("frequency");
+			String dayOfWeek = payload.optString("day_of_week", null);
+			return JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateCalenderRepetition(repetitionName, userId, customerId, isCommon, hourMinSec, frequency, dayOfWeek);
+		}
+		else if(StringUtils.equals("delete", operation))
+		{
+			return JobAPI.getInstance(dc, serviceId, queueName).deleteRepetition(repetitionName, userId, customerId);
 		}
 
 		return null;

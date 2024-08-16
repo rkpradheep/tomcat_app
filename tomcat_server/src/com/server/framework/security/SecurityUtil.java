@@ -235,9 +235,9 @@ public class SecurityUtil
 		writeSuccessJSONResponse(response, responseMessage, null);
 	}
 
-	public static void writeSuccessJSONResponse(HttpServletResponse response, String responseMessage, String data) throws IOException
+	public static void writeSuccessJSONResponse(HttpServletResponse response, String responseMessage, Object data) throws IOException
 	{
-		Map<String, String> responseMap = new HashMap<>();
+		Map<String, Object> responseMap = new HashMap<>();
 		responseMap.put("message", responseMessage);
 		responseMap.put("data", data);
 		writeJSONResponse(response, responseMap);

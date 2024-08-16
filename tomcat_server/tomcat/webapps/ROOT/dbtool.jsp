@@ -139,11 +139,6 @@
         <br />
         Product &nbsp;&nbsp;&nbsp;&nbsp;
         <select id="isc_product">
-        <option value="books.dev">BOOKS CSEZ</option>
-        <option value="books.local" selected>BOOKS LOCAL</option>
-        <option value="payout.dev">PAYOUT CSEZ</option>
-        <option value="payout.local">PAYOUT LOCAL</option>
-        <option value="pay.dev">ZOHOPAY CSEZ</option>
         </select>
         <button onclick="generateIsc()">GENERATE ISC</button>
         <p id="isc" style="color:red"></p>
@@ -151,10 +146,6 @@
         <br>
          Product &nbsp;
         <select id="ear_product">
-        <option value="books.dev">BOOKS CSEZ</option>
-        <option value="books.local" selected>BOOKS LOCAL</option>
-        <option value="payout.dev">PAYOUT CSEZ</option>
-        <option value="payout.local">PAYOUT LOCAL</option>
         </select>
          &nbsp;&nbsp;&nbsp;Key Label &nbsp;<input type="text" id="key_label"/>
          &nbsp;&nbsp;&nbsp;Cipher Text &nbsp;<input type="text" id="cipher_text"/>
@@ -166,36 +157,54 @@
         <br>
          Product &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <select id="taskengine_product" onchange="doTaskEngineProductSwitchChanges()">
-        <option value="payout.local" selected>PAYOUT LOCAL</option>
-        <option value="payout.in">PAYOUT IN</option>
-        <option value="payout.csez">PAYOUT CSEZ</option>
-        <option value="books.local">BOOKS LOCAL</option>
         </select>
          &nbsp;&nbsp;&nbsp;ThreadPool Name &nbsp;&nbsp;<select id="thread_pool">
          </select>
-         <br>
-         <br>
         <div id="idc_jobs_container" style="display:none">
-         User Id &nbsp;&nbsp;&nbsp;<input type="text" id="user_id"/>
+          &nbsp;&nbsp;&nbsp;User Id &nbsp;&nbsp;&nbsp;<input type="text" id="user_id"/>
          &nbsp;&nbsp;&nbsp;Customer Id  &nbsp;<input type="text" id="customer_id"/>
         </div>
-        <div id="local_jobs_container" style="display:block">
-         DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
+        <div id="local_jobs_container" style="display:inline">
+          &nbsp;&nbsp;&nbsp;DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
         </div>
+                  <br>
+                  <br>
+         &nbsp;&nbsp;&nbsp; <input type="checkbox" id="is_repetitive" style="margin-left:-15" onchange="changeIsRepetitive()"> IS REPETITIVE &nbsp;&nbsp;
+        <br>
          Job ID &nbsp;&nbsp;<input type="text" id="job_id"/>
+         <label id="repetition_label" style="display:none"> &nbsp;&nbsp;&nbsp;Repetition Name &nbsp;&nbsp;</label><input type="text" id="repetition" style="display:none"/>
          &nbsp;&nbsp;&nbsp;Retry Repetition Name &nbsp;&nbsp;<input type="text" id="retry_repetition"/>
          &nbsp;&nbsp;&nbsp;Class Name &nbsp;<input type="text" id="class_name"/>
-         &nbsp;&nbsp;&nbsp;Delay second(s) &nbsp;<input type="text" id="delay_seconds"/>
+         <label id="delay_seconds_label"> &nbsp;&nbsp;&nbsp;Delay second(s)</label> &nbsp;<input type="text" id="delay_seconds"/>
         <br>
-        <button onclick="getOTJDetails()">FETCH JOB DETAILS</button>
-        <button onclick="addOrUpdateOTJ()">ADD OR UPDATE OTJ</button>
-        <button onclick="deleteOTJ()">DELETE OTJ</button>
+        <button onclick="getJobDetails()">FETCH JOB DETAILS</button>
+        <button onclick="addOrUpdateJob()">ADD OR UPDATE JOB</button>
+        <button onclick="deleteJob()">DELETE JOB</button>
         <br>
           <br>
           <br>
-         &nbsp;&nbsp;&nbsp;Repetition Name &nbsp;<input type="text" id="repetition_name"/>
+         Repetition Name &nbsp;<input type="text" id="repetition_name"/>
+          &nbsp; &nbsp;Is Common &nbsp;<input type="checkbox" id="is_common" onchange="showAlertForIsCommon()"/>
+
+          <label for="periodicity" id="periodicity_label">  &nbsp;&nbsp;&nbsp;Periodicity &nbsp;</label>
+        <input type="text" id="periodicity" placeholder="Enter seconds"/>
+          <label for="frequency" id="frequency_label" style="display:none"> &nbsp;&nbsp;&nbsp;Frequency &nbsp;</label>
+                 <select id="frequency" style="display:none" onclick="doChangeForFrequency()">
+                 <option value="daily">DAILY</option>
+                 <option value="weekly">WEEKLY</option>
+                 </select>
+         <label for="day-of-week" id="day-of-week-label" style="display:none">&nbsp;&nbsp;&nbsp;Day of Week &nbsp;</label>
+         <input type="text" id="day-of-week" style="display:none"/>
+        <label for="time" id="time_label" style="display:none">&nbsp;&nbsp;&nbsp;Time Of Day &nbsp;</label>
+        <input type="text" id="time" placeholder="hh:mm:ss" style="display:none"/> <br>
+           <label for="periodic_repetition">IS PERIODIC</label>
+            <input type="radio" id="periodic_repetition" name="repetition-type" value="periodic_repetition" checked onclick="doChangeForRepetitionType()"/>
+             &nbsp;&nbsp;&nbsp;<label for="calender_repetition">IS CALENDER</label>
+            <input type="radio" id="calender_repetition" name="repetition-type" value="calender_repetition" onclick="doChangeForRepetitionType()"/><br>
          <button onclick="getRepetitionDetails()">FETCH REPETITION DETAILS </button>
-        <p id="taskengine" style="color:red"></p>
+         <button onclick="addOrUpdateRepetition()">ADD OR UPDATE REPETITION </button>
+         <button onclick="deleteRepetition()">DELETE REPETITION </button>
+        <p id="taskengine" style=""></p>
         <br>
         <br>
         <script>
@@ -208,40 +217,71 @@
         var isEncrypted = true;
 
 
-var serviceVsThreadPools = {};
-serviceVsThreadPools['payout'] = ['com.zoho.payout.default', 'com.zoho.payout.integrity.default', 'com.zoho.payout.framework.default', 'com.zoho.payout.feeds', 'com.zoho.payout.bbps.default', 'com.zoho.payout.common.default']
-serviceVsThreadPools['books'] = ["com.zoho.books.default","com.zoho.zs.ZSdefault","com.zoho.books.ZBThreadPool","com.zoho.zs.ZSThreadPool","com.zoho.books.cleanup","com.zoho.ze.ZEThreadPool","com.zoho.ze.AuditThreadPool","com.zoho.inventory.default","com.zoho.inventory.marketplace","com.zoho.payroll.default","com.zoho.books.invoice.default","com.zoho.finance.webhook","com.zoho.zc.ZCThreadPool","com.zoho.finance.customfunction","com.zoho.storeapi.default","com.zoho.posapi.default","com.zoho.taxfilling.default","com.zoho.finance.inventorytxnvaluation","com.zoho.finance.gltransactionposting","com.zoho.finance.customscheduler","com.zoho.books.integrations1","com.zoho.books.integrations2","com.zoho.books.externalintegrations","com.zoho.books.instant","com.zoho.books.data.migration","com.zoho.books.data.migration.export","com.zoho.inventory.customfunction","com.zoho.subscriptions.customfunction","com.zoho.expense.customfunction","com.zoho.payroll.customfunction","com.zoho.invoice.customfunction","com.zoho.inventory.valuation","com.zoho.inventory.stock","com.zoho.inventory.automation.entitycycle","com.zoho.books.automation.entitycycle","com.zoho.import.async","com.zoho.inventory.import.async","com.zoho.pos.import.async","com.zoho.ze.OCRThreadPool","com.zoho.ze.ocr.zlabs","com.zoho.accountant.default","com.zoho.finance.core.dimentionalentities","com.zoho.ze.AddOnMonitoringThreadPool","com.zoho.books.reports","com.zoho.expense.reports","com.zoho.invoice.reports","com.zoho.inventory.reports","com.zoho.subscriptions.reports","com.zoho.payroll.reports","com.zoho.ondc.default","com.zoho.finance.core.modules","com.zoho.billing.IntegrityThreadPool","com.zoho.revacc.IntegrityThreadPool","com.zoho.bills.default","com.zoho.fixedasset.default","com.zoho.storeapi.import.async"]
 
-doTaskEngineProductSwitchChanges();
+function showAlertForIsCommon()
+{
+if(document.getElementById("is_common").checked)
+{
+    alert("Common repetitions cannot be updated or deleted")
+}
+
+}
 function doTaskEngineProductSwitchChanges()
 {
 
 var threadPoolsOptions;
-const threadPoolsList = serviceVsThreadPools[getElementValue("taskengine_product").split(".")[0]];
+const threadPoolsList = SAS_META['taskengine_meta']['thread_pools'][getElementValue("taskengine_product").split("-")[0]];
  for (var i in threadPoolsList) {
       threadPoolsOptions += "<option value=" + threadPoolsList[i] + ">" + threadPoolsList[i] + "</option>";
  }
 document.getElementById('thread_pool').innerHTML = threadPoolsOptions
-if(getElementValue("taskengine_product").split(".")[1] == "local" || getElementValue("taskengine_product").split(".")[1] == "csez")
+if(getElementValue("taskengine_product").split("-")[1] == "local" || getElementValue("taskengine_product").split("-")[1] == "csez")
 {
-   hideElement("idc_jobs_container");
-   unHideElement("local_jobs_container");
+document.getElementById("idc_jobs_container").style.display="none"
+document.getElementById("local_jobs_container").style.display="inline"
 }
 else
 {
-   hideElement("local_jobs_container");
-   unHideElement("idc_jobs_container");
+document.getElementById("local_jobs_container").style.display="none"
+document.getElementById("idc_jobs_container").style.display="inline"
 }
 }
 
+function changeIsRepetitive()
+{
 
+if(document.getElementById("is_repetitive").checked)
+{
+document.getElementById("repetition").style.display="inline"
+document.getElementById("repetition_label").style.display="inline"
+}
+else
+{
+document.getElementById("repetition").style.display="none"
+document.getElementById("repetition_label").style.display="none"
+}
+}
 
-function getOTJDetails()
+function doChangeForFrequency()
+{
+if(getElementValue("frequency") == 'weekly')
+{
+document.getElementById("day-of-week").style.display="inline"
+document.getElementById("day-of-week-label").style.display="inline"
+}
+else
+{
+document.getElementById("day-of-week").style.display="none"
+document.getElementById("day-of-week-label").style.display="none"
+}
+
+}
+function getJobDetails()
 {
 
                const data = {
-                   "service":getElementValue("taskengine_product").split(".")[0],
-                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "service":getElementValue("taskengine_product").split("-")[0],
+                   "dc": getElementValue("taskengine_product").split("-")[1],
                    "zsid": getElementValue("dataspace_id"),
                    "customer_id": getElementValue("customer_id"),
                    "job_id": getElementValue("job_id"),
@@ -272,9 +312,17 @@ function getOTJDetails()
                             if (error != undefined) {
                                 alert(error)
                                 console.log(error);
+                                document.getElementById("taskengine").innerHTML=""
                             }
                             else
-                             document.getElementById("taskengine").innerText= JSON.parse(data).data
+                            {
+                            var output= ""
+                            var jsonObj = JSON.parse(data).data;
+                            for (const key in jsonObj) {
+                                output+="<b>" + key + "</b> : " + jsonObj[key] +"<br/><br/>";
+                            }
+                             document.getElementById("taskengine").innerHTML=output
+                             }
                         })
                         .catch((error) => {
                             hideElement("loading");
@@ -288,8 +336,8 @@ function getRepetitionDetails()
 {
 
                const data = {
-                   "service":getElementValue("taskengine_product").split(".")[0],
-                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "service":getElementValue("taskengine_product").split("-")[0],
+                   "dc": getElementValue("taskengine_product").split("-")[1],
                    "zsid": getElementValue("dataspace_id"),
                    "customer_id": getElementValue("customer_id"),
                    "thread_pool": getElementValue("thread_pool"),
@@ -320,9 +368,17 @@ function getRepetitionDetails()
                             if (error != undefined) {
                                 alert(error)
                                 console.log(error);
+                                document.getElementById("taskengine").innerHTML= ""
                             }
                             else
-                                document.getElementById("taskengine").innerText= JSON.parse(data).data
+                            {
+                            var output= ""
+                            var jsonObj = JSON.parse(data).data;
+                            for (const key in jsonObj) {
+                                output+="<b>" + key + "</b> : " + jsonObj[key] +"<br/><br/>";
+                            }
+                             document.getElementById("taskengine").innerHTML=output
+                            }
                         })
                         .catch((error) => {
                             hideElement("loading");
@@ -331,12 +387,150 @@ function getRepetitionDetails()
                         });
 }
 
-function addOrUpdateOTJ()
+
+function addOrUpdateRepetition()
+{
+if(document.querySelector('input[name="repetition-type"]:checked').value == 'periodic_repetition')
+    addOrUpdatePeriodicRepetition()
+else
+    addOrUpdateCalenderRepetition();
+}
+
+function doChangeForRepetitionType()
+{
+if(document.querySelector('input[name="repetition-type"]:checked').value == 'periodic_repetition')
+{
+document.getElementById("periodicity").style.display="inline"
+document.getElementById("periodicity_label").style.display="inline"
+
+document.getElementById("frequency").style.display="none"
+document.getElementById("frequency_label").style.display="none"
+document.getElementById("time").style.display="none"
+document.getElementById("time_label").style.display="none"
+}
+else
+{
+document.getElementById("frequency").style.display="inline"
+document.getElementById("frequency_label").style.display="inline"
+document.getElementById("time").style.display="inline"
+document.getElementById("time_label").style.display="inline"
+
+document.getElementById("periodicity").style.display="none"
+document.getElementById("periodicity_label").style.display="none"
+}
+}
+
+function addOrUpdatePeriodicRepetition()
 {
 
                const data = {
-                   "service":getElementValue("taskengine_product").split(".")[0],
-                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "service":getElementValue("taskengine_product").split("-")[0],
+                   "dc": getElementValue("taskengine_product").split("-")[1],
+                   "zsid": getElementValue("dataspace_id"),
+                   "user_id": getElementValue("user_id"),
+                   "customer_id": getElementValue("customer_id"),
+                   "thread_pool": getElementValue("thread_pool"),
+                   "repetition_name" : getElementValue("repetition_name"),
+                   "periodicity" : getElementValue("periodicity"),
+                   "is_common" : document.getElementById("is_common").checked,
+                   "operation":"add_periodic"
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/repetitions", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                alert(error)
+                                console.log(error);
+                            }
+                            else
+                            alert(JSON.parse(data).data)
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+
+}
+
+
+function addOrUpdateCalenderRepetition()
+{
+
+               const data = {
+                   "service":getElementValue("taskengine_product").split("-")[0],
+                   "dc": getElementValue("taskengine_product").split("-")[1],
+                   "zsid": getElementValue("dataspace_id"),
+                   "user_id": getElementValue("user_id"),
+                   "customer_id": getElementValue("customer_id"),
+                   "thread_pool": getElementValue("thread_pool"),
+                   "repetition_name" : getElementValue("repetition_name"),
+                   "frequency" : getElementValue("frequency"),
+                   "time" : getElementValue("time"),
+                   "day-of-week" : getElementValue("day-of-week"),
+                   "is_common" : document.getElementById("is_common").checked,
+                   "operation":"add_calender"
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/repetitions", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                alert(error)
+                                console.log(error);
+                            }
+                            else
+                            alert(JSON.parse(data).data)
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+
+}
+
+function addOrUpdateJob()
+{
+
+               const data = {
+                   "service":getElementValue("taskengine_product").split("-")[0],
+                   "dc": getElementValue("taskengine_product").split("-")[1],
                    "zsid": getElementValue("dataspace_id"),
                    "user_id": getElementValue("user_id"),
                    "customer_id": getElementValue("customer_id"),
@@ -344,6 +538,7 @@ function addOrUpdateOTJ()
                    "thread_pool": getElementValue("thread_pool"),
                    "class_name":getElementValue("class_name"),
                    "delay": getElementValue("delay_seconds"),
+                   "repetition" : getElementValue("repetition"),
                    "retry_repetition" : getElementValue("retry_repetition"),
                    "operation":"add"
                }
@@ -382,12 +577,59 @@ function addOrUpdateOTJ()
                         });
 }
 
-function deleteOTJ()
+function deleteRepetition()
 {
 
                const data = {
-                   "service":getElementValue("taskengine_product").split(".")[0],
-                   "dc": getElementValue("taskengine_product").split(".")[1],
+                   "service":getElementValue("taskengine_product").split("-")[0],
+                   "dc": getElementValue("taskengine_product").split("-")[1],
+                   "zsid": getElementValue("dataspace_id"),
+                   "customer_id": getElementValue("customer_id"),
+                   "repetition_name": getElementValue("repetition_name"),
+                   "thread_pool": getElementValue("thread_pool"),
+                   "operation":"delete"
+               }
+
+                    unHideElement("loading");
+                    var res;
+                    fetch("/api/v1/zoho/repetitions", {
+                            method: "POST",
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(data)
+                        })
+                        .then((response) => {
+                            hideElement("loading");
+                            return response.text();
+                        })
+                        .then((data) => {
+                            res = JSON.parse(data)
+                            if(handleRedirection(res))
+                            {
+                                return;
+                            }
+                            var error = res["error"]
+                            if (error != undefined) {
+                                alert(error)
+                                console.log(error);
+                            }
+                            else
+                             alert(JSON.parse(data).data)
+                        })
+                        .catch((error) => {
+                            hideElement("loading");
+                            console.log(error);
+                            alert("Something went wrong. Please try again later.");
+                        });
+}
+
+function deleteJob()
+{
+
+               const data = {
+                   "service":getElementValue("taskengine_product").split("-")[0],
+                   "dc": getElementValue("taskengine_product").split("-")[1],
                    "zsid": getElementValue("dataspace_id"),
                    "customer_id": getElementValue("customer_id"),
                    "job_id": getElementValue("job_id"),
@@ -429,7 +671,7 @@ function deleteOTJ()
                         });
 }
 
-
+var initCompleted = false;
 
         setElementValue("zsid", "admin");
 
@@ -449,6 +691,14 @@ function deleteOTJ()
                     }
                     SAS_META = res;
                     getDBCredential(false);
+                    if(initCompleted)
+                    {
+                        return
+                     }
+                    populateISCProducts();
+                    populateTaskEngineProducts();
+                    populateEARProducts()
+                    initCompleted = true;
                 })
                 .catch((error) => {
                     console.log(error);
@@ -502,6 +752,42 @@ function deleteOTJ()
             });
         }
 
+
+
+function populateISCProducts()
+{
+
+var iscProductOptions;
+const iscProducts = SAS_META['isc_meta'];
+ for (var key in iscProducts) {
+      iscProductOptions += "<option value=" + key + ">" + iscProducts[key] + "</option>";
+ }
+ document.getElementById("isc_product").innerHTML = iscProductOptions
+}
+
+function populateEARProducts()
+{
+
+var earProductOptions;
+const earProducts = SAS_META['ear_meta'];
+ for (var key in earProducts) {
+      earProductOptions += "<option value=" + key + ">" + earProducts[key] + "</option>";
+ }
+ document.getElementById("ear_product").innerHTML = earProductOptions
+}
+
+function populateTaskEngineProducts()
+{
+
+var taskEngineProductOptions;
+const taskEngineProducts = SAS_META['taskengine_meta'].products;
+ for (var key in taskEngineProducts) {
+      taskEngineProductOptions += "<option value=" + key + ">" + taskEngineProducts[key] + "</option>";
+ }
+ document.getElementById("taskengine_product").innerHTML = taskEngineProductOptions
+ doTaskEngineProductSwitchChanges()
+}
+
         var res;
         fetch("/api/v1/sas/services", {
                 method: "GET"
@@ -522,7 +808,7 @@ function deleteOTJ()
                     serviceListOptions += "<option value=" + service + ">" + SERVICE_META[service].display_name + "</option>";
                 }
                 document.getElementById("product").innerHTML = document.getElementById("product").innerHTML + serviceListOptions;
-                setElementValue("product", "books");
+                setElementValue("product", "books-local");
                 getSASMeta();
             })
             .catch((error) => {
@@ -606,7 +892,7 @@ function deleteOTJ()
                     unHideElement("loading");
 
                     var res;
-                    fetch("/api/v1/zoho/isc?service=" + getElementValue("isc_product").split(".")[0] +"&dc=" + getElementValue("isc_product").split(".")[1], {
+                    fetch("/api/v1/zoho/isc?service=" + getElementValue("isc_product").split("-")[0] +"&dc=" + getElementValue("isc_product").split("-")[1], {
                       method: "POST"
                         })
                         .then((response) => {
@@ -647,8 +933,8 @@ function deleteOTJ()
                     return;
                 }
                const data = {
-                   "service":getElementValue("ear_product").split(".")[0],
-                   "dc": getElementValue("ear_product").split(".")[1],
+                   "service":getElementValue("ear_product").split("-")[0],
+                   "dc": getElementValue("ear_product").split("-")[1],
                    "key_label": getElementValue("key_label"),
                    "cipher_text": getElementValue("cipher_text"),
                    "is_oek": document.getElementById("is_oek").checked,

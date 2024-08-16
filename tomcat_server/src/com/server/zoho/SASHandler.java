@@ -12,12 +12,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -266,6 +268,46 @@ public class SASHandler extends HttpServlet
 			map.put(service, serviceCredentials);
 		}
 
+		Map<String, String> iscMeta = new HashMap<>();
+
+		for(String service : Configuration.getProperty("security.services").split(","))
+		{
+			iscMeta.put(service, Configuration.getProperty("zoho." + service + ".display.name"));
+		}
+
+		map.put("isc_meta", iscMeta);
+
+		Map<String, String> earMeta = new HashMap<>();
+
+		for(String service : Configuration.getProperty("ear.services").split(","))
+		{
+			earMeta.put(service, Configuration.getProperty("zoho." + service + ".display.name"));
+		}
+
+		map.put("ear_meta", earMeta);
+
+
+		Map<String, Object> taskEngineMeta = new HashMap<>();
+
+		Map<String, Object> products = new HashMap<>();
+		for(String service : Configuration.getProperty("taskengine.services").split(","))
+		{
+			products.put(service, Configuration.getProperty("zoho." + service + ".display.name"));
+		}
+
+		taskEngineMeta.put("products", products);
+
+		Map<String, List<String>> threadPoolMeta = new HashMap<>();
+
+		for(String service : Configuration.getProperty("taskengine.services").split(","))
+		{
+			threadPoolMeta.put(service.split("-")[0], Arrays.stream(Configuration.getProperty("taskengine." + service.split("-")[0] + ".threadpools").split(",")).collect(Collectors.toList()));
+		}
+
+		taskEngineMeta.put("thread_pools", threadPoolMeta);
+
+		map.put("taskengine_meta", taskEngineMeta);
+
 		SecurityUtil.writeJSONResponse(response, map);
 
 	}
@@ -279,7 +321,7 @@ public class SASHandler extends HttpServlet
 		for(String service : servicesNames)
 		{
 			Map<String, String> serviceDetails = new HashMap<>();
-			serviceDetails.put("display_name", Configuration.getProperty("db.$.display.name".replace("$", service)));
+			serviceDetails.put("display_name", Configuration.getProperty("zoho.$.display.name".replace("$", service)));
 			serviceDetails.put("server", Configuration.getProperty("db.$.server".replace("$", service)));
 
 			responseMap.put(service, serviceDetails);
