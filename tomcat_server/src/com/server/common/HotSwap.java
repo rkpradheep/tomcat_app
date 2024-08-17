@@ -31,7 +31,7 @@ public class HotSwap extends HttpServlet
 		List<String> classNames = hotswapDetails.keySet().stream().collect(Collectors.toList());
 
 		String fileName = "hotswap_commands_" + DateUtil.getCurrentTimeInMillis() + ".txt";
-		File tempFile = new File(System.getProperty("io.tempdir"), fileName);
+		File tempFile = new File(System.getProperty("java.io.tmpdir"), fileName);
 		String host = jsonObject.optString("host");
 		String port = jsonObject.optString("port");
 		host = StringUtils.defaultIfEmpty(host, "localhost");
@@ -44,12 +44,14 @@ public class HotSwap extends HttpServlet
 			fileWriter.flush();
 		}
 		fileWriter.close();
-		String[] command = new String[] {"bash", "-c", System.getenv("JAVA_HOME") + "/bin/jdb -attach " + host + ":" + port + "< " + fileName};
+		String[] command = new String[] {"bash", "-c", System.getenv("JAVA_HOME") + "/bin/jdb -attach " + host + ":" + port + "< " + tempFile.getAbsolutePath()};
 		String message = "Something went wrong!";
 		try
 		{
 			message = ShellExecutor.execute(command);
-			message = StringUtils.contains(message, "Initializing jdb") ? "Hotswap completed" : message;
+			int errorMessageStartIndex = StringUtils.contains(message, "Initializing jdb ...") ? message.indexOf("Initializing jdb ...") + "Initializing jdb ...".length() : 0;
+			message = StringUtils.substring(message, errorMessageStartIndex);
+			message = StringUtils.equals(StringUtils.replace(message, "\n", StringUtils.EMPTY), "> > Input stream closed.") ? "Hotswap completed" : message;
 		}
 		catch(Exception e)
 		{

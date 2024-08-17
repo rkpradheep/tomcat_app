@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -86,11 +87,14 @@ public class HttpAPI
 			copyInputStreamToOutputStream(inputStream, httpURLConnection.getOutputStream());
 		}
 
-		Map<String, String> responseHeadersMap = new HashMap<>();
+		Map<String, String> responseHeadersMap = new TreeMap<>();
 		Set<String> keySet = httpURLConnection.getHeaderFields().keySet();
 		for(String headerName : keySet)
 		{
-			responseHeadersMap.put(headerName, httpURLConnection.getHeaderField(headerName));
+			if(Objects.nonNull(headerName))
+			{
+				responseHeadersMap.put(headerName, httpURLConnection.getHeaderField(headerName));
+			}
 		}
 
 		HttpResponse httpResponse = new HttpResponse();

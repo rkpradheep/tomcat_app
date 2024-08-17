@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,9 +49,9 @@ public class HttpResponse
 		this.responseHeaders = responseHeaders;
 	}
 
-	public InputStream getInputStream()
+	public InputStream getInputStream() throws IOException
 	{
-		return inputStream;
+		return StringUtils.equals(responseHeaders.get("Content-Encoding"), "gzip") ? new GZIPInputStream(inputStream) : inputStream;
 	}
 
 	public String getStringResponse() throws IOException

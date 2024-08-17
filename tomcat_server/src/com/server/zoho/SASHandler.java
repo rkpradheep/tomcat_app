@@ -45,10 +45,6 @@ public class SASHandler extends HttpServlet
 			{
 				getSasMeta(request, response);
 			}
-			else if(request.getRequestURI().contains("/api/v1/sas/services"))
-			{
-				fetchServices(response);
-			}
 			else if(request.getRequestURI().contains("/api/v1/sas/execute"))
 			{
 				handleSasRequest(request, response);
@@ -115,10 +111,10 @@ public class SASHandler extends HttpServlet
 
 			Map<String, Object> limitsDetails = new LinkedHashMap<>();
 
-			limitsDetails.put("sas_start_range", limits[0]);
-			limitsDetails.put("sas_end_range", limits[1]);
+			limitsDetails.put("sas_range_begin", limits[0]);
+			limitsDetails.put("sas_range_end", limits[1]);
 
-			responseMap.put("sas_limits", limitsDetails);
+			responseMap.put("sas_range", limitsDetails);
 
 			//com.server.framework.common.Util.addUserDetails(server, clusterIP, schema, user, password, responseMap, (Long) limits[0], (Long) limits[1]);
 
@@ -287,9 +283,19 @@ public class SASHandler extends HttpServlet
 		map.put("ear_meta", earMeta);
 
 
+		Map<String, Object> dbMeta = new LinkedHashMap<>();
+
+		for(String service : Configuration.getProperty("db.services").split(","))
+		{
+			dbMeta.put(service, Map.of("server", Configuration.getProperty("db.".concat(service).concat(".").concat("server")), "display_name", Configuration.getProperty("zoho." + service + ".display.name")));
+		}
+
+		map.put("db_meta", dbMeta);
+
+
 		Map<String, Object> taskEngineMeta = new HashMap<>();
 
-		Map<String, Object> products = new HashMap<>();
+		Map<String, Object> products = new LinkedHashMap<>();
 		for(String service : Configuration.getProperty("taskengine.services").split(","))
 		{
 			products.put(service, Configuration.getProperty("zoho." + service + ".display.name"));
@@ -310,23 +316,6 @@ public class SASHandler extends HttpServlet
 
 		SecurityUtil.writeJSONResponse(response, map);
 
-	}
-
-	private static void fetchServices(HttpServletResponse response) throws IOException
-	{
-		String[] servicesNames = Configuration.getProperty("db.services").split(",");
-
-		Map<String, Map<String, String>> responseMap = new HashMap<>();
-
-		for(String service : servicesNames)
-		{
-			Map<String, String> serviceDetails = new HashMap<>();
-			serviceDetails.put("display_name", Configuration.getProperty("zoho.$.display.name".replace("$", service)));
-			serviceDetails.put("server", Configuration.getProperty("db.$.server".replace("$", service)));
-
-			responseMap.put(service, serviceDetails);
-		}
-		SecurityUtil.writeJSONResponse(response, responseMap);
 	}
 
 }

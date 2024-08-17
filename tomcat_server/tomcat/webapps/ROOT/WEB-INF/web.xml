@@ -72,7 +72,6 @@
 		<url-pattern>/api/v1/sas/limits/*</url-pattern>
 		<url-pattern>/api/v1/sas/execute</url-pattern>
 		<url-pattern>/api/v1/sas/meta</url-pattern>
-		<url-pattern>/api/v1/sas/services</url-pattern>
 	</servlet-mapping>
 
 

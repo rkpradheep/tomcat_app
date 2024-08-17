@@ -131,7 +131,7 @@
         <br />
         <br />
         <div id="response" style="display: none;">
-            <textarea readonly id="output" name="output" rows="10" cols="50" style="font-size: 18px; color: white; background-color: black;"></textarea>
+            <textarea readonly id="output" name="output" rows="10" cols="50" style="font-size: 18px;"></textarea>
         </div>
 
 
@@ -167,8 +167,14 @@
         <div id="local_jobs_container" style="display:inline">
           &nbsp;&nbsp;&nbsp;DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
         </div>
+        <br>
+           <label for="job-manage">JOB</label>
+            <input type="radio" name="taskengine-manage" value="job-manage" checked onclick="doChangeForTaskEngineManagement()"/>
+             &nbsp;&nbsp;&nbsp;<label for="repetition-manage">REPETITION</label>
+            <input type="radio" name="taskengine-manage" value="repetition-manage" onclick="doChangeForTaskEngineManagement()"/>
                   <br>
                   <br>
+         <div id="job-management">
          &nbsp;&nbsp;&nbsp; <input type="checkbox" id="is_repetitive" style="margin-left:-15" onchange="changeIsRepetitive()"> IS REPETITIVE &nbsp;&nbsp;
         <br>
          Job ID &nbsp;&nbsp;<input type="text" id="job_id"/>
@@ -180,9 +186,8 @@
         <button onclick="getJobDetails()">FETCH JOB DETAILS</button>
         <button onclick="addOrUpdateJob()">ADD OR UPDATE JOB</button>
         <button onclick="deleteJob()">DELETE JOB</button>
-        <br>
-          <br>
-          <br>
+        </div>
+        <div id="repetition-management" style="display:none">
          Repetition Name &nbsp;<input type="text" id="repetition_name"/>
           &nbsp; &nbsp;Is Common &nbsp;<input type="checkbox" id="is_common" onchange="showAlertForIsCommon()"/>
 
@@ -204,19 +209,32 @@
          <button onclick="getRepetitionDetails()">FETCH REPETITION DETAILS </button>
          <button onclick="addOrUpdateRepetition()">ADD OR UPDATE REPETITION </button>
          <button onclick="deleteRepetition()">DELETE REPETITION </button>
+        </div>
         <p id="taskengine" style=""></p>
         <br>
         <br>
         <script>
         var SAS_META;
-        var SERVICE_META;
         var QUERY_OUTPUT = "";
         var CURRENT_TABLE_PK = "";
         var TABLE_LIST = [];
         var COLUMN_LIST = [];
         var isEncrypted = true;
 
+function doChangeForTaskEngineManagement()
+{
 
+if(document.querySelector('input[name="taskengine-manage"]:checked').value == 'job-manage')
+{
+    hideElement('repetition-management')
+    unHideElement('job-management')
+}
+else
+{
+    hideElement('job-management')
+    unHideElement('repetition-management')
+}
+}
 
 function showAlertForIsCommon()
 {
@@ -690,14 +708,16 @@ var initCompleted = false;
                         return;
                     }
                     SAS_META = res;
-                    getDBCredential(false);
                     if(initCompleted)
                     {
+                       getDBCredential(false);
                         return
                      }
                     populateISCProducts();
                     populateTaskEngineProducts();
                     populateEARProducts()
+                    populateDBProducts()
+                    getDBCredential(false);
                     initCompleted = true;
                 })
                 .catch((error) => {
@@ -788,33 +808,18 @@ const taskEngineProducts = SAS_META['taskengine_meta'].products;
  doTaskEngineProductSwitchChanges()
 }
 
-        var res;
-        fetch("/api/v1/sas/services", {
-                method: "GET"
-            })
-            .then((response) => {
-                return response.text();
-            })
-            .then((data) => {
-                var res = JSON.parse(data);
-                    if(handleRedirection(res))
-                    {
-                        hideElement("loading");
-                        return;
-                    }
-                SERVICE_META = res;
-                var serviceListOptions = ""
-                for (var service in SERVICE_META) {
-                    serviceListOptions += "<option value=" + service + ">" + SERVICE_META[service].display_name + "</option>";
-                }
-                document.getElementById("product").innerHTML = document.getElementById("product").innerHTML + serviceListOptions;
-                setElementValue("product", "books-local");
-                getSASMeta();
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+function populateDBProducts()
+{
+ var dbProductOptions = ""
+ const dbProducts = SAS_META['db_meta'];
+ for (var key in dbProducts) {
+     dbProductOptions += "<option value=" + key + ">" + dbProducts[key].display_name + "</option>";
+ }
+ document.getElementById("product").innerHTML = dbProductOptions + document.getElementById("product").innerHTML;
 
+}
+
+        getSASMeta();
         function execute() {
             unHideElement("response");
             if (!preExecutionValidation()) {
@@ -874,7 +879,7 @@ const taskEngineProducts = SAS_META['taskengine_meta'].products;
                         setElementValue("output", temp["query_output"]);
                         return;
                     }
-                    setElementValue("output", "EXECUTION_INFO : \n" + JSON.stringify(temp, null, 2));
+                    setElementValue("output", "EXECUTION_INFO : \n" + JSON.stringify(temp.sas_meta, null, 2));
                     handleQueryOutput(res, "", "");
                 })
                 .catch((error) => {
@@ -1289,8 +1294,8 @@ const taskEngineProducts = SAS_META['taskengine_meta'].products;
             }
             else
             {
-                setElementChecked("postgresql", SERVICE_META[product].server == "postgresql");
-                setElementChecked("mysql", SERVICE_META[product].server == "mysql");
+                setElementChecked("postgresql", SAS_META.db_meta[product].server == "postgresql");
+                setElementChecked("mysql", SAS_META.db_meta[product].server == "mysql");
 
                 setElementValue("ip", SAS_META[product].ip);
                 setElementValue("user", SAS_META[product].user);
