@@ -131,7 +131,7 @@ public class ZohoAPI extends HttpServlet
 
 	public static String generateISCSignature(String service, String dc) throws Exception
 	{
-		String encodedPrivateKey = Configuration.getProperty("security.private.key.".concat(service).concat(".").concat(dc));
+		String encodedPrivateKey = Configuration.getProperty("security.private.key.".concat(service).concat("-").concat(dc));
 		byte[] privateKeyBytes = HEX.decode(encodedPrivateKey.getBytes());
 		PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
 		String currentTimeStr = String.valueOf(System.currentTimeMillis());
@@ -144,9 +144,9 @@ public class ZohoAPI extends HttpServlet
 
 	public static String doEARDecryption(String serviceName, String dc, String keyLabel, String cipherText, boolean isOEK, boolean isSearchable) throws Exception
 	{
-		String clientId = Configuration.getProperty("ear." + serviceName + "." + dc + "." + "client.id");
-		String clientSecret = Configuration.getProperty("ear." + serviceName + "." + dc + "." + "client.secret");
-		String refreshToken = Configuration.getProperty("ear." + serviceName + "." + dc + "." + "refresh.token");
+		String clientId = Configuration.getProperty("ear." + serviceName + "-" + dc + "." + "client.id");
+		String clientSecret = Configuration.getProperty("ear." + serviceName + "-" + dc + "." + "client.secret");
+		String refreshToken = Configuration.getProperty("ear." + serviceName + "-" + dc + "." + "refresh.token");
 
 		String tokenUrl = getDomainUrl("accounts", "/oauth/v2/token", dc);
 		JSONObject tokenGeneratePayload = new JSONObject()
@@ -210,7 +210,7 @@ public class ZohoAPI extends HttpServlet
 		long customerId = userIdCustomerIdPair.getValue();
 
 		String dc = payload.getString("dc");
-		String serviceId = Configuration.getProperty("taskengine." + service + "." + dc + ".service.id");
+		String serviceId = Configuration.getProperty("taskengine." + service + "-" + dc + ".service.id");
 		String queueName = payload.optString("thread_pool");
 		String className = payload.optString("class_name");
 		Integer delaySeconds = StringUtils.isEmpty((String) payload.opt("delay")) ? null : Integer.parseInt((String) payload.opt("delay"));
@@ -242,7 +242,7 @@ public class ZohoAPI extends HttpServlet
 		long customerId = userIdCustomerIdPair.getValue();
 
 		String dc = payload.getString("dc");
-		String serviceId = Configuration.getProperty("taskengine." + service + "." + dc + ".service.id");
+		String serviceId = Configuration.getProperty("taskengine." + service + "-" + dc + ".service.id");
 		String queueName = payload.getString("thread_pool");
 		String repetitionName = payload.getString("repetition_name");
 		if(StringUtils.isEmpty(repetitionName))

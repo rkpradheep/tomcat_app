@@ -111,8 +111,6 @@
                 <option value="5000">5000</option>
             </select>
             &nbsp;&nbsp;&nbsp <button onclick="refreshTable()">REFRESH</button>
-           <!-- <br><p style="font-size: 15px;"> Note: Use Manual Execution below after selecting the table from the above dropdown for complex query.</p>
-            <button onclick="generateSQL('')" id="sqlGen">Generate Select query for selected table</button> -->
         </div>
         <br />
         <br />
@@ -165,7 +163,7 @@
          &nbsp;&nbsp;&nbsp;Customer Id  &nbsp;<input type="text" id="customer_id"/>
         </div>
         <div id="local_jobs_container" style="display:inline">
-          &nbsp;&nbsp;&nbsp;DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
+         &nbsp;&nbsp;DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
         </div>
         <br>
            <label for="job-manage">JOB</label>
@@ -253,7 +251,7 @@ const threadPoolsList = SAS_META['taskengine_meta']['thread_pools'][getElementVa
       threadPoolsOptions += "<option value=" + threadPoolsList[i] + ">" + threadPoolsList[i] + "</option>";
  }
 document.getElementById('thread_pool').innerHTML = threadPoolsOptions
-if(getElementValue("taskengine_product").split("-")[1] == "local" || getElementValue("taskengine_product").split("-")[1] == "csez")
+if(SAS_META.db_meta[getElementValue("taskengine_product")] != undefined)
 {
 document.getElementById("idc_jobs_container").style.display="none"
 document.getElementById("local_jobs_container").style.display="inline"
@@ -691,8 +689,6 @@ function deleteJob()
 
 var initCompleted = false;
 
-        setElementValue("zsid", "admin");
-
         function getSASMeta() {
             fetch("/api/v1/sas/meta", {
                     method: "GET",
@@ -717,6 +713,7 @@ var initCompleted = false;
                     populateTaskEngineProducts();
                     populateEARProducts()
                     populateDBProducts()
+                    setElementValue("zsid", "admin");
                     getDBCredential(false);
                     initCompleted = true;
                 })
@@ -980,15 +977,6 @@ function populateDBProducts()
                             alert("Something went wrong. Please try again later.");
                         });
 
-        }
-
-        function generateSQL(criteria) {
-            if (getElementValue("tableList").length == 0) {
-                alert("Populate table first");
-                return;
-            }
-            if (criteria.length == 0) document.getElementById("query").value = "Select * from " + document.getElementById("tableList").value + getLimitAndOrderBy();
-            else document.getElementById("query").value = "Select * from " + document.getElementById("tableList").value + " where " + criteria + " LIKE" + '"%' + document.getElementById(criteria).value + '%"' + getLimitAndOrderBy();
         }
 
         function getTables() {
@@ -1387,7 +1375,8 @@ function populateDBProducts()
                 predicate = " Where " + criteriaColumn + " < " + num;
             } else if (criteriaVal.trim().length != 0) {
                 const value = criteriaVal.trim();
-                predicate = " Where " + criteriaColumn + " LIKE '%" + value + "%'";
+                const comparator = isNaN(value) ? " LIKE" + ' "%' + value + '%"' : " = " + value
+                predicate = " Where " + criteriaColumn + comparator
             } else {
                 alert("Invalid criteria");
                 return;

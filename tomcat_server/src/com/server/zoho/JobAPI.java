@@ -212,7 +212,7 @@ public class JobAPI
 
 		Function<String, String> getName = isRepetitive ? JobAPI::getNameForRepetitiveJob : JobAPI::getNameForOTJ;
 		Map<String, Object> jobResponse = new HashMap<>();
-		jobDetails.keySet().forEach(key -> jobResponse.put(getName.apply(key), jobDetails.get(key)));
+		jobDetails.keySet().forEach(key -> jobResponse.put(getName.apply(key), StringUtils.equals(getName.apply(key), "SCHEDULED_TIME") ? DateUtil.getFormattedTime(jobDetails.getLong(key), DateUtil.DATE_WITH_TIME_FORMAT) : jobDetails.get(key)));
 
 		return jobResponse;
 	}
