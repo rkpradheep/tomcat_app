@@ -95,12 +95,15 @@ public class SecurityUtil
 
 	public static String getSessionId()
 	{
-		Cookie[] cookies = getCurrentRequest().getCookies();
-		String tokenName = "iam_token";
+		return getCookieValue("iam_token");
+	}
 
+	public static String getCookieValue(String cookieName)
+	{
+		Cookie[] cookies = getCurrentRequest().getCookies();
 		if(Objects.nonNull(cookies))
 		{
-			return Arrays.stream(cookies).filter(cookie -> cookie.getName().equals(tokenName)).map(Cookie::getValue).findFirst().orElse(StringUtils.EMPTY);
+			return Arrays.stream(cookies).filter(cookie -> cookie.getName().equals(cookieName)).map(Cookie::getValue).findFirst().orElse(StringUtils.EMPTY);
 		}
 
 		return StringUtils.EMPTY;
@@ -230,6 +233,13 @@ public class SecurityUtil
 		response.getWriter().print(objectMapper.writeValueAsString(responseObject));
 	}
 
+	public static void writeHTMLResponse(HttpServletResponse response, String html) throws IOException
+	{
+		response.setContentType("text/html; charset=UTF-8");
+
+		response.getWriter().print(html);
+	}
+
 	public static void writeSuccessJSONResponse(HttpServletResponse response, String responseMessage) throws IOException
 	{
 		writeSuccessJSONResponse(response, responseMessage, null);
@@ -251,6 +261,10 @@ public class SecurityUtil
 		return bytes;
 	}
 
+	public static JSONObject getCurrentRequestJSONObject() throws IOException
+	{
+		return getJSONObject(getCurrentRequest());
+	}
 	public static JSONObject getJSONObject(HttpServletRequest request) throws IOException
 	{
 		if(Objects.nonNull(request.getAttribute("JSON_PAYLOAD")))

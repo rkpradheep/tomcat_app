@@ -25,12 +25,14 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.server.framework.common.AppException;
 import com.server.framework.common.Configuration;
+import com.server.framework.common.Util;
 import com.server.framework.http.HttpAPI;
 import com.server.framework.http.HttpResponse;
 import com.server.framework.security.SecurityUtil;
@@ -74,6 +76,10 @@ public class ZohoAPI extends HttpServlet
 			else if(request.getRequestURI().equals("/api/v1/zoho/repetitions"))
 			{
 				SecurityUtil.writeSuccessJSONResponse(response, "success", handleRepetition(SecurityUtil.getJSONObject(request)));
+			}
+			else if(request.getRequestURI().equals("/zoho/auth"))
+			{
+				handleZohoAuth(request, response);
 			}
 			else if(request.getRequestURI().equals("/api/v1/zoho/ear"))
 			{
@@ -277,4 +283,45 @@ public class ZohoAPI extends HttpServlet
 
 		return null;
 	}
+
+	public static String getCurrentUserEmail() throws Exception
+	{
+		String zohoToken = SecurityUtil.getCookieValue("zoho_authenticated_token");
+		if(StringUtils.isEmpty(zohoToken))
+		{
+			return null;
+		}
+
+		zohoToken = Util.getAESDecryptedValue(zohoToken);
+		String url = ZohoAPI.getDomainUrl("accounts","/oauth/user/info","us");
+		JSONObject response = HttpAPI.makeNetworkCall(url, HttpGet.METHOD_NAME, Map.of("Authorization", "Bearer ".concat(zohoToken))).getJSONResponse();
+		return response.optString("Email");
+	}
+
+	public static void handleZohoAuth(HttpServletRequest request, HttpServletResponse response) throws Exception
+	{
+		String code = request.getParameter("code");
+		String tokenUrl = getDomainUrl("accounts", "/oauth/v2/token", "us");
+		JSONObject tokenGeneratePayload = new JSONObject()
+			.put("code", code)
+			.put("client_id", Configuration.getProperty("zoho.auth.client.id"))
+			.put("client_secret", Configuration.getProperty("zoho.auth.client.secret"))
+			.put("redirect_uri", Configuration.getProperty("zoho.auth.redirect.uri"))
+			.put("url", tokenUrl);
+
+		String token = new JSONObject(OauthHandler.generateOauthTokens(tokenGeneratePayload)).optString("access_token");
+
+		StringBuilder tokenHeader = new StringBuilder()
+			.append("zoho_authenticated_token" + "=")
+			.append(Util.getAESEncryptedValue(token))
+			.append("; Path=/;")
+			.append("Max-Age=1800;");
+		response.setHeader("Set-Cookie", tokenHeader.toString());
+
+		String message = StringUtils.isNotEmpty(token) ? "Authentication is success. Please try updating now." : "Authentication failed!";
+
+		String authHtml = "<html><body> " + message +  " <script>setTimeout(function() {window.close();}, 2000);</script></body></script>";
+		SecurityUtil.writeHTMLResponse(response, authHtml);
+	}
+
 }

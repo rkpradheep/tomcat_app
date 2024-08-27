@@ -347,7 +347,7 @@
              var gotConsent = true;
             if(setColumnValue == undefined || setColumnValue.length < 1)
             {
-                alert("Please enter value column value");
+                alert("Please enter valid column value");
                 return;
             }
 

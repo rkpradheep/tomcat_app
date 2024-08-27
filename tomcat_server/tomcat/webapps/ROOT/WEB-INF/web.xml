@@ -280,6 +280,7 @@
 		<url-pattern>/api/v1/zoho/ear</url-pattern>
 		<url-pattern>/api/v1/zoho/jobs</url-pattern>
 		<url-pattern>/api/v1/zoho/repetitions</url-pattern>
+		<url-pattern>/zoho/auth</url-pattern>
 	</servlet-mapping>
 
 	<session-config>

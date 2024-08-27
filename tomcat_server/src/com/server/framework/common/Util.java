@@ -12,13 +12,15 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -31,8 +33,12 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -52,7 +58,7 @@ public class Util
 			byte[] plainBytes = plainText.getBytes(StandardCharsets.UTF_8);
 			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-			return new String(Base64.getEncoder().encode(cipher.doFinal(plainBytes)));
+			return Base64.encodeBase64String(cipher.doFinal(plainBytes));
 		}
 		catch(Exception e)
 		{
@@ -62,7 +68,7 @@ public class Util
 
 	public static String decryptData(PrivateKey privateKey, String cipherText) throws Exception
 	{
-		byte[] plainBytes = Base64.getDecoder().decode(cipherText.getBytes("UTF-8"));
+		byte[] plainBytes = Base64.decodeBase64(cipherText.getBytes("UTF-8"));
 		Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
 		cipher.init(Cipher.DECRYPT_MODE, privateKey);
 		return new String(cipher.doFinal(plainBytes));
@@ -241,4 +247,41 @@ public class Util
 		return new JSONObject(GSON.toJson(pojoObject, type));
 	}
 
+
+	public static String getAESEncryptedValue(String payLoad) throws Exception
+	{
+		String key = Configuration.getProperty("server.aes.key");
+		String iv = Configuration.getProperty("server.aes.iv");
+
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		SecretKeySpec keySpec = new SecretKeySpec(Base64.decodeBase64(key), "AES");
+
+		cipher.init(Cipher.ENCRYPT_MODE, keySpec, new IvParameterSpec(Base64.decodeBase64(iv)));
+		byte[] encryptedBytes = cipher.doFinal(payLoad.getBytes());
+
+		return org.apache.commons.codec.binary.Base64.encodeBase64String(encryptedBytes);
+	}
+
+	public static String getAESDecryptedValue(String encryptedData) throws Exception
+	{
+		String key = Configuration.getProperty("server.aes.key");
+		String iv = Configuration.getProperty("server.aes.iv");
+
+		byte[] data = org.apache.commons.codec.binary.Base64.decodeBase64(encryptedData);
+
+		Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		SecretKeySpec secretKey = new SecretKeySpec(Base64.decodeBase64(key), "AES");
+		cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(Base64.decodeBase64(iv)));
+		byte[] actualData = cipher.doFinal(data);
+
+		return new String(actualData);
+	}
+
+	public static Pair<String, String> generateAESEncryptionKey()
+	{
+		SecureRandom secureRandom = new SecureRandom();
+		byte[] key = new byte[32];
+		secureRandom.nextBytes(key);
+		return new ImmutablePair<>(Base64.encodeBase64String(key), Base64.encodeBase64String(RandomStringUtils.randomAlphanumeric(16).getBytes()));
+	}
 }

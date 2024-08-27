@@ -111,6 +111,18 @@
                 <option value="5000">5000</option>
             </select>
             &nbsp;&nbsp;&nbsp <button onclick="refreshTable()">REFRESH</button>
+            <br>
+             SET &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; <select name="columnListForSet" id="columnListForSet">
+                   <option value="" disabled selected>Loading .. </option>
+             </select>
+             &nbsp;&nbsp;&nbsp<input type="text" id="set_column_value"/> <br/>
+
+             WHERE &nbsp;&nbsp;&nbsp; <select name="columnListForWhere" id="columnListForWhere">
+                   <option value="" disabled selected>Loading .. </option>
+             </select>
+             &nbsp;&nbsp;&nbsp<input type="text" id="where_column_value"/>
+            &nbsp;&nbsp;&nbsp<button onclick="updateRow()">UPDATE</button> &nbsp;&nbsp;&nbsp
+
         </div>
         <br />
         <br />
@@ -129,7 +141,7 @@
         <br />
         <br />
         <div id="response" style="display: none;">
-            <textarea readonly id="output" name="output" rows="10" cols="50" style="font-size: 18px;"></textarea>
+            <textarea readonly id="output" name="output" rows="10" cols="50" style="font-size: 18px;color:red"></textarea>
         </div>
 
 
@@ -218,6 +230,55 @@
         var TABLE_LIST = [];
         var COLUMN_LIST = [];
         var isEncrypted = true;
+
+
+        function updateRow()
+        {
+            const tableName = document.getElementById("tableList").value;
+            const setColumnName = document.getElementById("columnListForSet").value;
+            if(setColumnName == 'Select Column')
+            {
+                alert("Please choose column name to update!");
+                return;
+            }
+            const whereColumnName = document.getElementById("columnListForWhere").value;
+            if(setColumnName == 'Select Column')
+            {
+                alert("Please choose column name for criteria!");
+                return;
+            }
+            const setColumnValue = document.getElementById("set_column_value").value;
+            const whereColumnValue = document.getElementById("where_column_value").value;
+             var gotConsent = true;
+            if(setColumnValue == undefined || setColumnValue.length < 1)
+            {
+                alert("Please enter valid column value");
+                return;
+            }
+
+            var updateQuery = "Update " + tableName + " set " + setColumnName + " = '" + setColumnValue + "'";
+
+           if(whereColumnValue == undefined || whereColumnValue.length < 1)
+           {
+                alert('Criteria is mandatory for update query')
+                return;
+           }
+            else
+            {
+            updateQuery = updateQuery + " Where " + whereColumnName + " = '" + whereColumnValue + "'"
+            }
+
+            document.getElementById("query").value = updateQuery
+            confirmAndExecute();
+        }
+
+        function confirmAndExecute()
+        {
+        if(confirm("Do you want to continue?\n\nQuery to be executed : \n" + document.getElementById("query").value))
+        {
+            execute();
+         }
+        }
 
 function doChangeForTaskEngineManagement()
 {
@@ -827,6 +888,7 @@ function populateDBProducts()
                 alert("Please enter a valid ZSID or PK value");
                 return;
             }
+
             unHideElement("loading");
 
             const data = {
@@ -837,7 +899,7 @@ function populateDBProducts()
                 "zsid": document.getElementById("zsid").value,
                 "pk": document.getElementById("pk").value,
                 "query": document.getElementById("query").value,
-                "is_encrypted": isEncrypted
+                "is_encrypted": isEncrypted,
             }
 
             var res;
@@ -872,6 +934,21 @@ function populateDBProducts()
                         QUERY_OUTPUT = temp["query_output"];
                         delete temp["query_output"];
                     } else if (temp["query_output"] != undefined && temp["query_output"] != null) {
+                        if(temp["query_output"] == "Update query executed successfully")
+                        {
+                            refreshTable();
+                            alert("Updated successfully!")
+                            return;
+                        }
+                        if(temp["query_output"] == "reauth_needed")
+                        {
+                              let screenX = screen.width / 2 - 325;
+                              let screenY = screen.height / 2 - 400;
+                              var popupOptions = "width=650,height=750,top="+ screenY + ",left=" + screenX;
+                              window.open(temp['auth_uri'], "Authentication", popupOptions);
+                              return;
+                        }
+                        alert("Operation failed. Please check the error response below and try again!");
                         handleQueryOutputForFailed();
                         setElementValue("output", temp["query_output"]);
                         return;
@@ -1126,6 +1203,12 @@ function populateDBProducts()
             for (var column in columnListRes) {
                 COLUMN_LIST.push(columnListRes[column]);
             }
+            var columnListOptions = "<option>Select Column</option>";
+            for (var i in COLUMN_LIST) {
+                columnListOptions += "<option >" + COLUMN_LIST[i] + "</option>";
+            }
+            document.getElementById("columnListForWhere").innerHTML = columnListOptions;
+            document.getElementById("columnListForSet").innerHTML = columnListOptions;
         }
 
         function getLimitAndOrderBy() {
@@ -1258,6 +1341,8 @@ function populateDBProducts()
                   else
                     hideElement("credentials_box")
                 setElementValue("query", "")
+                setElementValue("where_column_value", "")
+                setElementValue("set_column_value", "")
                 hideElement("response", "")
             }
 

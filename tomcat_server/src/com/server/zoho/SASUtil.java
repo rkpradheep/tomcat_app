@@ -7,8 +7,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,14 +21,17 @@ import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
 
+import com.server.framework.common.AppException;
+import com.server.framework.common.Configuration;
 import com.server.framework.common.Util;
+import com.server.framework.security.SecurityUtil;
 
 public class SASUtil
 {
 	private static final ThreadLocal<Integer> CONNECTION_RETRY_ATTEMPT = ThreadLocal.withInitial(() -> 0);
-	private static final ThreadLocal<Exception> CONNECTION_FAILURE_ERROR = new ThreadLocal<>();
 
 	public static long[] getLimits(Long spaceID)
 	{
@@ -69,34 +74,8 @@ public class SASUtil
 	{
 		try
 		{
-			Connection connection = getDBConnectionAux(server, ip, db, user, password);
-			if(connection == null)
-			{
-				throw CONNECTION_FAILURE_ERROR.get();
-			}
-
-			return connection;
-		}
-		finally
-		{
-			CONNECTION_RETRY_ATTEMPT.set(0);
-			CONNECTION_FAILURE_ERROR.set(null);
-		}
-	}
-
-	public static Connection getDBConnectionAux(String server, String ip, String db, String user, String password) throws Exception
-	{
-		try
-		{
-			if(CONNECTION_RETRY_ATTEMPT.get() >= 2)
-			{
-				Exception exception = CONNECTION_FAILURE_ERROR.get();
-				new Thread(() -> Util.postMessageToBot("Connection attempt failed " + "Server : " + server + " Error Message : " + exception + " Exception : " + exception)).start();
-				return null;
-			}
-
 			Connection conn;
-			if(server.equals("mysql"))
+			if(StringUtils.equals("mysql", server))
 			{
 				Class.forName("com.mysql.jdbc.Driver");
 				conn = DriverManager.getConnection(MessageFormat.format("jdbc:mysql://{0}:3306/{1}?connectTimeout=5000&useSSL=false", ip, db), user, password);
@@ -106,15 +85,22 @@ public class SASUtil
 				Class.forName("org.postgresql.Driver");
 				conn = DriverManager.getConnection(MessageFormat.format("jdbc:postgresql://{0}:5432/sasdb?currentSchema={1}&connectTimeout=5000&useSSL=false", ip, db), user, password);
 			}
+			conn.setAutoCommit(false);
 			return conn;
 		}
 		catch(Exception e)
 		{
 			CONNECTION_RETRY_ATTEMPT.set(CONNECTION_RETRY_ATTEMPT.get() + 1);
-			CONNECTION_FAILURE_ERROR.set(e);
-			if(CONNECTION_RETRY_ATTEMPT.get() != 2)
+			if(CONNECTION_RETRY_ATTEMPT.get() <= 3)
+			{
 				TimeUnit.SECONDS.sleep(2);
-			return getDBConnectionAux(server, ip, db, user, password);
+				return getDBConnection(server, ip, db, user, password);
+			}
+			throw e;
+		}
+		finally
+		{
+			CONNECTION_RETRY_ATTEMPT.set(0);
 		}
 	}
 
@@ -174,6 +160,8 @@ public class SASUtil
 
 			Pattern pattern = Pattern.compile("(.*)(?i)(from)\\s+(\\w+)(.*)");
 			Matcher matcher = pattern.matcher(query);
+			Pattern updatePattern = Pattern.compile("(?i)(Update)\\s+(\\w+)\\s+(?i)(set)(.*)\\s+(?i)(where)\\s+(.*)");
+			Matcher updateMatcher = updatePattern.matcher(query);
 			if(matcher.matches())
 			{
 				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", matcher.group(3));
@@ -184,6 +172,53 @@ public class SASUtil
 					{
 						break;
 					}
+				}
+			}
+			else if(updateMatcher.matches())
+			{
+				String currentUserEmail = ZohoAPI.getCurrentUserEmail();
+				if(StringUtils.isEmpty(currentUserEmail))
+				{
+					resultMap.put("query_output", "reauth_needed");
+					StringBuilder queryString = new StringBuilder();
+					queryString.append(ZohoAPI.getDomainUrl("accounts", "/oauth/v2/auth", "us") + "?scope=" + Configuration.getProperty("zoho.auth.scopes"))
+						.append("&client_id=" + Configuration.getProperty("zoho.auth.client.id"))
+						.append("&prompt=consent")
+						.append("&response_type=code")
+						.append("&access_type=online")
+						.append("&redirect_uri=" + Configuration.getProperty("zoho.auth.redirect.uri"));
+					resultMap.put("auth_uri", queryString);
+					return;
+				}
+				if(!Arrays.asList(Configuration.getProperty("zoho.db.update.allowed.users").split(",")).contains(currentUserEmail))
+				{
+					throw new AppException("You don't have permission to execute update query!");
+				}
+				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", updateMatcher.group(2));
+				while(primaryKeys.next())
+				{
+					pkName = primaryKeys.getString("COLUMN_NAME");
+					if(pkName.matches("(.*)(?i)(id)"))
+					{
+						break;
+					}
+					else
+					{
+						pkName = null;
+					}
+				}
+				int datType = -1;
+				ResultSet resultSet = connection.getMetaData().getColumns(null, "jbossdb", updateMatcher.group(2), null);
+				while(resultSet.next())
+				{
+					if(StringUtils.equals(pkName, resultSet.getString("COLUMN_NAME")))
+					{
+						datType = Integer.parseInt(resultSet.getString("DATA_TYPE"));
+					}
+				}
+				if(StringUtils.isEmpty(pkName) || datType != Types.BIGINT)
+				{
+					throw new AppException("Update query cannot be performed as PK column with BIGINT type is not found for this table!");
 				}
 			}
 			else
@@ -238,29 +273,22 @@ public class SASUtil
 				preparedStatement.setObject(2, sasEndRange);
 			}
 
-			preparedStatement.execute();
-			ResultSet resultSet = preparedStatement.getResultSet();
-			ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+			if(!query.matches("(?i)select(.*)"))
+			{
+				int updatedRecords = preparedStatement.executeUpdate();
+				if(updatedRecords > 1)
+				{
+					connection.rollback();
+					throw new AppException("Query cannot be executed as it affects more than one record");
+				}
 
-			List queryOutput = new ArrayList();
-			while(resultSet.next())
-			{
-				Map row = new LinkedHashMap();
-				for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
-				{
-					row.put(resultSetMetaData.getColumnName(i).toUpperCase(), resultSet.getString(i));
-				}
-				queryOutput.add(row);
+				connection.commit();
+				resultMap.put("query_output", "Update query executed successfully");
+				return;
 			}
-			if(queryOutput.isEmpty())
-			{
-				Map row = new LinkedHashMap();
-				for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
-				{
-					row.put(resultSetMetaData.getColumnName(i).toUpperCase(), "<EMPTY>");
-				}
-				queryOutput.add(row);
-			}
+
+			preparedStatement.execute();
+			List queryOutput = getQueryOutput(preparedStatement);
 			resultMap.put("query_output", queryOutput);
 		}
 		catch(Exception e)
@@ -268,6 +296,33 @@ public class SASUtil
 			resultMap.put("query_output", e.getMessage());
 		}
 
+	}
+
+	private static List getQueryOutput(PreparedStatement preparedStatement) throws SQLException
+	{
+		ResultSet resultSet = preparedStatement.getResultSet();
+		ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+
+		List queryOutput = new ArrayList();
+		while(resultSet.next())
+		{
+			Map row = new LinkedHashMap();
+			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+			{
+				row.put(resultSetMetaData.getColumnName(i).toUpperCase(), resultSet.getString(i));
+			}
+			queryOutput.add(row);
+		}
+		if(queryOutput.isEmpty())
+		{
+			Map row = new LinkedHashMap();
+			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+			{
+				row.put(resultSetMetaData.getColumnName(i).toUpperCase(), "<EMPTY>");
+			}
+			queryOutput.add(row);
+		}
+		return queryOutput;
 	}
 
 	static void handleDecryption(HttpServletRequest request, JSONObject credentials) throws Exception
