@@ -32,6 +32,7 @@ import org.json.JSONObject;
 
 import com.server.framework.common.AppException;
 import com.server.framework.common.Configuration;
+import com.server.framework.common.EntityType;
 import com.server.framework.common.Util;
 import com.server.framework.http.HttpAPI;
 import com.server.framework.http.HttpResponse;
@@ -77,7 +78,7 @@ public class ZohoAPI extends HttpServlet
 			{
 				SecurityUtil.writeSuccessJSONResponse(response, "success", handleRepetition(SecurityUtil.getJSONObject(request)));
 			}
-			else if(request.getRequestURI().equals("/zoho/auth"))
+			else if(request.getRequestURI().equals("/api/v1/zoho/auth"))
 			{
 				handleZohoAuth(request, response);
 			}
@@ -322,6 +323,21 @@ public class ZohoAPI extends HttpServlet
 
 		String authHtml = "<html><body> " + message +  " <script>setTimeout(function() {window.close();}, 2000);</script></body></script>";
 		SecurityUtil.writeHTMLResponse(response, authHtml);
+	}
+
+	static void auditLog() throws Exception
+	{
+		String oldThreadName = Thread.currentThread().getName();
+
+		try
+		{
+			Thread.currentThread().setName(oldThreadName.concat("/").concat(getCurrentUserEmail()));
+			SecurityUtil.addHTTPLog(EntityType.ZOHO);
+		}
+		finally
+		{
+			Thread.currentThread().setName(oldThreadName);
+		}
 	}
 
 }

@@ -1,7 +1,5 @@
 package com.server.framework.security;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -9,7 +7,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import com.server.framework.common.DateUtil;
 import com.server.framework.persistence.Criteria;
-import com.server.framework.persistence.DBUtil;
 import com.server.framework.persistence.DataAccess;
 import com.server.framework.persistence.Row;
 import com.server.framework.persistence.SelectQuery;
@@ -33,7 +30,7 @@ public class LoginUtil
 			criteria = criteria.and(new Criteria(USER.TABLE, USER.PASSWORD,  DigestUtils.sha256Hex(password.trim()), Criteria.Constants.EQUAL));
 			selectQuery.setCriteria(criteria);
 
-			return UserUtil.getUser(DataAccess.get(selectQuery).getRows().get(0));
+			return UserUtil.getCurrentUser(DataAccess.get(selectQuery).getRows().get(0));
 		}
 		catch(Exception e)
 		{

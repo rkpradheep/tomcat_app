@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +34,8 @@ public class SecurityFilter implements Filter
 
 	@Override public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException
 	{
+		String oldThreadName = Thread.currentThread().getName();
+
 		try
 		{
 			SERVLET_CONTEXT_TL.set(servletRequest.getServletContext());
@@ -47,7 +50,9 @@ public class SecurityFilter implements Filter
 			String requestURI = httpServletRequest.getRequestURI().replaceFirst(httpServletRequest.getContextPath(), StringUtils.EMPTY);
 			String requestURL = httpServletRequest.getRequestURL().toString();
 
-			if(!SecurityUtil.isResourceUri(servletRequest.getServletContext(), requestURI))
+			boolean isResourceURI = SecurityUtil.isResourceUri(servletRequest.getServletContext(), requestURI);
+
+			if(!isResourceURI)
 			{
 				LOGGER.log(Level.INFO, "Request received for uri {0} Public IP {1} Originating IP {2}", new Object[] {httpServletRequest.getRequestURI(), httpServletRequest.getRemoteAddr(), SecurityUtil.getOriginatingUserIP()});
 			}
@@ -64,10 +69,7 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
-			String authToken = SecurityUtil.getAuthToken();
-			String sessionId = StringUtils.isBlank(authToken) ? SecurityUtil.getSessionId() : null;
-
-			CURRENT_USER_TL.set(UserUtil.getUser(sessionId, authToken));
+			CURRENT_USER_TL.set(UserUtil.getCurrentUser());
 
 			if(Configuration.getBoolean("production") && (requestURI.equals("/dbtool.jsp") || requestURI.equals("/zoho")))
 			{
@@ -87,6 +89,13 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
+			if(!isResourceURI && SecurityUtil.isLoggedIn() && !requestURI.equals("/api/v1/admin/db/execute"))
+			{
+				Thread.currentThread().setName(Thread.currentThread().getName().concat("/".concat(SecurityUtil.getCurrentUser().getName()).concat("-").concat(SecurityUtil.getCurrentUser().getId().toString())));
+				SecurityUtil.addHTTPLog();
+			}
+
+
 			if(SecurityUtil.isLoggedIn())
 			{
 				if(!SecurityUtil.getCurrentUser().isAdmin() && SecurityUtil.isAdminCall(requestURI))
@@ -94,6 +103,7 @@ public class SecurityFilter implements Filter
 					httpServletResponse.sendError(HttpStatus.SC_FORBIDDEN);
 					return;
 				}
+
 				filterChain.doFilter(servletRequest, servletResponse);
 			}
 			else
@@ -115,14 +125,13 @@ public class SecurityFilter implements Filter
 			}
 
 			SecurityUtil.sendVisitorNotification();
-			SecurityUtil.addHTTPLog();
-
 		}
 		finally
 		{
 			CURRENT_USER_TL.remove();
 			SERVLET_CONTEXT_TL.remove();
 			CURRENT_REQUEST_TL.remove();
+			Thread.currentThread().setName(oldThreadName);
 		}
 	}
 

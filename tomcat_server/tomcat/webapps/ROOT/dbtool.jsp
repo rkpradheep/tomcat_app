@@ -27,10 +27,11 @@
             cursor: pointer;
             -webkit-transition-duration: 0.4s; /* Safari */
             transition-duration: 0.4s;
+            border-radius: 10px
         }
 
         button:hover {
-            box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+            box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.24), 0 2px 30px 0 rgba(0, 0, 0, 0.19);
         }
 
         option:hover {
@@ -63,7 +64,7 @@
             background-color: #dddddd;
         }
     </style>
-    <body>
+    <body style="padding:30px">
         <div class="loading" id="loading" style="display:none">Loading&#8230;</div>
         <br/>
         <br/>
@@ -151,7 +152,7 @@
         <select id="isc_product">
         </select>
         <button onclick="generateIsc()">GENERATE ISC</button>
-        <p id="isc" style="color:red"></p>
+        <p id="isc" style="color:red;cursor:pointer" onclick="copyToClipboard(document.getElementById('isc').innerHTML)"></p>
         <br>
         <br>
          Product &nbsp;
@@ -948,7 +949,7 @@ function populateDBProducts()
                               window.open(temp['auth_uri'], "Authentication", popupOptions);
                               return;
                         }
-                        alert("Operation failed. Please check the error response below and try again!");
+                        alert(temp["query_output"]);
                         handleQueryOutputForFailed();
                         setElementValue("output", temp["query_output"]);
                         return;

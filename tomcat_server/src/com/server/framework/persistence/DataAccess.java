@@ -161,6 +161,7 @@ public class DataAccess
 		catch(Exception e)
 		{
 			DataAccessUtil.handleExceptionForTxn(connection);
+			throw e;
 		}
 		finally
 		{
@@ -243,6 +244,7 @@ public class DataAccess
 		catch(Exception e)
 		{
 			DataAccessUtil.handleExceptionForTxn(connection);
+			throw e;
 		}
 		finally
 		{
@@ -276,6 +278,7 @@ public class DataAccess
 		catch(Exception e)
 		{
 			DataAccessUtil.handleExceptionForTxn(connection);
+			throw e;
 		}
 		finally
 		{

@@ -21,13 +21,11 @@ import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
 
 import com.server.framework.common.AppException;
 import com.server.framework.common.Configuration;
 import com.server.framework.common.Util;
-import com.server.framework.security.SecurityUtil;
 
 public class SASUtil
 {
@@ -190,9 +188,11 @@ public class SASUtil
 					resultMap.put("auth_uri", queryString);
 					return;
 				}
+				ZohoAPI.auditLog();
+
 				if(!Arrays.asList(Configuration.getProperty("zoho.db.update.allowed.users").split(",")).contains(currentUserEmail))
 				{
-					throw new AppException("You don't have permission to execute update query!");
+					throw new AppException(MessageFormat.format("User({0}) don't have permission to execute update query!", currentUserEmail));
 				}
 				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", updateMatcher.group(2));
 				while(primaryKeys.next())

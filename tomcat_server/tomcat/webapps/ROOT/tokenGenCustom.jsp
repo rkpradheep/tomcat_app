@@ -356,7 +356,7 @@ try{
 const json = JSON.parse(document.getElementById("output").value);
 if(json.access_token!=undefined){
 copyToClipboard(json.access_token);
-alert("copied");}
+}
 else
 alert("Access token not found in response");
 }
@@ -370,7 +370,7 @@ try{
 const json = JSON.parse(document.getElementById("output").value);
 if(json.refresh_token!=undefined){
 copyToClipboard(json.refresh_token);
-alert("copied");}
+}
 else
 alert("Refresh token not found in response");
 }
@@ -381,7 +381,7 @@ alert("Refresh token not found in response");
 }
 function copyAll(){
 copyToClipboard(document.getElementById("output").value);
-alert("copied");
+
 }
 
 function reset(auto)

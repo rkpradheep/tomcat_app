@@ -45,6 +45,7 @@ window.open(new URL(window.location.href.replace('http', 'https')) , "_self");
  async function copyToClipboard(textToCopy) {
      if (false && navigator.clipboard && window.isSecureContext) {
          await navigator.clipboard.writeText(textToCopy);
+         alert('copied')
      } else {
 
          const textArea = document.createElement("textarea");
@@ -58,6 +59,7 @@ window.open(new URL(window.location.href.replace('http', 'https')) , "_self");
 
          try {
              document.execCommand('copy');
+             alert('copied')
          } catch (error) {
              console.error(error);
          } finally {

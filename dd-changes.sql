@@ -115,19 +115,23 @@ ENGINE = InnoDB;
 -- -------------------------------------------------------------
 
 
--- CREATE TABLE "HttLog" -----------------------------------------
+-- CREATE TABLE "HttpLog" --------------------------------------
 CREATE TABLE `HttpLog`(
 	`Id` BigInt( 255 ) NOT NULL,
 	`Url` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`Method` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`IP` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-	`QueryString` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
-	`JSONPayload` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
+	`QueryString` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+	`JSONPayload` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+	`ThreadName` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+	`CreatedTime` BigInt( 255 ) NOT NULL,
+	`EntityType` TinyInt( 255 ) NOT NULL,
 	PRIMARY KEY ( `Id` ) )
 CHARACTER SET = utf8mb3
 COLLATE = utf8mb3_general_ci
 ENGINE = InnoDB;
 -- -------------------------------------------------------------
+
 
 
 -- CREATE INDEX "lnk_User_AuthToken" ---------------------------

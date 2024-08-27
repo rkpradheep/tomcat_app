@@ -44,10 +44,11 @@
             cursor: pointer;
             -webkit-transition-duration: 0.4s; /* Safari */
             transition-duration: 0.4s;
+            border-radius:10px;
         }
 
         button:hover {
-            box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+            box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.24), 0 2px 30px 0 rgba(0, 0, 0, 0.19);
         }
 
         option:hover {

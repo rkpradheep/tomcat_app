@@ -47,6 +47,7 @@ import org.json.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
+import com.server.framework.common.EntityType;
 import com.server.framework.common.Util;
 import com.server.framework.job.JobUtil;
 import com.server.framework.http.FormData;
@@ -68,7 +69,7 @@ public class SecurityUtil
 
 	public static boolean isResourceUri(ServletContext servletContext, String endPoint) throws MalformedURLException
 	{
-		return endPoint.matches("(/((resources|css|js)/.*)|favicon.ico)");
+		return endPoint.matches("(/(((resources|css|js)/.*)|favicon.ico))");
 	}
 
 	public static String getAuthToken()
@@ -269,13 +270,13 @@ public class SecurityUtil
 	{
 		if(Objects.nonNull(request.getAttribute("JSON_PAYLOAD")))
 		{
-			return (JSONObject) request.getAttribute("JSON_PAYLOAD");
+			return new JSONObject(((JSONObject) request.getAttribute("JSON_PAYLOAD")).toMap());
 		}
 		try
 		{
 			JSONObject jsonObject = new JSONObject(request.getReader().lines().collect(Collectors.joining()));
 			request.setAttribute("JSON_PAYLOAD", jsonObject);
-			return jsonObject;
+			return new JSONObject(jsonObject.toMap());
 		}
 		catch(Exception e)
 		{
@@ -357,7 +358,12 @@ public class SecurityUtil
 		}
 	}
 
-	static void addHTTPLog()
+	public static void addHTTPLog()
+	{
+		addHTTPLog(EntityType.COMMON);
+	}
+
+	public static void addHTTPLog(EntityType entityType)
 	{
 		try
 		{
@@ -373,6 +379,8 @@ public class SecurityUtil
 			row.set(HTTPLOG.QUERYSTRING, request.getQueryString());
 			JSONObject jsonObject = getJSONObject(request);
 			row.set(HTTPLOG.JSONPAYLOAD, Objects.isNull(jsonObject) ? null : jsonObject.toString());
+			row.set(HTTPLOG.THREADNAME, Thread.currentThread().getName());
+			row.set(HTTPLOG.ENTITYTYPE, entityType.getValue());
 
 			DataAccess.add(row);
 		}

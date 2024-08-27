@@ -15,16 +15,21 @@ import com.server.framework.persistence.DataObject;
 import com.server.framework.persistence.Join;
 import com.server.framework.persistence.Row;
 import com.server.framework.persistence.SelectQuery;
+import com.server.framework.security.SecurityUtil;
 import com.server.table.constants.AUTHTOKEN;
 import com.server.table.constants.SESSIONMANAGEMENT;
 import com.server.table.constants.USER;
+import com.server.zoho.ZohoAPI;
 
 public class UserUtil
 {
 	private static final Logger LOGGER = Logger.getLogger(UserUtil.class.getName());
 
-	public static User getUser(String sessionId, String authToken)
+	public static User getCurrentUser()
 	{
+		String authToken = SecurityUtil.getAuthToken();
+		String sessionId = StringUtils.isBlank(authToken) ? SecurityUtil.getSessionId() : null;
+
 		if(StringUtils.isBlank(sessionId) && StringUtils.isBlank(authToken))
 		{
 			return null;
@@ -49,7 +54,7 @@ public class UserUtil
 
 		try
 		{
-			return getUser(DataAccess.get(selectQuery).getRows().get(0));
+			return getCurrentUser(DataAccess.get(selectQuery).getRows().get(0));
 		}
 		catch(Exception e)
 		{
@@ -58,7 +63,7 @@ public class UserUtil
 		}
 	}
 
-	public static User getUser(Row row)
+	public static User getCurrentUser(Row row)
 	{
 		return Objects.nonNull(row) ? new User((long)row.get(USER.ID), (String) row.get(USER.NAME), (int)row.get(USER.ROLETYPE) == RoleEnum.ADMIN.getType()) : null;
 	}

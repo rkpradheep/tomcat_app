@@ -247,7 +247,6 @@ alert("No response found");
 return;
 }
 copyToClipboard(document.getElementById("output").value);
-alert("copied");
 }
 
 function downloadResponse()
