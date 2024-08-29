@@ -15,7 +15,7 @@
             overflow-y: scroll;
         }
         button {
-            background-color: #4caf50; /* Green */
+            background-color: rgba(76, 175, 80);
             border: none;
             color: white;
             padding: 5px 12px;
@@ -31,7 +31,7 @@
         }
 
         button:hover {
-            box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.24), 0 2px 30px 0 rgba(0, 0, 0, 0.19);
+            background-color: rgba(76, 175, 80, 0.8)
         }
 
         option:hover {
@@ -128,7 +128,7 @@
         <br />
         <br />
         <br />
-        <div id="queryOutputContainer" style="display: none;" class="fixTableHead"><table id="queryOutput"></table></div>
+        <div id="queryOutputContainer" style="display: none;max-width: fit-content;" class="fixTableHead"><table id="queryOutput"></table></div>
         <br />
         <br />
 
@@ -1461,7 +1461,7 @@ function populateDBProducts()
                 predicate = " Where " + criteriaColumn + " < " + num;
             } else if (criteriaVal.trim().length != 0) {
                 const value = criteriaVal.trim();
-                const comparator = isNaN(value) ? " LIKE" + ' "%' + value + '%"' : " = " + value
+                const comparator = isNaN(value) ? " LIKE" + "'%" + value + "%'" :  " = " + value
                 predicate = " Where " + criteriaColumn + comparator
             } else {
                 alert("Invalid criteria");
