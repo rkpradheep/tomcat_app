@@ -538,8 +538,14 @@ function addOrUpdatePeriodicRepetition()
                                 alert(error)
                                 console.log(error);
                             }
-                            else
-                            alert(JSON.parse(data).data)
+                            else{
+                            if(res.data.auth_uri != undefined)
+                             {
+                                   handleZohoAuth(res.data.auth_uri)
+                                   return;
+                             }
+                            alert(res.data)
+                            }
                         })
                         .catch((error) => {
                             hideElement("loading");
@@ -645,8 +651,14 @@ function addOrUpdateJob()
                                 alert(error)
                                 console.log(error);
                             }
-                            else
-                            alert(JSON.parse(data).data)
+                            else{
+                            if(res.data.auth_uri != undefined)
+                             {
+                                   handleZohoAuth(res.data.auth_uri)
+                                   return;
+                             }
+                            alert(res.data)
+                            }
                         })
                         .catch((error) => {
                             hideElement("loading");
@@ -692,8 +704,14 @@ function deleteRepetition()
                                 alert(error)
                                 console.log(error);
                             }
-                            else
-                             alert(JSON.parse(data).data)
+                            else{
+                            if(res.data.auth_uri != undefined)
+                             {
+                                   handleZohoAuth(res.data.auth_uri)
+                                   return;
+                             }
+                            alert(res.data)
+                            }
                         })
                         .catch((error) => {
                             hideElement("loading");
@@ -739,8 +757,14 @@ function deleteJob()
                                 alert(error)
                                 console.log(error);
                             }
-                            else
-                             alert(JSON.parse(data).data)
+                            else{
+                            if(res.data.auth_uri != undefined)
+                             {
+                                   handleZohoAuth(res.data.auth_uri)
+                                   return;
+                             }
+                            alert(res.data)
+                            }
                         })
                         .catch((error) => {
                             hideElement("loading");
@@ -934,20 +958,19 @@ function populateDBProducts()
                     if (Array.isArray(temp["query_output"])) {
                         QUERY_OUTPUT = temp["query_output"];
                         delete temp["query_output"];
-                    } else if (temp["query_output"] != undefined && temp["query_output"] != null) {
+                    }
+                    else if(temp.auth_uri != undefined)
+                    {
+                      handleZohoAuth(temp.auth_uri)
+                      return;
+                     }
+
+                     else if (temp["query_output"] != undefined && temp["query_output"] != null) {
                         if(temp["query_output"] == "Update query executed successfully")
                         {
                             refreshTable();
                             alert("Updated successfully!")
                             return;
-                        }
-                        if(temp["query_output"] == "reauth_needed")
-                        {
-                              let screenX = screen.width / 2 - 325;
-                              let screenY = screen.height / 2 - 400;
-                              var popupOptions = "width=650,height=750,top="+ screenY + ",left=" + screenX;
-                              window.open(temp['auth_uri'], "Authentication", popupOptions);
-                              return;
                         }
                         alert(temp["query_output"]);
                         handleQueryOutputForFailed();
@@ -966,6 +989,14 @@ function populateDBProducts()
                 });
         }
 
+function handleZohoAuth(authURI)
+{
+                              let screenX = screen.width / 2 - 325;
+                              let screenY = screen.height / 2 - 400;
+                              var popupOptions = "width=650,height=750,top="+ screenY + ",left=" + screenX;
+                              window.open(authURI, "Authentication", popupOptions);
+
+}
         function generateIsc()
         {
 

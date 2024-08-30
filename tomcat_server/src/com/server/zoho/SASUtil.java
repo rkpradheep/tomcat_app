@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -174,25 +175,11 @@ public class SASUtil
 			}
 			else if(updateMatcher.matches())
 			{
-				String currentUserEmail = ZohoAPI.getCurrentUserEmail();
-				if(StringUtils.isEmpty(currentUserEmail))
+				Map<String, String> response = ZohoAPI.doAuthentication();
+				if(Objects.nonNull(response))
 				{
-					resultMap.put("query_output", "reauth_needed");
-					StringBuilder queryString = new StringBuilder();
-					queryString.append(ZohoAPI.getDomainUrl("accounts", "/oauth/v2/auth", "us") + "?scope=" + Configuration.getProperty("zoho.auth.scopes"))
-						.append("&client_id=" + Configuration.getProperty("zoho.auth.client.id"))
-						.append("&prompt=consent")
-						.append("&response_type=code")
-						.append("&access_type=online")
-						.append("&redirect_uri=" + Configuration.getProperty("zoho.auth.redirect.uri"));
-					resultMap.put("auth_uri", queryString);
+					resultMap.putAll(response);
 					return;
-				}
-				ZohoAPI.auditLog();
-
-				if(!Arrays.asList(Configuration.getProperty("zoho.db.update.allowed.users").split(",")).contains(currentUserEmail))
-				{
-					throw new AppException(MessageFormat.format("User({0}) do not have permission to execute update query!", currentUserEmail));
 				}
 				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", updateMatcher.group(2));
 				while(primaryKeys.next())

@@ -10,6 +10,8 @@ import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -226,6 +228,18 @@ public class ZohoAPI extends HttpServlet
 		String repetition = payload.optString("repetition");
 
 		String operation = payload.getString("operation");
+
+		if(StringUtils.equals("get", operation))
+		{
+			return JobAPI.getInstance(dc, serviceId, queueName).getJobDetails(jobId, customerId);
+		}
+
+		Map<String, String> response = doAuthentication();
+		if(Objects.nonNull(response))
+		{
+			return response;
+		}
+
 		if(StringUtils.equals("add", operation))
 		{
 			return StringUtils.isEmpty(repetition) ? JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateOTJ(jobId, className, retryRepetition, delaySeconds, userId, customerId) : JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateRepetitiveJob(jobId, className, repetition, retryRepetition, delaySeconds, userId, customerId);
@@ -234,10 +248,8 @@ public class ZohoAPI extends HttpServlet
 		{
 			return JobAPI.getInstance(dc, serviceId, queueName).deleteJob(jobId, customerId);
 		}
-		else
-		{
-			return JobAPI.getInstance(dc, serviceId, queueName).getJobDetails(jobId, customerId);
-		}
+
+		throw new AppException("Invalid operation");
 	}
 
 	static Object handleRepetition(JSONObject payload) throws Exception
@@ -263,7 +275,13 @@ public class ZohoAPI extends HttpServlet
 		{
 			return JobAPI.getInstance(dc, serviceId, queueName).getRepetitionDetails(repetitionName, userId, customerId);
 		}
-		else if(StringUtils.equals("add_periodic", operation))
+
+		Map<String, String> response = doAuthentication();
+		if(Objects.nonNull(response))
+		{
+			return response;
+		}
+		if(StringUtils.equals("add_periodic", operation))
 		{
 			Integer periodicity = Integer.parseInt(StringUtils.defaultIfEmpty(payload.optString("periodicity"), "-1"));
 			periodicity = periodicity == -1 ? null : periodicity;
@@ -299,8 +317,42 @@ public class ZohoAPI extends HttpServlet
 		return response.optString("Email");
 	}
 
+	public static Map<String, String> doAuthentication() throws Exception
+	{
+		String currentUserEmail = ZohoAPI.getCurrentUserEmail();
+		if(StringUtils.isEmpty(currentUserEmail))
+		{
+			Map<String, String> response = new HashMap<>();
+			StringBuilder queryString = new StringBuilder();
+			queryString.append(ZohoAPI.getDomainUrl("accounts", "/oauth/v2/auth", "us") + "?scope=" + Configuration.getProperty("zoho.auth.scopes"))
+				.append("&client_id=" + Configuration.getProperty("zoho.auth.client.id"))
+				.append("&prompt=consent")
+				.append("&response_type=code")
+				.append("&access_type=online")
+				.append("&redirect_uri=" + Configuration.getProperty("zoho.auth.redirect.uri"));
+			response.put("auth_uri", queryString.toString());
+			return response;
+		}
+		ZohoAPI.auditLog();
+
+		if(!Arrays.asList(Configuration.getProperty("zoho.db.update.allowed.users").split(",")).contains(currentUserEmail))
+		{
+			throw new AppException(MessageFormat.format("User({0}) do not have permission to execute update query!", currentUserEmail));
+		}
+		return null;
+	}
+
 	public static void handleZohoAuth(HttpServletRequest request, HttpServletResponse response) throws Exception
 	{
+		if(StringUtils.equals(request.getParameter("error"), "access_denied"))
+		{
+			String message = "Authentication failed as you have rejected the access request.";
+
+			String authHtml = "<html><body> " + message +  " <script>setTimeout(function() {window.close();}, 2000);</script></body></script>";
+			SecurityUtil.writeHTMLResponse(response, authHtml);
+			return;
+		}
+
 		String code = request.getParameter("code");
 		String tokenUrl = getDomainUrl("accounts", "/oauth/v2/token", "us");
 		JSONObject tokenGeneratePayload = new JSONObject()
