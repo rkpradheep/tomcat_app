@@ -44,12 +44,14 @@ public class FormData
 	public static class FileData
 	{
 		String fileName;
+		String contentType;
 		byte[] bytes;
 
-		public FileData(String fileName, byte[] bytes)
+		public FileData(String fileName, byte[] bytes, String contentType)
 		{
 			this.fileName = fileName;
 			this.bytes = bytes;
+			this.contentType = contentType;
 		}
 
 		public String getFileName()
@@ -60,6 +62,10 @@ public class FormData
 		public byte[] getBytes()
 		{
 			return bytes;
+		}
+		public String getContentType()
+		{
+			return contentType;
 		}
 	}
 }

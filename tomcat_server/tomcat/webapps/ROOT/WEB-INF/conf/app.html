@@ -201,10 +201,10 @@ document.addEventListener('DOMContentLoaded', getRandomQuote);
 
 function getRandomQuote() {
     unHideElement('loading')
-    fetch('https://api.quotable.io/random')
+    fetch('https://dummyjson.com/quotes/random')
         .then(response => response.json())
         .then(data => {
-            displayQuote(data.content, data.author);
+            displayQuote(data.quote, data.author);
             hideElement('loading')
              unHideElement("quote-container");
         })

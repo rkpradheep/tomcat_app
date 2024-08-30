@@ -129,7 +129,7 @@
 
     <form name="message" action="" autocomplete="off" onkeydown="return event.key!='Enter';">
         <input name="usermsg" type="text" id="chbox" style="outline:none" onkeydown="if(event.key=='Enter')sendMsg();"/>
-        <input type="file" id="file" name="files" multiple>
+        <input type="file" id="file" name="files" disabled style="" multiple>
         <input type="button" onclick="sendMsg()" id="send" style="background-image: url('../resources/send.png');background-size:100% 100%;width: 50px;height: 50px;
    border: none;cursor: pointer;" value=""/>
         <br><p id="filename" style="position:absolute;margin-left:10px;margin-top:70px;font-weight:bold;color:green"></p>

@@ -35,6 +35,7 @@ function establishConnection(gameCode)
         alert('Invalid name!')
         return
     }
+    unHideElement('loading')
     var url = "ws://";
     if (window.location.origin.includes('https'))
         url = "wss://";
@@ -44,6 +45,7 @@ function establishConnection(gameCode)
     socket.addEventListener('open', function(event) {
         console.log("session started")
     });
+
 
     socket.onmessage = (msg) => {
     let req = JSON.parse(msg.data)
@@ -66,6 +68,7 @@ function establishConnection(gameCode)
         handleResults(req.data)
     };
     socket.addEventListener("close", function(event) {
+        hideElement('loading')
         console.log("WebSocket Closed:");
         console.log(event)
         reset()
@@ -208,6 +211,7 @@ function paintPlayer(playerState, xAxisSize, yAxisSize, colour) {
 function handleInit(data) {
   init();
   playerNumber = data.number;
+  hideElement('loading')
 }
 
 function handleGameState(gameState) {

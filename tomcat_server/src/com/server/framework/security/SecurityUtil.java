@@ -216,7 +216,7 @@ public class SecurityUtil
 
 				List<FormData.FileData> fileDataList = formData.getFileDataList();
 
-				FormData.FileData fileData = new FormData.FileData(item.getName(), readAllBytes(item.getInputStream()));
+				FormData.FileData fileData = new FormData.FileData(item.getName(), readAllBytes(item.getInputStream()), item.getContentType());
 				fileDataList.add(fileData);
 
 				formDataMap.put(item.getFieldName(), formData);
@@ -268,6 +268,10 @@ public class SecurityUtil
 	}
 	public static JSONObject getJSONObject(HttpServletRequest request) throws IOException
 	{
+		if(!request.getContentType().equals("application/json"))
+		{
+			return null;
+		}
 		if(Objects.nonNull(request.getAttribute("JSON_PAYLOAD")))
 		{
 			return new JSONObject(((JSONObject) request.getAttribute("JSON_PAYLOAD")).toMap());

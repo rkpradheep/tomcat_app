@@ -192,7 +192,7 @@ public class SASUtil
 
 				if(!Arrays.asList(Configuration.getProperty("zoho.db.update.allowed.users").split(",")).contains(currentUserEmail))
 				{
-					throw new AppException(MessageFormat.format("User({0}) don't have permission to execute update query!", currentUserEmail));
+					throw new AppException(MessageFormat.format("User({0}) do not have permission to execute update query!", currentUserEmail));
 				}
 				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", updateMatcher.group(2));
 				while(primaryKeys.next())

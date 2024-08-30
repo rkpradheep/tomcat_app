@@ -37,6 +37,11 @@ public class CSVParser extends HttpServlet
 		{
 			Map<String, FormData> formDataMap = SecurityUtil.parseMultiPartFormData(httpServletRequest);
 			FormData formData = formDataMap.get("file");
+			if(!StringUtils.equals(formData.getFileDataList().get(0).getContentType(), "text/csv"))
+			{
+				SecurityUtil.writerErrorResponse(httpServletResponse, "Uploaded file is not in csv format");
+				return;
+			}
 
 			StringBuilder tableData = new StringBuilder("<table>\n");
 			tableData.append("<thead>\n");
@@ -44,24 +49,14 @@ public class CSVParser extends HttpServlet
 
 			AtomicInteger counter = new AtomicInteger(0);
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(formData.getFileDataList().get(0).getBytes())));
-			AtomicInteger headerSize = new AtomicInteger();
-			bufferedReader.lines().forEach(line -> {
-				if(counter.get() == 0)
-				{
-					Pair<String, Integer> headerPair = constructHeader(line);
-					tableData.append(headerPair.getLeft());
-					headerSize.set(headerPair.getValue());
-					tableData.append("</thead>\n");
-					tableData.append("</tr>\n");
-					tableData.append("<tbody>\n");
-				}
-				else
-				{
-					tableData.append(constructBody(counter.get(), line, headerSize.get()));
-				}
-				counter.incrementAndGet();
+			Pair<String, Integer> headerPair = constructHeader(bufferedReader.readLine());
+			tableData.append(headerPair.getLeft());
+			final int headerSize = headerPair.getValue();
+			tableData.append("</thead>\n");
+			tableData.append("</tr>\n");
+			tableData.append("<tbody>\n");
 
-			});
+			bufferedReader.lines().forEach(line -> tableData.append(constructBody(counter.incrementAndGet(), line, headerSize)));
 			tableData.append("</tbody>\n");
 			Map<String, String> responseMap = new HashMap<>();
 			responseMap.put("table_data", tableData.toString());

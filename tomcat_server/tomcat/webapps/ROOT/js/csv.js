@@ -19,14 +19,18 @@ function uploadFile() {
         return response.json();
     })
     .then(data => {
+    hideElement("loading");
      if(handleRedirection(data))
      {
-         hideElement("loading");
          return;
      }
-    document.getElementById("queryOutput").innerHTML = data.table_data;
+     if(data.error != undefined)
+     {
+        alert(data.error)
+        return;
+     }
+    document.getElementById("output").innerHTML = data.table_data;
     document.getElementById("total").innerHTML = "TOTAL : " + data.total;
-    hideElement("loading");
     })
     .catch(error => {
         hideElement("loading");

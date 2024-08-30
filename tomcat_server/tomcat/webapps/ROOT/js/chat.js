@@ -28,6 +28,7 @@ function join() {
         document.getElementById("name").style.fontWeight = "bold";
         document.getElementById("chatbox").innerHTML = ''
         document.getElementById("name").disabled = true;
+        document.getElementById("file").disabled = false;
         document.getElementById("join").style.display = "none"
         document.getElementById("leave").style.display = "block"
     });
@@ -36,6 +37,7 @@ function join() {
         joining = false
         joined = false;
         lockUpload = false;
+        document.getElementById("file").disabled = true;
         document.getElementById("chatbox").innerHTML = document.getElementById("chatbox").innerHTML + "<b style='color:red;margin: 140px''>Disconnected!</b><br><br>";
         document.getElementById("chatbox").scrollTo(0, document.getElementById("chatbox").scrollHeight);
         console.log(event);
@@ -43,6 +45,7 @@ function join() {
     socket.addEventListener('close', function(event) {
         console.log(event)
         console.log("Session closed at " + new Date())
+        document.getElementById("file").disabled = true;
 //        if (event.code == 1006) {
 //            //rejoining = true;
 //            //setTimeout(join, 1000)
@@ -177,7 +180,7 @@ function leave() {
 }
 
 function loadFile() {
-    if (document.querySelector("#file").files[0] != null && lockUpload == false) {
+    if (document.querySelector("#file").files[0] != null && lockUpload == false && joined) {
         document.getElementById("filename").innerHTML = "Uploading ...";
         sendMsg()
     }

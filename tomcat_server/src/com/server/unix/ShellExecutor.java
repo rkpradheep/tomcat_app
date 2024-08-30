@@ -42,7 +42,7 @@ public class ShellExecutor extends HttpServlet
 				SecurityUtil.writerErrorResponse(response, "Password mandatory");
 				return;
 			}
-			else if(!request.getParameter("password").equals("111"))
+			else if(!StringUtils.equals(request.getParameter("password"), Configuration.getProperty("shell.execution.password")))
 			{
 				SecurityUtil.writerErrorResponse(response, "Incorrect password");
 				return;
