@@ -1,10 +1,13 @@
 package com.server.tomcat;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.InputStream;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -14,7 +17,6 @@ import org.apache.catalina.connector.Response;
 import org.apache.catalina.valves.JsonErrorReportValve;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
-import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 
 public class CustomErrorReportValve extends JsonErrorReportValve
@@ -58,13 +60,11 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 
 			if(isRestAPI(uri))
 			{
-				LOGGER.log(Level.SEVERE, "TOMCAT ERROR REPORT VALVE :: Writing json response for request - {0} and status -{1}", new Object[] {request.getRequestURI(), response.getStatus()}); //No I18N
+				LOGGER.log(Level.SEVERE, "TOMCAT ERROR REPORT VALVE :: Writing json response for request - {0} and status - {1}", new Object[] {request.getRequestURI(), response.getStatus()}); //No I18N
 
 				String message = getErrorMessage(uri, code);
-				String jsonReport = "{\n  \"error\": \"" + message + "\"\n}";
-				response.setContentType("application/json");
 
-				response.getWriter().print(jsonReport);
+				Thread.currentThread().getContextClassLoader().loadClass("com.server.framework.security.SecurityUtil").getDeclaredMethod("writerErrorResponse", HttpServletResponse.class, String.class).invoke(null, response, message);
 				response.setErrorReported();
 			}
 			else
@@ -76,7 +76,10 @@ public class CustomErrorReportValve extends JsonErrorReportValve
 				response.setErrorReported();
 			}
 
-			LOGGER.log(Level.SEVERE, "TOMCAT ERROR REPORT VALVE :: Uncaught throwable", throwable); //No I18N
+			if(Objects.nonNull(throwable))
+			{
+				LOGGER.log(Level.SEVERE, "TOMCAT ERROR REPORT VALVE", throwable);
+			}
 
 		}
 		catch(Exception e)

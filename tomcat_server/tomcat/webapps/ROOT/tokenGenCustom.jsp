@@ -435,9 +435,9 @@ function reset(auto)
 <label for="access_token_uri"> Access Token URL </label> &nbsp;<input type="text" id="access_token_uri" style="width:400px;height:25px"><br><br>
 <button onclick="reset(false)"> Reset </button>
 <br><br>
-<div id="response" style="display:none;">
+<div id="response" style="display:none;text-align: center;">>
 <button onclick="copyAT()"> Copy Access Token </button> <button onclick="copyRT()"> Copy Refresh Token </button> <button onclick="copyAll()"> Copy All </button> <br>
-<textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black "></textarea>
+<textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black;max-width: 80vw;overflow: auto; "></textarea>
 </div>
  <br><br>
   <input type="radio" id="create_tokens" name="token_gen_option" value="create_tokens" checked onclick="doChangesForGenerateTokens()">

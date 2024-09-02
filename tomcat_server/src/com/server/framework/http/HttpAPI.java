@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.json.JSONObject;
@@ -51,6 +52,7 @@ public class HttpAPI
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, JSONObject jsonObject) throws IOException
 	{
+		headersMap = ObjectUtils.defaultIfNull(headersMap, new HashMap<>());
 		headersMap.put("Content-Type", "application/json");
 		return makeNetworkCall(url, method, null, headersMap, new ByteArrayInputStream(jsonObject.toString().getBytes()), null);
 	}

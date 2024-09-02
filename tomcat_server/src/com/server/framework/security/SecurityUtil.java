@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -32,6 +32,8 @@ import jakarta.servlet.ServletRegistration;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.fileupload2.core.DiskFileItemFactory;
@@ -52,8 +54,11 @@ import com.server.framework.common.Util;
 import com.server.framework.job.JobUtil;
 import com.server.framework.http.FormData;
 import com.server.framework.http.HttpAPI;
+import com.server.framework.persistence.Column;
+import com.server.framework.persistence.Criteria;
 import com.server.framework.persistence.DataAccess;
 import com.server.framework.persistence.Row;
+import com.server.framework.persistence.UpdateQuery;
 import com.server.framework.user.User;
 import com.server.table.constants.HTTPLOG;
 
@@ -266,9 +271,10 @@ public class SecurityUtil
 	{
 		return getJSONObject(getCurrentRequest());
 	}
+
 	public static JSONObject getJSONObject(HttpServletRequest request) throws IOException
 	{
-		if(!request.getContentType().equals("application/json"))
+		if(!StringUtils.equals(request.getContentType(), "application/json"))
 		{
 			return null;
 		}
@@ -362,36 +368,94 @@ public class SecurityUtil
 		}
 	}
 
-	public static void addHTTPLog()
+	public static void addHTTPLog() throws IOException
 	{
 		addHTTPLog(EntityType.COMMON);
 	}
 
-	public static void addHTTPLog(EntityType entityType)
+	public static void addHTTPLog(EntityType entityType) throws IOException
+	{
+		if(!Configuration.getBoolean("need.http.logs"))
+		{
+			return;
+		}
+		HttpServletRequest request = getCurrentRequest();
+
+		HttpLogRequest.Builder builder = new HttpLogRequest.Builder()
+			.setUrl(request.getRequestURL().toString())
+			.setMethod(request.getMethod())
+			.setIP(request.getRemoteAddr())
+			.setQueryString(request.getQueryString());
+
+		JSONObject jsonObject = getJSONObject(request);
+
+		builder.setJsonPayLoad(Objects.isNull(jsonObject) ? null : jsonObject.toString())
+			.setThreadName(Thread.currentThread().getName())
+			.setEntityType(entityType);
+
+		addHTTPLog(builder.build());
+	}
+
+	public static Long addHttpLog(HttpURLConnection connection)
+	{
+		HttpLogRequest.Builder builder = new HttpLogRequest.Builder()
+			.setUrl(getURLString(connection.getURL()))
+			.setMethod(connection.getRequestMethod())
+			.setIP(getCurrentRequest().getRemoteAddr())
+			.setQueryString(connection.getURL().getQuery())
+			.setThreadName(Thread.currentThread().getName())
+			.setOutgoing(true)
+			.setEntityType(EntityType.COMMON);
+
+		return addHTTPLog(builder.build());
+	}
+
+	public static Long addHTTPLog(HttpLogRequest httpLogRequest)
 	{
 		try
 		{
-			if(!Configuration.getBoolean("need.http.logs"))
-			{
-				return;
-			}
-			HttpServletRequest request = getCurrentRequest();
 			Row row = new Row(HTTPLOG.TABLE);
-			row.set(HTTPLOG.URL, request.getRequestURL().toString());
-			row.set(HTTPLOG.METHOD, request.getMethod());
-			row.set(HTTPLOG.IP, request.getRemoteAddr());
-			row.set(HTTPLOG.QUERYSTRING, request.getQueryString());
-			JSONObject jsonObject = getJSONObject(request);
-			row.set(HTTPLOG.JSONPAYLOAD, Objects.isNull(jsonObject) ? null : jsonObject.toString());
-			row.set(HTTPLOG.THREADNAME, Thread.currentThread().getName());
-			row.set(HTTPLOG.ENTITYTYPE, entityType.getValue());
+			row.set(HTTPLOG.URL, httpLogRequest.getUrl());
+			row.set(HTTPLOG.METHOD, httpLogRequest.getMethod());
+			row.set(HTTPLOG.IP, httpLogRequest.getIP());
+			row.set(HTTPLOG.QUERYSTRING, httpLogRequest.getQueryString());
+			row.set(HTTPLOG.JSONPAYLOAD, httpLogRequest.getJsonPayLoad());
+			row.set(HTTPLOG.THREADNAME, httpLogRequest.getThreadName());
+			row.set(HTTPLOG.ENTITYTYPE, httpLogRequest.getEntityType().getValue());
+			row.set(HTTPLOG.STATUSCODE, httpLogRequest.getStatusCode());
+			row.set(HTTPLOG.ISOUTGOING, httpLogRequest.isOutgoing() ? 1 : 0);
 
 			DataAccess.add(row);
+
+			return (long) row.get(HTTPLOG.ID);
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
+			return null;
+		}
+	}
+
+	public static void updateStatusCodeInHttpLog(long httpLogId, int statusCode)
+	{
+		try
+		{
+			UpdateQuery updateQuery = new UpdateQuery(HTTPLOG.TABLE);
+			updateQuery.setCriteria(new Criteria(Column.getColumn(HTTPLOG.TABLE, HTTPLOG.ID), httpLogId, Criteria.Constants.EQUAL));
+
+			updateQuery.setValue(HTTPLOG.STATUSCODE, statusCode);
+			DataAccess.update(updateQuery);
 		}
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 		}
+	}
+
+	public static String getURLString(URL url)
+	{
+		int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
+		return url.getProtocol() + "://" + url.getHost().concat(url.getPath()).concat(":").concat(String.valueOf(port));
 	}
 
 	static void sendVisitorNotification() throws UnknownHostException

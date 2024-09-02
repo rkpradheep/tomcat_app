@@ -34,6 +34,11 @@ public class DataObject
 		return filteredRowList;
 	}
 
+	public boolean isEmpty()
+	{
+		return rowList.isEmpty();
+	}
+
 	public String toString()
 	{
 		StringBuilder dataObjectBuilder = new StringBuilder();

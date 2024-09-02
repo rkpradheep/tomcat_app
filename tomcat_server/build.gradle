@@ -6,6 +6,15 @@ import java.time.format.DateTimeFormatter
 ext.serverPath = "${home}/tomcat_server"
 ext.deploymentPath = "${home}/tomcat_build"
 ext.neededPrededinedWebApps = ["tomcat", "manager"]
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.addAll([
+            "--add-exports",
+            "java.base/sun.net.www.protocol.http=ALL-UNNAMED",
+            "--add-exports",
+            "java.base/sun.net.www.protocol.https=ALL-UNNAMED"
+    ])
+}
 sourceSets {
     main {
         java {
@@ -143,7 +152,7 @@ task copyResourcesForNonROOTWebApps{
 
         copy {
             from "${serverPath}/classes"
-            exclude "com/server/tomcat", "com/server/framework"
+            exclude "com/server/tomcat", "com/server/framework", "com/server/system"
             into "${rootApp}/WEB-INF/classes"
         }
 
@@ -185,8 +194,14 @@ task copyResourcesForNonROOTWebApps{
 task buildTomcatCustomAPIJar(type: Jar) {
     archiveFileName = "tomcat-custom-api.jar"
     from "${serverPath}/classes"
-    include "com/server/tomcat/*"
+    include "com/server/tomcat/**"
     destinationDir = file("${deploymentPath}/lib")
+}
+task buildSystemAPIJar(type: Jar) {
+    archiveFileName = "system-api.jar"
+    from "${serverPath}/classes"
+    include "com/server/system/**"
+    destinationDir = file("${deploymentPath}/shared/lib")
 }
 
 task buildFrameworkJar(type: Jar) {
@@ -223,7 +238,7 @@ task setupServer{
 task cleanUp{
     doLast{
          delete "${home}/build"
-        delete "${serverPath}/classes"
+         delete "${serverPath}/classes"
         println "clean up completed"
     }
 }
@@ -356,6 +371,6 @@ task generateTableConstantFiles {
     }
 }
 
-configureTaskDependencies(setupServer, [setupTomcatContainer, generateTableConstantFiles, setTomcatEnvironmentValues, doCustomPropertyChanges, build, doAppPropertyChanges, buildFrameworkJar, buildTomcatCustomAPIJar, buildInstrumentationJar, copyResourcesForNonROOTWebApps,  packRootWar, packManagerWar, packTomcatWar, cleanUp])
+configureTaskDependencies(setupServer, [setupTomcatContainer, generateTableConstantFiles, setTomcatEnvironmentValues, doCustomPropertyChanges, build, doAppPropertyChanges, buildFrameworkJar, buildTomcatCustomAPIJar, buildInstrumentationJar, buildSystemAPIJar, copyResourcesForNonROOTWebApps,  packRootWar, packManagerWar, packTomcatWar, cleanUp])
 
 defaultTasks 'setupServer'

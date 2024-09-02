@@ -54,7 +54,8 @@ public class UserUtil
 
 		try
 		{
-			return getCurrentUser(DataAccess.get(selectQuery).getRows().get(0));
+			DataObject userDO = DataAccess.get(selectQuery);
+			return userDO.isEmpty() ? null : getCurrentUser(userDO.getRows().get(0));
 		}
 		catch(Exception e)
 		{

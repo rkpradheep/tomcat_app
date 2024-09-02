@@ -160,9 +160,9 @@ To generate token using your own secrets <a target="_blank" href="/tokenGenCusto
 <button id="tokenButton" name="tokenButton" onclick="redirect()"> Generate Token </button> <br>
 <button onclick="refresh()"> Refresh Token</button> <br><br><br><br>
 
-<div id="response" style="display:none;">
+<div id="response" style="display:none;text-align: center;">
 <button onclick="copyAT()"> Copy Access Token </button> <button onclick="copyRT()"> Copy Refresh Token </button> <button onclick="copyAll()"> Copy All </button> <br>
-<textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black "></textarea>
+<textarea readonly id="output" name="output" rows="10" cols="100" style="font-size:18px;color:white;background-color:black;max-width: 80vw;overflow: auto; "></textarea>
 </div>
 <script src="js/navbar.js"></script>
 <script src="js/common.js"></script>

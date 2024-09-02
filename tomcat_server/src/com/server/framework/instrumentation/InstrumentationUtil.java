@@ -27,8 +27,7 @@ public class InstrumentationUtil implements ClassFileTransformer
 	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer)
 	{
 		byte[] byteCode = classfileBuffer;
-		String finalTargetClassName = this.targetClassName.replaceAll("\\.", "/");
-		if(!className.equals(finalTargetClassName))
+		if(!className.equals(this.targetClassName.replaceAll("\\.", "/")))
 		{
 			return byteCode;
 		}
@@ -45,14 +44,12 @@ public class InstrumentationUtil implements ClassFileTransformer
 			StringBuilder endBlock = new StringBuilder();
 
 			m.addLocalVariable("endTime", CtClass.longType);
-			m.addLocalVariable("opTime", CtClass.doubleType);
 			endBlock.append("endTime = com.server.framework.common.DateUtil.getCurrentTimeInMillis();");
-			endBlock.append("opTime = (endTime-startTime)/(double)1000;");
 
 			endBlock.append("jakarta.servlet.http.HttpServletRequest httpServletRequest = ((jakarta.servlet.http.HttpServletRequest) servletRequest);");
 			endBlock.append("String requestURI = httpServletRequest.getRequestURI().replaceFirst(httpServletRequest.getContextPath(), \"\");");
 			endBlock.append("if(!com.server.framework.security.SecurityUtil.isResourceUri($1.getServletContext(), requestURI))");
-			endBlock.append("LOGGER.info(\"Request completed in " + "\" + opTime + \" seconds\");");
+			endBlock.append("LOGGER.info(\"Request completed in " + "\" + (endTime-startTime)/1000f + \" seconds\");");
 
 			m.insertAfter(endBlock.toString());
 

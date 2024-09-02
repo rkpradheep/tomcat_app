@@ -337,7 +337,7 @@ public class ZohoAPI extends HttpServlet
 
 		if(!Arrays.asList(Configuration.getProperty("zoho.db.update.allowed.users").split(",")).contains(currentUserEmail))
 		{
-			throw new AppException(MessageFormat.format("User({0}) do not have permission to execute update query!", currentUserEmail));
+			throw new AppException(MessageFormat.format("User({0}) does not have permission to execute update query!", currentUserEmail));
 		}
 		return null;
 	}
