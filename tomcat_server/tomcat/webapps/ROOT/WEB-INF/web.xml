@@ -134,6 +134,7 @@
 		<url-pattern>/livelogs</url-pattern>
 		<url-pattern>/freessl</url-pattern>
 		<url-pattern>/snakegame</url-pattern>
+		<url-pattern>/stats</url-pattern>
 	</servlet-mapping>
 
 
@@ -222,6 +223,16 @@
 	<servlet-mapping>
 		<servlet-name>UserHandler</servlet-name>
 		<url-pattern>/api/v1/admin/users</url-pattern>
+	</servlet-mapping>
+
+
+		<servlet>
+	<servlet-name>StatsHandler</servlet-name>
+		<servlet-class>com.server.stats.StatsAPI</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>StatsHandler</servlet-name>
+		<url-pattern>/api/v1/stats</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

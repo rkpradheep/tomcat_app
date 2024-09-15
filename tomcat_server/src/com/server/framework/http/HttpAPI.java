@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.json.JSONObject;
 
 public class HttpAPI
@@ -46,27 +47,38 @@ public class HttpAPI
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap) throws IOException
 	{
-		return makeNetworkCall(url, method, null, headersMap, null, null);
+		return makeNetworkCall(url, method, headersMap, null, null);
 	}
 
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, JSONObject jsonObject) throws IOException
 	{
-		headersMap = ObjectUtils.defaultIfNull(headersMap, new HashMap<>());
-		headersMap.put("Content-Type", "application/json");
 		return makeNetworkCall(url, method, null, headersMap, new ByteArrayInputStream(jsonObject.toString().getBytes()), null);
 	}
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap) throws IOException
 	{
+		return makeNetworkCall(url, method, headersMap, parametersMap, null);
+	}
+
+	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap, JSONObject jsonBody) throws IOException
+	{
+		headersMap = ObjectUtils.defaultIfNull(headersMap, new HashMap<>());
+		if(method.equals(HttpPost.METHOD_NAME) && Objects.nonNull(jsonBody))
+		{
+			headersMap.put("Content-Type", "application/json");
+		}
+
+		parametersMap = ObjectUtils.defaultIfNull(parametersMap, new HashMap<>());
 		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet-> entrySet.getKey().concat("=").concat(entrySet.getValue())).collect(Collectors.toList());
-		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMap, null, null);
+
+		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMap, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, null);
 	}
 
 	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream, Proxy proxy) throws IOException
 	{
 		if(StringUtils.isNotEmpty(queryString))
 		{
-			url = url.concat("?").concat(queryString);
+			url = !StringUtils.contains(url, "?") ? url.concat("?").concat(queryString) : url.concat(queryString);
 		}
 
 		HttpURLConnection httpURLConnection = (HttpURLConnection) (Objects.nonNull(proxy) ? new URL(url).openConnection(proxy) : new URL(url).openConnection());

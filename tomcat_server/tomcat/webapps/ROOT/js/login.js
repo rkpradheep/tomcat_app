@@ -36,6 +36,7 @@
             window.open (redirectURI, "_self");
 
           }).catch(error => {
+             console.log(error)
              hideElement("loading");
              alert("Something went wrong. Server might be down");
           });

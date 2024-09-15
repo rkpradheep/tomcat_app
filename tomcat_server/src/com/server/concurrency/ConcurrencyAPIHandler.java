@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -110,8 +111,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		}
 
 		List<Map> responseList = new ArrayList<>();
-		List<Future<?>> futureList = new ArrayList<>();
-		ExecutorService executorService = Executors.newFixedThreadPool(concurrencyCalls);
+
 		AtomicInteger atomicInteger = new AtomicInteger(0);
 
 		Runnable runnable = () -> {
@@ -134,7 +134,23 @@ public class ConcurrencyAPIHandler extends HttpServlet
 				LOGGER.log(Level.SEVERE, "Exception occurred ", e);
 			}
 		};
-		for(int i = 0; i < concurrencyCalls; i++)
+
+		List<Runnable> runnableList = new ArrayList<>();
+		IntStream.range(0, concurrencyCalls).forEach(value -> runnableList.add(runnable));
+
+		executeAsynchronously(runnableList);
+
+		LOGGER.log(Level.INFO, "Response list size {0}", responseList.size());
+
+		SecurityUtil.writeJSONResponse(response, responseList);
+	}
+
+	public static void executeAsynchronously(List<Runnable> runnableList)
+	{
+		List<Future<?>> futureList = new ArrayList<>();
+		ExecutorService executorService = Executors.newFixedThreadPool(runnableList.size());
+
+		for(Runnable runnable : runnableList)
 		{
 			futureList.add(executorService.submit(runnable));
 		}
@@ -152,10 +168,6 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		}
 
 		executorService.shutdown();
-
-		LOGGER.log(Level.INFO, "Response list size {0}", responseList.size());
-
-		SecurityUtil.writeJSONResponse(response, responseList);
 	}
 
 	static InputStream getInputStream(Map<String, FormData> formDataMap, Map<String, String> headersMap) throws IOException

@@ -641,7 +641,7 @@
         }
 
         function getLimitAndOrderBy() {
-            const orderBy = CURRENT_TABLE_PK.length == 0 ? "" : " Order By " + CURRENT_TABLE_PK + " ASC"
+            const orderBy = CURRENT_TABLE_PK.length == 0 ? "" : " Order By " + CURRENT_TABLE_PK + " DESC"
             const limit = getElementValue("recordLimit");
             return orderBy + " LIMIT " + limit;
         }

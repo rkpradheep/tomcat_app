@@ -2,8 +2,12 @@ package com.server.file;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.server.framework.common.Util;
 import com.server.framework.security.SecurityUtil;
 import com.server.framework.http.FormData;
 
@@ -35,12 +40,26 @@ public class CSVParser extends HttpServlet
 	{
 		try
 		{
-			Map<String, FormData> formDataMap = SecurityUtil.parseMultiPartFormData(httpServletRequest);
-			FormData formData = formDataMap.get("file");
-			if(!StringUtils.equals(formData.getFileDataList().get(0).getContentType(), "text/csv"))
+			String statsId = httpServletRequest.getParameter("stats_id");
+			File statsFile = new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + statsId + ".csv");
+			FormData formData = null;
+			if(StringUtils.isNotEmpty(statsId))
 			{
-				SecurityUtil.writerErrorResponse(httpServletResponse, "Uploaded file is not in csv format");
-				return;
+				if(!statsFile.exists())
+				{
+					SecurityUtil.writerErrorResponse(httpServletResponse, "Invalid stats id");
+					return;
+				}
+			}
+			else
+			{
+				Map<String, FormData> formDataMap = SecurityUtil.parseMultiPartFormData(httpServletRequest);
+				formData = formDataMap.get("file");
+				if(!StringUtils.equals(formData.getFileData().getContentType(), "text/csv"))
+				{
+					SecurityUtil.writerErrorResponse(httpServletResponse, "Uploaded file is not in csv format");
+					return;
+				}
 			}
 
 			StringBuilder tableData = new StringBuilder("<table>\n");
@@ -48,7 +67,8 @@ public class CSVParser extends HttpServlet
 			tableData.append("<tr>\n");
 
 			AtomicInteger counter = new AtomicInteger(0);
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(formData.getFileDataList().get(0).getBytes())));
+			Reader reader = StringUtils.isNotEmpty(statsId) ? new FileReader(statsFile) : new InputStreamReader(new ByteArrayInputStream(formData.getFileData().getBytes()));
+			BufferedReader bufferedReader = new BufferedReader(reader);
 			Pair<String, Integer> headerPair = constructHeader(bufferedReader.readLine());
 			tableData.append(headerPair.getLeft());
 			final int headerSize = headerPair.getValue();
@@ -60,7 +80,7 @@ public class CSVParser extends HttpServlet
 			tableData.append("</tbody>\n");
 			Map<String, String> responseMap = new HashMap<>();
 			responseMap.put("table_data", tableData.toString());
-			responseMap.put("total", String.valueOf(counter.decrementAndGet()));
+			responseMap.put("total", String.valueOf(counter.get()));
 			SecurityUtil.writeJSONResponse(httpServletResponse, responseMap);
 
 		}

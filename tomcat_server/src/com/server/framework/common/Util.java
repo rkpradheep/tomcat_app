@@ -259,7 +259,7 @@ public class Util
 		cipher.init(Cipher.ENCRYPT_MODE, keySpec, new IvParameterSpec(Base64.decodeBase64(iv)));
 		byte[] encryptedBytes = cipher.doFinal(payLoad.getBytes());
 
-		return org.apache.commons.codec.binary.Base64.encodeBase64String(encryptedBytes);
+		return org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString(encryptedBytes);
 	}
 
 	public static String getAESDecryptedValue(String encryptedData) throws Exception

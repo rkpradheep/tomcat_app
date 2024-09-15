@@ -76,6 +76,10 @@ public class SecurityUtil
 	{
 		return endPoint.matches("(/(((resources|css|js)/.*)|favicon.ico))");
 	}
+	public static String getUploadsPath()
+	{
+		return Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads";
+	}
 
 	public static String getAuthToken()
 	{
@@ -210,6 +214,7 @@ public class SecurityUtil
 
 				FormData formData = new FormData();
 				formData.setValue(fieldValue);
+				formData.setContentType(item.getContentType());
 				formDataMap.put(fieldName, formData);
 			}
 			else
@@ -455,7 +460,7 @@ public class SecurityUtil
 	public static String getURLString(URL url)
 	{
 		int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
-		return url.getProtocol() + "://" + url.getHost().concat(url.getPath()).concat(":").concat(String.valueOf(port));
+		return url.getProtocol() + "://" + url.getHost().concat(":").concat(String.valueOf(port)).concat(url.getPath());
 	}
 
 	static void sendVisitorNotification() throws UnknownHostException

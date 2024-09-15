@@ -1,5 +1,10 @@
 package com.server.framework.http;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +14,7 @@ public class FormData
 {
 	boolean isFile;
 	String value = StringUtils.EMPTY;
+	String contentType;
 	List<FileData> fileDataList = new ArrayList<>();
 
 	public boolean isFile()
@@ -26,6 +32,11 @@ public class FormData
 		fileDataList.add(fileData);
 	}
 
+	public FileData getFileData()
+	{
+		return fileDataList.get(0);
+	}
+
 	public List<FileData> getFileDataList()
 	{
 		return fileDataList;
@@ -39,6 +50,16 @@ public class FormData
 	public void setValue(String value)
 	{
 		this.value = value;
+	}
+
+	public String getContentType()
+	{
+		return contentType;
+	}
+
+	public void setContentType(String contentType)
+	{
+		this.contentType = contentType;
 	}
 
 	public static class FileData
@@ -62,6 +83,14 @@ public class FormData
 		public byte[] getBytes()
 		{
 			return bytes;
+		}
+		public InputStream getInputStream()
+		{
+			return new ByteArrayInputStream(bytes);
+		}
+		public Reader getReader()
+		{
+			return new InputStreamReader(getInputStream());
 		}
 		public String getContentType()
 		{
