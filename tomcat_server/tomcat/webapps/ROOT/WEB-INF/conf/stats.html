@@ -181,35 +181,27 @@
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="stats-meta.xsd">
 
-    <url>https://books.localzoho.com/api/v3/organizations/${Col_0}</url>
+    <is-test>true</is-test>
 
-    <method>GET</method>
+    <url></url>
+
+    <method></method>
 
     <headers>
-        <cookie> _iamadt=; _iambdt=;</cookie>
-        <x-zcsrf-token>zbcsparam=</x-zcsrf-token>
-        <user-agent></user-agent>
     </headers>
 
     <params>
-        <organization_id>${Col_0}</organization_id>
     </params>
 
   <!--  <json-body>
-         </json-body>
+        </json-body>
    -->
-
 
     <request-batch-size>48</request-batch-size>
 
     <request-batch-interval>62</request-batch-interval>
 
     <response>
-	       <header name="Request No">${RequestNo}</header>
-	       <header name="Org Id">organization/organization_id</header>
-           <header name="Org Name">organization/name</header>
-	       <header name="Org Created Data">organization/account_created_date</header>
-	       <header name="Currency">organization/currency_code</header>
     </response>
 
 </configuration>

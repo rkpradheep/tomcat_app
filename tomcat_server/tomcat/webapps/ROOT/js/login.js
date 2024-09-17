@@ -1,5 +1,10 @@
-
+var loginInProcess = false;
     function login() {
+    if(loginInProcess)
+    {
+        return
+    }
+    loginInProcess = true;
     const name = document.getElementById('name').value;
     const password = document.getElementById('password').value;
 
@@ -25,6 +30,7 @@
             const res = JSON.parse(data);
             if(res["message"] != "success")
             {
+                 loginInProcess = false;
                 alert("Invalid credentials")
                 return;
             }
@@ -34,8 +40,8 @@
             }
             const redirectURI =  new URLSearchParams(window.location.search).get('redirect_uri') || '/';
             window.open (redirectURI, "_self");
-
           }).catch(error => {
+             loginInProcess = false;
              console.log(error)
              hideElement("loading");
              alert("Something went wrong. Server might be down");

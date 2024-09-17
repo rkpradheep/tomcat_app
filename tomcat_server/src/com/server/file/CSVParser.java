@@ -47,7 +47,7 @@ public class CSVParser extends HttpServlet
 			{
 				if(!statsFile.exists())
 				{
-					SecurityUtil.writerErrorResponse(httpServletResponse, "Invalid stats id");
+					SecurityUtil.writerErrorResponse(httpServletResponse, "Invalid Stats Id");
 					return;
 				}
 			}

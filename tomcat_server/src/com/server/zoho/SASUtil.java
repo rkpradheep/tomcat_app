@@ -327,8 +327,8 @@ public class SASUtil
 		}
 		catch(Exception e)
 		{
-			String errorMessage = StringUtils.equals(e.getMessage(), "key_expired") ? "key_expired" : "Credentials tampered. Please refresh the page and try again.";
-			throw new Exception(errorMessage);
+			//String errorMessage = StringUtils.equals(e.getMessage(), "key_expired") ? "key_expired" : "Credentials tampered. Please refresh the page and try again.";
+			throw new Exception("key_expired");
 		}
 
 	}

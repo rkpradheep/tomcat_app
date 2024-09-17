@@ -11,6 +11,8 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -69,7 +72,7 @@ public class HttpAPI
 		}
 
 		parametersMap = ObjectUtils.defaultIfNull(parametersMap, new HashMap<>());
-		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet-> entrySet.getKey().concat("=").concat(entrySet.getValue())).collect(Collectors.toList());
+		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet-> entrySet.getKey().concat("=").concat(URLEncoder.encode(entrySet.getValue(), StandardCharsets.UTF_8))).collect(Collectors.toList());
 
 		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMap, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, null);
 	}
@@ -89,7 +92,7 @@ public class HttpAPI
 		{
 			for(Map.Entry<String, String> headers : headersMap.entrySet())
 			{
-				httpURLConnection.setRequestProperty(headers.getKey(), headers.getValue());
+				httpURLConnection.setRequestProperty(headers.getKey(), StringUtils.isNotEmpty(headers.getValue()) ? headers.getValue().replaceAll("\n", StringUtils.EMPTY).trim() : null);
 			}
 		}
 

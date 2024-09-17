@@ -56,6 +56,7 @@ public class StatsUtil
 		{
 			inputDataParser = new CSVParser(statsMeta.getRequestDataReader());
 		}
+		int requestDataCount = 0;
 		String[] lineArray;
 		while((lineArray = inputDataParser.getLine()) != null)
 		{
@@ -69,34 +70,39 @@ public class StatsUtil
 				requestMap.put("\\$\\{Col_" + i + "\\}", lineArray[i]);
 			}
 			statsMeta.getRequestMeta().addRequest(requestMap);
+			requestDataCount++;
+			if(statsMeta.isTest() && requestDataCount == 2)
+			{
+				break;
+			}
 		}
 		return statsMeta.getRequestMeta().getRequestList();
 	}
 
-	static ImmutableTriple<String, Map<String,String>, JSONObject> handlerPlaceholder(StatsMeta statsMeta, Map<String, String> requestData, int requestCount)
+	static ImmutableTriple<String, Map<String, String>, JSONObject> handlerPlaceholder(StatsMeta statsMeta, Map<String, String> requestData, int requestCount)
 	{
 		String connectionUrl = statsMeta.getRequestMeta().getConnectionUrl();
-		Map<String,String> params = new HashMap<>();
+		Map<String, String> params = new HashMap<>();
 		JSONObject jsonObject = statsMeta.getRequestMeta().getJsonPayload();
 		for(Map.Entry<String, String> requestDataEntrySet : requestData.entrySet())
 		{
 			long currentTime = System.nanoTime();
-			Map<String,String> phMeta = new HashMap<>();
-			phMeta.put("\\$\\{RequestNo\\}",requestCount + "");
-			phMeta.put("\\$\\{CurrentTime\\}",currentTime + "");
-			phMeta.put(requestDataEntrySet.getKey(),requestDataEntrySet.getValue());
+			Map<String, String> phMeta = new HashMap<>();
+			phMeta.put("\\$\\{RequestNo\\}", requestCount + "");
+			phMeta.put("\\$\\{CurrentTime\\}", currentTime + "");
+			phMeta.put(requestDataEntrySet.getKey(), requestDataEntrySet.getValue());
 			connectionUrl = replacePH(connectionUrl, phMeta);
 			for(Map.Entry<String, String> paramsEntrySet : statsMeta.getRequestMeta().getParamsMap().entrySet())
 			{
 				params.put(paramsEntrySet.getKey(), replacePH(paramsEntrySet.getValue(), phMeta));
 			}
-			modifyJSONPayload(jsonObject, requestDataEntrySet.getKey(),  requestDataEntrySet.getValue(), phMeta);
+			modifyJSONPayload(jsonObject, requestDataEntrySet.getKey(), requestDataEntrySet.getValue(), phMeta);
 		}
 
 		return new ImmutableTriple<>(connectionUrl, params, jsonObject);
 	}
 
-	static String replacePH(String value, Map<String,String> phMeta)
+	static String replacePH(String value, Map<String, String> phMeta)
 	{
 		for(Map.Entry<String, String> phMetaEntrySet : phMeta.entrySet())
 		{
@@ -105,7 +111,7 @@ public class StatsUtil
 		return value;
 	}
 
-	static void modifyJSONPayload(JSONObject jsonObject, String phKey, String phValue, Map<String,String> phMeta)
+	static void modifyJSONPayload(JSONObject jsonObject, String phKey, String phValue, Map<String, String> phMeta)
 	{
 		if(Objects.isNull(jsonObject))
 		{
@@ -128,7 +134,7 @@ public class StatsUtil
 		}
 	}
 
-	static void modifyJSONArray(JSONArray jsonArray, String phKey, String phValue, Map<String,String> phMeta)
+	static void modifyJSONArray(JSONArray jsonArray, String phKey, String phValue, Map<String, String> phMeta)
 	{
 		for(int i = 0; i < jsonArray.length(); i++)
 		{
@@ -147,7 +153,7 @@ public class StatsUtil
 		}
 	}
 
-	static String getColumnValue(StatsMeta statsMeta, Map<String, String> requestData, String responseColumnName, Triple<String, Map<String,String>, JSONObject> placeHolderTriple, String response, int requestCount)
+	static String getColumnValue(StatsMeta statsMeta, Map<String, String> requestData, String responseColumnName, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
 	{
 		try
 		{
@@ -278,6 +284,8 @@ public class StatsUtil
 		Node processResponseHandlerMethodNode = getNode(configuration, "placeholder-handler");
 		String processResponseHandlerMethod = getTextContent(processResponseHandlerMethodNode);
 		BiFunction<String, Object, String> placeholderHandlerFunction = StringUtils.isEmpty(processResponseHandlerMethod) ? null : (BiFunction<String, Object, String>) Class.forName("com.server.stats.StatsAPIPlaceholderHandler").getDeclaredMethod(processResponseHandlerMethod).invoke(null);
+		Node isTestNode = getNode(configuration, "is-test");
+		boolean isTest = Objects.nonNull(isTestNode) && Boolean.parseBoolean(isTestNode.getTextContent());
 
 		StatsMeta statsMeta = new StatsMeta();
 		statsMeta.setMethod(method);
@@ -288,6 +296,7 @@ public class StatsUtil
 		statsMeta.setRequestFilePath(requestFilePath);
 		statsMeta.setResponseFilePath(responseFilePath);
 		statsMeta.setRequestDataReader(requestFileReader);
+		statsMeta.setTest(isTest);
 
 		Element headersElement = (Element) getNode(configuration, "headers");
 		if(Objects.nonNull(headersElement))

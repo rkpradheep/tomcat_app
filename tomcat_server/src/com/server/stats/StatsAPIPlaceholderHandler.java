@@ -52,7 +52,7 @@ public class StatsAPIPlaceholderHandler
 	{
 		return (responseColumnName, responseColumnValue) -> {
 			JSONArray custom = (JSONArray) responseColumnValue;
-			return custom.getJSONObject(0).get("index").toString();
+			return  custom.toString();
 		};
 	}
 }

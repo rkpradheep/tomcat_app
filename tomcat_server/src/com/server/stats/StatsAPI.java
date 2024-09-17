@@ -65,8 +65,14 @@ public class StatsAPI extends HttpServlet
 			StatsMeta statsMeta = StatsUtil.getStatsMeta(Objects.isNull(configuration) ? configurationFile.getFileData().getInputStream() : new ByteArrayInputStream(configuration.getValue().getBytes()), requestData.getFileData().getReader(), SecurityUtil.getUploadsPath() + "/"  + reqId + ".csv");
 			statsMeta.setRequestId(reqId);
 			statsMeta.setRawResponseWriter(new FileWriter(SecurityUtil.getUploadsPath() + "/" + "RawResponse_" + reqId + ".txt"));
-			SecurityUtil.writeSuccessJSONResponse(response, "Stats request initiated successfully.", Map.of("request_id", reqId));
+
 			JobUtil.scheduleJob(() -> startStats(statsMeta), 1);
+
+			File statsFile = new File(SecurityUtil.getUploadsPath() + "/" + reqId + ".csv");
+			long starTime = DateUtil.getCurrentTimeInMillis();
+			while(!statsFile.exists() && (DateUtil.getCurrentTimeInMillis() - starTime) < DateUtil.ONE_SECOND_IN_MILLISECOND * 5);
+
+			SecurityUtil.writeSuccessJSONResponse(response, "Stats request initiated successfully.", Map.of("request_id", reqId));
 		}
 		catch(Exception e)
 		{
@@ -78,6 +84,7 @@ public class StatsAPI extends HttpServlet
 	public static void startStats(StatsMeta statsMeta) throws IOException
 	{
 		File outputFile = new File(statsMeta.getResponseFilePath());
+		outputFile.createNewFile();
 		int requestCount = 0;
 
 		try(PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(outputFile))))

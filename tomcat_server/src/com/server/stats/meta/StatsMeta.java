@@ -27,6 +27,7 @@ public class StatsMeta
 	private RequestMeta requestMeta;
 	private String responseHeaders;
 	private final ResponseMeta responseMeta = new ResponseMeta();
+	private boolean isTest;
 
 
 	public String getMethod()
@@ -194,5 +195,15 @@ public class StatsMeta
 	public void setRequestId(String requestId)
 	{
 		this.requestId = requestId;
+	}
+
+	public boolean isTest()
+	{
+		return isTest;
+	}
+
+	public void setTest(boolean test)
+	{
+		isTest = test;
 	}
 }
