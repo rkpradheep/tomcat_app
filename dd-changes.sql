@@ -121,11 +121,16 @@ CREATE TABLE `HttpLog`(
 	`Url` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`Method` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`IP` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-	`QueryString` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
-	`JSONPayload` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+	`Parameters` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+	`RequestHeaders` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+	`ResponseHeaders` Text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+	`RequestData` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+	`ResponseData` LongText CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
 	`ThreadName` VarChar( 255 ) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
 	`CreatedTime` BigInt( 255 ) NOT NULL,
 	`EntityType` TinyInt( 255 ) NOT NULL,
+	`StatusCode` Int,
+	`IsOutgoing` TinyInt( 255 ) NOT NULL,
 	PRIMARY KEY ( `Id` ) )
 CHARACTER SET = utf8mb3
 COLLATE = utf8mb3_general_ci

@@ -8,6 +8,8 @@ public class HttpLogRequest
 	private EntityType entityType;
 	private int statusCode;
 	private boolean isOutgoing;
+	private String requestHeaders;
+	private String responseHeaders;
 
 	private HttpLogRequest(Builder builder)
 	{
@@ -20,6 +22,8 @@ public class HttpLogRequest
 		this.entityType = builder.entityType;
 		this.statusCode = builder.statusCode;
 		this.isOutgoing = builder.isOutgoing;
+		this.requestHeaders = builder.requestHeaders;
+		this.responseHeaders = builder.responseHeaders;
 	}
 
 	public String getUrl()
@@ -67,12 +71,24 @@ public class HttpLogRequest
 		return isOutgoing;
 	}
 
+	public String getRequestHeaders()
+	{
+		return requestHeaders;
+	}
+
+	public String getResponseHeaders()
+	{
+		return responseHeaders;
+	}
+
 	public static class Builder
 	{
 		private String url, method, ip, queryString, jsonPayLoad, threadName = Thread.currentThread().getName();
 		private EntityType entityType = EntityType.COMMON;
 		private int statusCode;
 		private boolean isOutgoing;
+		private String requestHeaders;
+		private String responseHeaders;
 
 		public Builder setUrl(String url)
 		{
@@ -125,6 +141,18 @@ public class HttpLogRequest
 		public Builder setOutgoing(boolean outgoing)
 		{
 			isOutgoing = outgoing;
+			return this;
+		}
+
+		public Builder setRequestHeaders(String requestHeaders)
+		{
+			this.requestHeaders = requestHeaders;
+			return this;
+		}
+
+		public Builder setResponseHeaders(String responseHeaders)
+		{
+			this.responseHeaders = responseHeaders;
 			return this;
 		}
 

@@ -1,8 +1,11 @@
 package com.server.framework.security;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -32,6 +35,7 @@ import jakarta.servlet.ServletRegistration;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import sun.net.www.http.PosterOutputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -76,6 +80,7 @@ public class SecurityUtil
 	{
 		return endPoint.matches("(/(((resources|css|js)/.*)|favicon.ico))");
 	}
+
 	public static String getUploadsPath()
 	{
 		return Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads";
@@ -385,11 +390,16 @@ public class SecurityUtil
 			return;
 		}
 		HttpServletRequest request = getCurrentRequest();
+		JSONObject payload = SecurityUtil.getCurrentRequestJSONObject();
 
+		Map<String,String> requestHeaders = new HashMap<>();
+		SecurityUtil.getCurrentRequest().getHeaderNames().asIterator().forEachRemaining(headerName-> requestHeaders.put(headerName, request.getHeader(headerName)));
 		HttpLogRequest.Builder builder = new HttpLogRequest.Builder()
 			.setUrl(request.getRequestURL().toString())
 			.setMethod(request.getMethod())
 			.setIP(request.getRemoteAddr())
+			.setRequestHeaders(requestHeaders.isEmpty() ? null : new JSONObject(requestHeaders).toString())
+			.setJsonPayLoad(Objects.nonNull(payload) ? payload.toString() : null)
 			.setQueryString(request.getQueryString());
 
 		JSONObject jsonObject = getJSONObject(request);
@@ -401,8 +411,14 @@ public class SecurityUtil
 		addHTTPLog(builder.build());
 	}
 
-	public static Long addHttpLog(HttpURLConnection connection)
+	public static Long addHttpLog(HttpURLConnection connection) throws IOException
 	{
+		PosterOutputStream outputStream = StringUtils.equals(connection.getRequestProperty("Content-Type"), "application/json") ? (PosterOutputStream) connection.getOutputStream() : null;
+		String requestJSON = Objects.nonNull(outputStream) ? new String(outputStream.toByteArray()) : null;
+
+		Map<String,String> requestHeaders = connection.getRequestProperties().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entrySet-> String.join("", entrySet.getValue())));
+		String requestHeadersString = requestHeaders.isEmpty() ? null : new JSONObject(requestHeaders).toString();
+
 		HttpLogRequest.Builder builder = new HttpLogRequest.Builder()
 			.setUrl(getURLString(connection.getURL()))
 			.setMethod(connection.getRequestMethod())
@@ -410,6 +426,8 @@ public class SecurityUtil
 			.setQueryString(connection.getURL().getQuery())
 			.setThreadName(Thread.currentThread().getName())
 			.setOutgoing(true)
+			.setJsonPayLoad(requestJSON)
+			.setRequestHeaders(requestHeadersString)
 			.setEntityType(EntityType.COMMON);
 
 		return addHTTPLog(builder.build());
@@ -419,16 +437,22 @@ public class SecurityUtil
 	{
 		try
 		{
+			String queryString = httpLogRequest.getQueryString();
+			Map<String,String> parameterMap = StringUtils.isEmpty(queryString) ? null : Arrays.stream(queryString.split("&")).map(query-> query.split("=")).collect(Collectors.toMap(name-> name[0], value-> value[1]));
+			String parameters = Objects.nonNull(parameterMap) ? new JSONObject(parameterMap).toString() : null;
+
 			Row row = new Row(HTTPLOG.TABLE);
 			row.set(HTTPLOG.URL, httpLogRequest.getUrl());
 			row.set(HTTPLOG.METHOD, httpLogRequest.getMethod());
 			row.set(HTTPLOG.IP, httpLogRequest.getIP());
-			row.set(HTTPLOG.QUERYSTRING, httpLogRequest.getQueryString());
-			row.set(HTTPLOG.JSONPAYLOAD, httpLogRequest.getJsonPayLoad());
+			row.set(HTTPLOG.PARAMETERS, parameters);
+			row.set(HTTPLOG.REQUESTDATA, httpLogRequest.getJsonPayLoad());
 			row.set(HTTPLOG.THREADNAME, httpLogRequest.getThreadName());
 			row.set(HTTPLOG.ENTITYTYPE, httpLogRequest.getEntityType().getValue());
 			row.set(HTTPLOG.STATUSCODE, httpLogRequest.getStatusCode());
 			row.set(HTTPLOG.ISOUTGOING, httpLogRequest.isOutgoing() ? 1 : 0);
+			row.set(HTTPLOG.REQUESTHEADERS, httpLogRequest.getRequestHeaders());
+			row.set(HTTPLOG.RESPONSEHEADERS, httpLogRequest.getResponseHeaders());
 
 			DataAccess.add(row);
 
@@ -441,14 +465,21 @@ public class SecurityUtil
 		}
 	}
 
-	public static void updateStatusCodeInHttpLog(long httpLogId, int statusCode)
+	public static void updateHttpLog(long httpLogId, HttpURLConnection connection)
 	{
 		try
 		{
+			Map<String,String> responseHeaders = connection.getHeaderFields().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entrySet-> String.join("", entrySet.getValue())));
+			String reponseHeadersString = responseHeaders.isEmpty() ? null : new JSONObject(responseHeaders).toString();
+
 			UpdateQuery updateQuery = new UpdateQuery(HTTPLOG.TABLE);
 			updateQuery.setCriteria(new Criteria(Column.getColumn(HTTPLOG.TABLE, HTTPLOG.ID), httpLogId, Criteria.Constants.EQUAL));
 
-			updateQuery.setValue(HTTPLOG.STATUSCODE, statusCode);
+			updateQuery.setValue(HTTPLOG.STATUSCODE, connection.getResponseCode());
+			InputStream inputStream = connection.getErrorStream();
+			inputStream = ObjectUtils.defaultIfNull(inputStream, connection.getInputStream());
+			updateQuery.setValue(HTTPLOG.RESPONSEDATA, new String(inputStream.readAllBytes()));
+			updateQuery.setValue(HTTPLOG.RESPONSEHEADERS, reponseHeadersString);
 			DataAccess.update(updateQuery);
 		}
 		catch(Exception e)

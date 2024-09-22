@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=forking
 
-ExecStart=/opt/mariadb/mariadb-11.4.2-linux-systemd-x86_64/mariadb_server.sh start
-ExecStop=/opt/mariadb/mariadb-11.4.2-linux-systemd-x86_64/mariadb_server.sh stop
+ExecStart=/opt/mariadb/mariadb-11.6.1-linux-systemd-x86_64/mariadb_server.sh start
+ExecStop=/opt/mariadb/mariadb-11.6.1-linux-systemd-x86_64/mariadb_server.sh stop
 
 TimeoutSec=300
 User=mysql

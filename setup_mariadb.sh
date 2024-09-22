@@ -34,11 +34,11 @@ if ! $(grep -q mysql /etc/passwd) ; then
     sudo useradd mysql
 fi
 
-#sudo rm -rf /opt/mariadb/mariadb-${MARIADB_VERSION}
-#sudo wget -P /tmp https://mariadb.in.ssimn.org/mariadb-11.4.2/bintar-linux-systemd-x86_64/mariadb-${MARIADB_VERSION}.tar.gz
-#if ! [ -d "/opt/mariadb" ]; then
-#  sudo mkdir /opt/mariadb
-#fi
+sudo rm -rf /opt/mariadb/mariadb-${MARIADB_VERSION}
+sudo wget -P /tmp https://mariadb.in.ssimn.org/mariadb-${MARIADB_VERSION_ONLY}/bintar-linux-systemd-x86_64/mariadb-${MARIADB_VERSION}.tar.gz
+if ! [ -d "/opt/mariadb" ]; then
+  sudo mkdir /opt/mariadb
+fi
 sudo tar -xvf /tmp/mariadb-${MARIADB_VERSION}.tar.gz --directory /opt/mariadb
 MARIADB_HOME=/opt/mariadb/mariadb-${MARIADB_VERSION}
 sudo chmod -R +777 /opt/mariadb/

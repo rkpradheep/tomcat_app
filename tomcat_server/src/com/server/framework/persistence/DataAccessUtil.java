@@ -23,11 +23,16 @@ public class DataAccessUtil
 	static long getNextPK() throws Exception
 	{
 
-		if(Objects.equals(CURRENT_PK.get(), -1L) || Objects.equals(CURRENT_PK.get(), BATCH_END.get()))
+		if(!(Objects.equals(CURRENT_PK.get(), -1L) || Objects.equals(CURRENT_PK.get(), BATCH_END.get())))
+		{
+			return CURRENT_PK.getAndIncrement();
+		}
+
+		synchronized(CURRENT_PK)
 		{
 			SelectQuery selectQuery = new SelectQuery(BATCHTABLE.TABLE);
 			DataObject dataObject = DataAccess.get(selectQuery);
-			if(dataObject.getRows().isEmpty())
+			if(dataObject.isEmpty())
 			{
 				Row row = new Row(BATCHTABLE.TABLE);
 				row.set(BATCHTABLE.ACCOUNTID, 1);
@@ -37,32 +42,33 @@ public class DataAccessUtil
 
 				DataAccess.add(dataObject);
 
-				CURRENT_PK.set(1000000000003L);
+				CURRENT_PK.set(1000000000100L);
 				BATCH_END.set(1000000001000L - 1L);
 			}
+			else
+			{
+				Long batchStart = (Long) dataObject.getFirstRow(BATCHTABLE.TABLE).get(BATCHTABLE.BATCHSTART);
+				long updatedBatchEnd = batchStart + 1000L;
 
-			Long batchStart = (Long) dataObject.getRows().get(0).get(BATCHTABLE.BATCHSTART);
-			Long updatedBatchEnd = batchStart + 1000L;
+				CURRENT_PK.set(batchStart);
+				BATCH_END.set(updatedBatchEnd - 1L);
 
-			CURRENT_PK.set(batchStart);
-			BATCH_END.set(updatedBatchEnd - 1L);
+				UpdateQuery updateQuery = new UpdateQuery(BATCHTABLE.TABLE);
+				updateQuery.setValue(BATCHTABLE.BATCHSTART, updatedBatchEnd);
 
-			UpdateQuery updateQuery = new UpdateQuery(BATCHTABLE.TABLE);
-			updateQuery.setValue(BATCHTABLE.BATCHSTART, updatedBatchEnd);
-
-			DataAccess.update(updateQuery);
+				DataAccess.update(updateQuery);
+			}
 		}
 
 		return CURRENT_PK.getAndIncrement();
 	}
 
-	static String getInsertQueryString(Row row)
+	static String getInsertQueryString(String table) throws Exception
 	{
-		Map<String, Object> rowMap = row.getRowMap();
-		StringBuilder insertQuery = new StringBuilder("INSERT INTO " + row.getTableName());
+		StringBuilder insertQuery = new StringBuilder("INSERT INTO " + table);
 		insertQuery.append(" ( ");
 		StringBuilder valuesPart = new StringBuilder(" (");
-		for(String columnName : rowMap.keySet())
+		for(String columnName : DBUtil.columnList(table))
 		{
 			insertQuery.append(columnName);
 			insertQuery.append(",");
@@ -200,11 +206,11 @@ public class DataAccessUtil
 
 	static String getUpdateQueryString(UpdateQuery updateQuery, List<Object> valuePlaceHolderList)
 	{
-		StringBuilder updateQueryBuilder = new StringBuilder("UPDATE " + updateQuery.tableName + " ");
+		StringBuilder updateQueryBuilder = new StringBuilder("UPDATE " + updateQuery.tableName + " SET ");
 
 		for(Map.Entry<String, Object> objectEntry : updateQuery.columnNameValueMap.entrySet())
 		{
-			updateQueryBuilder.append("SET ").append(objectEntry.getKey()).append(" = ").append("?");
+			updateQueryBuilder.append(objectEntry.getKey()).append(" = ").append("?");
 			updateQueryBuilder.append(",");
 			valuePlaceHolderList.add(objectEntry.getValue());
 		}

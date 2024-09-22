@@ -1,6 +1,7 @@
 #!/bin/sh
 
-MARIADB_VERSION=11.4.2-linux-systemd-x86_64
+MARIADB_VERSION_ONLY="11.6.1"
+MARIADB_VERSION="${MARIADB_VERSION_ONLY}-linux-systemd-x86_64"
 mode=$1
 MARIADB_HOME=/opt/mariadb/mariadb-${MARIADB_VERSION}
 basedir=$MARIADB_HOME

@@ -28,9 +28,9 @@ public class ChatWebSocketUtil
 
 			DataObject dataObject = DataAccess.get(selectQuery);
 
-			if(!dataObject.getRows().isEmpty())
+			if(!dataObject.isEmpty())
 			{
-				return (long) dataObject.getRows().get(0).get(CHATUSER.ID);
+				return (long) dataObject.getFirstRow(CHATUSER.TABLE).get(CHATUSER.ID);
 			}
 
 			Row row = new Row(CHATUSER.TABLE);
@@ -40,7 +40,7 @@ public class ChatWebSocketUtil
 
 			DataAccess.add(dataObject);
 
-			return (long) dataObject.getRows().get(0).get(CHATUSER.ID);
+			return (long) dataObject.getFirstRow(CHATUSER.TABLE).get(CHATUSER.ID);
 		}
 		catch(Exception e)
 		{

@@ -1,5 +1,6 @@
 package com.server.system.http;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import java.io.InputStream;
@@ -11,6 +12,8 @@ import java.net.URL;
 import java.security.Permission;
 import java.security.Principal;
 import java.security.cert.Certificate;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +33,9 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 	private boolean callCompleted = false;
 	private long startedTime;
 	private Long httpLogId;
+	private ByteArrayInputStream inputStreamWrapper;
+	private ByteArrayInputStream errorStreamWrapper;
+	private final Map<String,List<String>> requestPropertiesWrapper = new HashMap<>();
 
 	public HttpURLConnectionWrapper(URL url, HttpURLConnection connection)
 	{
@@ -55,11 +61,11 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 		{
 			if(Objects.isNull(httpLogId))
 			{
-				httpLogId = (long) Thread.currentThread().getContextClassLoader().loadClass("com.server.framework.security.SecurityUtil").getDeclaredMethod("addHttpLog", HttpURLConnection.class).invoke(null, connection);
+				httpLogId = (long) Thread.currentThread().getContextClassLoader().loadClass("com.server.framework.security.SecurityUtil").getDeclaredMethod("addHttpLog", HttpURLConnection.class).invoke(null, this);
 			}
 			else
 			{
-				Thread.currentThread().getContextClassLoader().loadClass("com.server.framework.security.SecurityUtil").getDeclaredMethod("updateStatusCodeInHttpLog", long.class, int.class).invoke(null, httpLogId, connection.getResponseCode());
+				Thread.currentThread().getContextClassLoader().loadClass("com.server.framework.security.SecurityUtil").getDeclaredMethod("updateHttpLog", long.class, HttpURLConnection.class).invoke(null, httpLogId, this);
 			}
 		}
 		catch(Exception ignored)
@@ -278,12 +284,35 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 		try
 		{
 			start();
-			return connection.getInputStream();
+			return getInputStreamWrapper();
 		}
 		finally
 		{
 			end();
 		}
+	}
+
+	private InputStream getInputStreamWrapper() throws IOException
+	{
+		if(Objects.nonNull(inputStreamWrapper))
+		{
+			inputStreamWrapper.reset();
+			return inputStreamWrapper;
+		}
+		inputStreamWrapper = new ByteArrayInputStream(connection.getInputStream().readAllBytes());
+		return inputStreamWrapper;
+	}
+
+	private InputStream getErrorStreamWrapper() throws IOException
+	{
+		if(Objects.nonNull(errorStreamWrapper))
+		{
+			errorStreamWrapper.reset();
+			return errorStreamWrapper;
+		}
+
+		errorStreamWrapper =  new ByteArrayInputStream(connection.getErrorStream().readAllBytes());
+		return errorStreamWrapper;
 	}
 
 	public boolean getInstanceFollowRedirects()
@@ -334,7 +363,7 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 
 	public Map<String, List<String>> getRequestProperties()
 	{
-		return connection.getRequestProperties();
+		return requestPropertiesWrapper;
 	}
 
 	public String getRequestProperty(String arg0)
@@ -459,6 +488,7 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 
 	public void setRequestProperty(String arg0, String arg1)
 	{
+		requestPropertiesWrapper.put(arg0, Collections.singletonList(arg1));
 		connection.setRequestProperty(arg0, arg1);
 	}
 

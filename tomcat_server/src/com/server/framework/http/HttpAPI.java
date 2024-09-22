@@ -56,7 +56,7 @@ public class HttpAPI
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, JSONObject jsonObject) throws IOException
 	{
-		return makeNetworkCall(url, method, null, headersMap, new ByteArrayInputStream(jsonObject.toString().getBytes()), null);
+		return makeNetworkCall(url, method , headersMap, null, jsonObject);
 	}
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap) throws IOException
 	{
@@ -65,16 +65,16 @@ public class HttpAPI
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap, JSONObject jsonBody) throws IOException
 	{
-		headersMap = ObjectUtils.defaultIfNull(headersMap, new HashMap<>());
+		Map<String,String> headersMapWrapper = new HashMap<>();
 		if(method.equals(HttpPost.METHOD_NAME) && Objects.nonNull(jsonBody))
 		{
-			headersMap.put("Content-Type", "application/json");
+			headersMapWrapper.put("Content-Type", "application/json");
 		}
-
+		headersMapWrapper.putAll(ObjectUtils.defaultIfNull(headersMap, new HashMap<>()));
 		parametersMap = ObjectUtils.defaultIfNull(parametersMap, new HashMap<>());
 		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet-> entrySet.getKey().concat("=").concat(URLEncoder.encode(entrySet.getValue(), StandardCharsets.UTF_8))).collect(Collectors.toList());
 
-		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMap, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, null);
+		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMapWrapper, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, null);
 	}
 
 	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream, Proxy proxy) throws IOException

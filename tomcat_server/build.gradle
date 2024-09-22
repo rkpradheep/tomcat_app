@@ -12,7 +12,9 @@ tasks.withType(JavaCompile) {
             "--add-exports",
             "java.base/sun.net.www.protocol.http=ALL-UNNAMED",
             "--add-exports",
-            "java.base/sun.net.www.protocol.https=ALL-UNNAMED"
+            "java.base/sun.net.www.protocol.https=ALL-UNNAMED",
+            "--add-exports",
+            "java.base/sun.net.www.http=ALL-UNNAMED"
     ])
 }
 sourceSets {

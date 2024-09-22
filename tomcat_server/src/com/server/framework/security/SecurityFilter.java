@@ -69,7 +69,17 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
+
 			CURRENT_USER_TL.set(UserUtil.getCurrentUser());
+
+			if(!isResourceURI && !requestURI.equals("/api/v1/admin/db/execute"))
+			{
+				if(SecurityUtil.isLoggedIn())
+				{
+					Thread.currentThread().setName(Thread.currentThread().getName().concat("/".concat(SecurityUtil.getCurrentUser().getName()).concat("-").concat(SecurityUtil.getCurrentUser().getId().toString())));
+				}
+				SecurityUtil.addHTTPLog();
+			}
 
 			if(Configuration.getBoolean("production") && (requestURI.equals("/dbtool.jsp") || requestURI.equals("/zoho")))
 			{
@@ -87,12 +97,6 @@ public class SecurityFilter implements Filter
 
 				filterChain.doFilter(servletRequest, servletResponse);
 				return;
-			}
-
-			if(!isResourceURI && SecurityUtil.isLoggedIn() && !requestURI.equals("/api/v1/admin/db/execute"))
-			{
-				Thread.currentThread().setName(Thread.currentThread().getName().concat("/".concat(SecurityUtil.getCurrentUser().getName()).concat("-").concat(SecurityUtil.getCurrentUser().getId().toString())));
-				SecurityUtil.addHTTPLog();
 			}
 
 

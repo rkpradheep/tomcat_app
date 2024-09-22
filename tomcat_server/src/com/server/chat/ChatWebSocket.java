@@ -105,8 +105,8 @@ public class ChatWebSocket
 			return;
 		}
 
-		String messageForSender = ChatWebSocketUtil.getPreviousMessage(name) + "<b style='color:green;margin: 140px'>You Joined! [ " + DateUtil.getFormattedCurrentTime() + " ]</b></br></br>";
-		String messageForReceiver = "<b style='color:green;margin:140px'>" + name + " Joined!</b></br></br>";
+		String messageForSender = ChatWebSocketUtil.getPreviousMessage(name) + "<b style='color:green;margin: 70px'>You Joined! [ " + DateUtil.getFormattedCurrentTime() + " ]</b></br></br>";
+		String messageForReceiver = "<b style='color:green;margin:70px'>" + name + " Joined!</b></br></br>";
 
 		handleMessage.accept(new String[] {messageForSender, messageForReceiver, name});
 	}
@@ -122,11 +122,13 @@ public class ChatWebSocket
 		}
 		String leftOrDisconnected = Arrays.asList(CloseReason.CloseCodes.CLOSED_ABNORMALLY, CloseReason.CloseCodes.GOING_AWAY).contains(closeReason.getCloseCode()) ? " Disconnected!" : " Left!";
 
-		String messageForSender = "<b style='color:red;margin: 140px'>You" + leftOrDisconnected + " [ " + DateUtil.getFormattedCurrentTime() + " ]</b></br></br>";
+		String messageForSender = "<b style='color:red;margin: 70px'>You" + leftOrDisconnected + " [ " + DateUtil.getFormattedCurrentTime() + " ]</b></br></br>";
 		messageForSender = leftOrDisconnected.equals(" Disconnected!") ? messageForSender.replace("You", "") : messageForSender;
-		String messageForReceiver = "<b style='color:red;margin: 140px'>" + name + leftOrDisconnected + "</b></br></br>";
+		String messageForReceiver = "<b style='color:red;margin: 70px'>" + name + leftOrDisconnected + "</b></br></br>";
 
 		handleMessage.accept(new String[] {messageForSender, messageForReceiver, name});
+
+		ChatWebSocketUtil.addMessage(name, messageForSender);
 	}
 
 	@OnMessage

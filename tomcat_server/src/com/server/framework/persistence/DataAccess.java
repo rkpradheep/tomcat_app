@@ -135,22 +135,27 @@ public class DataAccess
 		{
 			connection = DBUtil.getServerDBConnectionForTxn();
 
-			for(Row row : rowList)
+			for(String table : dataObject.getTables())
 			{
 
-				if(DBUtil.columnList(row.tableName).contains("CreatedTime"))
-				{
-					row.set("CreatedTime", DateUtil.getCurrentTimeInMillis());
-				}
-				PreparedStatement preparedStatement = connection.prepareStatement(DataAccessUtil.getInsertQueryString(row), PreparedStatement.RETURN_GENERATED_KEYS);
+				PreparedStatement preparedStatement = connection.prepareStatement(DataAccessUtil.getInsertQueryString(table), PreparedStatement.RETURN_GENERATED_KEYS);
 
-				int i = 1;
-				for(Object columnValue : row.getRowMap().values())
+				for(Row row : dataObject.getRows(table))
 				{
-					preparedStatement.setObject(i++, columnValue);
+					if(DBUtil.columnList(row.tableName).contains("CreatedTime"))
+					{
+						row.set("CreatedTime", DateUtil.getCurrentTimeInMillis());
+					}
+					int i = 1;
+					for(String columnName : DBUtil.columnList(table))
+					{
+						preparedStatement.setObject(i++, row.get(columnName));
+					}
+
+					preparedStatement.addBatch();
 				}
 
-				preparedStatement.executeUpdate();
+				preparedStatement.executeBatch();
 			}
 
 			if(Objects.isNull(Transaction.getActiveTxnFromTL()))
@@ -195,9 +200,11 @@ public class DataAccess
 
 			ResultSet resultSet = preparedStatement.executeQuery();
 
+			boolean isWithoutJoin = selectQuery.joinList.isEmpty();
+
 			while(resultSet.next())
 			{
-				Row row = new RowWrapper(selectQuery.tableName);
+				Row row = isWithoutJoin ? new Row(selectQuery.tableName) : new RowWrapper(selectQuery.tableName);
 
 				for(String selectColumn : selectColumnList)
 				{
@@ -205,7 +212,8 @@ public class DataAccess
 					Matcher matcher = pattern.matcher(selectColumn);
 
 					selectColumn = matcher.matches() ? matcher.group(1) : selectColumn;
-					row.set(selectColumn, resultSet.getObject(selectColumn));
+					String columnName = isWithoutJoin ? selectColumn.split("\\.")[1] : selectColumn;
+					row.set(columnName, resultSet.getObject(selectColumn));
 				}
 				dataObject.addRow(row);
 			}
@@ -218,7 +226,7 @@ public class DataAccess
 
 	}
 
-	public static void update(UpdateQuery updateQuery) throws Exception
+	public static int update(UpdateQuery updateQuery) throws Exception
 	{
 		Connection connection = null;
 		try
@@ -234,12 +242,14 @@ public class DataAccess
 				preparedStatement.setObject(i++, columnValue);
 			}
 
-			preparedStatement.executeUpdate();
+			int updatedRows = preparedStatement.executeUpdate();
 
 			if(Objects.isNull(Transaction.getActiveTxnFromTL()))
 			{
 				connection.commit();
 			}
+
+			return updatedRows;
 		}
 		catch(Exception e)
 		{

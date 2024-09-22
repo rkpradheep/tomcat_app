@@ -7,16 +7,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -42,6 +50,7 @@ public class ProxyServer
 	private static boolean stopProxy = false;
 	private static int PROXY_PORT;
 	private static String PROXY_CREDENTIAL;
+	private static final boolean IS_NIO_MODE = false;
 
 	public static void main(String[] args)
 	{
@@ -137,29 +146,13 @@ public class ProxyServer
 			LOGGER.log(Level.INFO, "Proxy is already running ");
 			return;
 		}
-
-		try(ServerSocket serverSocket = new ServerSocket(PROXY_PORT))
+		if(IS_NIO_MODE)
 		{
-			LOGGER.info("Proxy server started");
-			while(!stopProxy)
-			{
-				Socket clientSocket = serverSocket.accept();
-				executorServiceForRequestHandling.submit(() -> {
-					try
-					{
-						LOGGER.info(TEN_HASH +  " Remote IP :: "  + ((InetSocketAddress)clientSocket.getRemoteSocketAddress()).getHostName() + " Got proxy request : " + Thread.currentThread().getName() + " " + TEN_HASH);
-						handleClientRequest(clientSocket);
-					}
-					catch(IOException e)
-					{
-						LOGGER.log(Level.SEVERE, "Exception occurred " + e);
-					}
-				});
-			}
+			listenInNIOMode();
 		}
-		catch(Exception e)
+		else
 		{
-			LOGGER.log(Level.SEVERE, "Exception occurred " + e);
+			listenInBlockingMode();
 		}
 	}
 
@@ -173,6 +166,96 @@ public class ProxyServer
 		catch(Exception e)
 		{
 			return false;
+		}
+	}
+
+	private static void listenInNIOMode()
+	{
+		try
+		{
+			ServerSocketChannel serverChannel = ServerSocketChannel.open();
+			Selector selector = Selector.open();
+			serverChannel.socket().bind(new InetSocketAddress(PROXY_PORT), 100);
+			serverChannel.configureBlocking(false);
+			serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+			while(!stopProxy)
+			{
+				selector.select();
+				Set<SelectionKey> keys = selector.selectedKeys();
+				Iterator<SelectionKey> it = keys.iterator();
+				while(it.hasNext())
+				{
+					SelectionKey key = it.next();
+					it.remove();
+					try
+					{
+						if(key.isAcceptable())
+						{
+							ServerSocketChannel serverSocket = (ServerSocketChannel) key.channel();
+							SocketChannel socketChannel = serverSocket.accept();
+							socketChannel.finishConnect();
+							Socket clientSocket = socketChannel.socket();
+							LOGGER.info(TEN_HASH + " Remote IP :: " + ((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getHostName() + " Got proxy request : " + Thread.currentThread().getName() + " " + TEN_HASH);
+							handleClientRequest(clientSocket);
+							socketChannel.close();
+							//							socketCh.configureBlocking(false);
+							//							SelectionKey readKey = socketCh.register(selector, SelectionKey.OP_WRITE);
+							//							readKey.interestOps(SelectionKey.OP_READ);
+						}
+						//						if(key.isReadable())
+						//						{
+						//							SocketChannel socketChannel = (SocketChannel) key.channel();
+						//							ByteBuffer buffer = ByteBuffer.allocate(1024);
+						//							StringWriter stringWriter = new StringWriter();
+						//							int len;
+						//							while((len=socketChannel.read(buffer)) > 0) {
+						//								buffer.flip();
+						//								byte[] bytes = new byte[len];
+						//								buffer.get(bytes);
+						//								stringWriter.write(new String(bytes));
+						//								buffer.clear();
+						//							}
+						//							String data = stringWriter.toString();
+						//						}
+					}
+					catch(Exception e)
+					{
+						LOGGER.log(Level.SEVERE, "Exception occurred", e);//No I18N
+					}
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred " + e);
+		}
+	}
+
+	private static void listenInBlockingMode()
+	{
+		try(ServerSocket serverSocket = new ServerSocket(PROXY_PORT))
+		{
+			LOGGER.info("Proxy server started");
+			while(!stopProxy)
+			{
+				Socket clientSocket = serverSocket.accept();
+				executorServiceForRequestHandling.submit(() -> {
+					try
+					{
+						LOGGER.info(TEN_HASH + " Remote IP :: " + ((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getHostName() + " Got proxy request : " + Thread.currentThread().getName() + " " + TEN_HASH);
+						handleClientRequest(clientSocket);
+					}
+					catch(IOException e)
+					{
+						LOGGER.log(Level.SEVERE, "Exception occurred " + e);
+					}
+				});
+			}
+		}
+		catch(Exception e)
+		{
+			LOGGER.log(Level.SEVERE, "Exception occurred " + e);
 		}
 	}
 
