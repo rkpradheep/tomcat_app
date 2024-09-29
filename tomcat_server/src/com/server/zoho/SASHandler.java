@@ -85,6 +85,7 @@ public class SASHandler extends HttpServlet
 		String zsid = credentials.optString("zsid");
 		String pk = credentials.optString("pk");
 		String query = credentials.optString("query", "");
+		boolean skipScoping = credentials.optBoolean("skip_scoping");
 
 		try(Connection conn = SASUtil.getDBConnection(server, ip, "jbossdb", user, password))
 		{
@@ -120,7 +121,7 @@ public class SASHandler extends HttpServlet
 
 			Map<String, Object> finalResponse = new LinkedHashMap<>();
 			finalResponse.put("sas_meta", responseMap);
-			SASUtil.handleQuery(query, server, clusterIP, schema, user, password, finalResponse, limits[0], limits[1]);
+			SASUtil.handleQuery(query, server, clusterIP, schema, user, password, finalResponse, limits[0], limits[1], skipScoping);
 
 			return finalResponse;
 		}
@@ -130,11 +131,18 @@ public class SASHandler extends HttpServlet
 	{
 		JSONObject credentials = SecurityUtil.getJSONObject(request);
 
-		boolean is_encrypted = credentials.optBoolean("is_encrypted");
+		boolean isEncrypted = credentials.optBoolean("is_encrypted");
+		boolean isStats = credentials.optBoolean("is_stats");
 
-		if(is_encrypted)
+		if(isEncrypted)
 		{
 			SASUtil.handleDecryption(request, credentials);
+		}
+
+		if(isStats)
+		{
+			SecurityUtil.writeJSONResponse(response, StatsQueryTool.handleStats(credentials));
+			return;
 		}
 
 		boolean tableOrColumnRequest = credentials.optBoolean("need_table") || credentials.optBoolean("need_column");

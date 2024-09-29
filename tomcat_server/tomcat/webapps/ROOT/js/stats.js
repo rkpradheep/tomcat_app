@@ -1,3 +1,4 @@
+var isStatsFileReady = true
 function loadStats() {
 const statsIdInput = document.getElementById('statsId');
 
@@ -26,7 +27,9 @@ var stats_id = statsIdInput.value;
         return;
      }
     document.getElementById("output").innerHTML = data.table_data;
-    document.getElementById("total").innerHTML = "TOTAL : " + data.total;
+    document.getElementById("total").innerHTML = "TOTAL : " + data.total +  "<br/><br/> STATUS : " + (isStatsFileReady != 'true' ? 'RUNNING' : 'COMPLETED');;
+    isStatsFileReady = data.is_completed
+
     })
     .catch(error => {
         hideElement("loading");
@@ -97,11 +100,17 @@ const statsIdInput = document.getElementById('statsId');
 
 function downloadCSVResponse()
 {
-const statsIdInput = document.getElementById('statsId');
+    const statsIdInput = document.getElementById('statsId');
 
     if (statsIdInput.value == null || statsIdInput.value.length < 1) {
         alert('Please enter a valid Request Id');
         return;
+    }
+
+    if(isStatsFileReady != true)
+    {
+      alert('Stats not completed yet')
+      return
     }
 
     window.open("/uploads/" + statsIdInput.value + ".csv", "_self")

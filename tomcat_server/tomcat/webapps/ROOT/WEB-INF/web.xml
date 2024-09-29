@@ -135,6 +135,7 @@
 		<url-pattern>/freessl</url-pattern>
 		<url-pattern>/snakegame</url-pattern>
 		<url-pattern>/stats</url-pattern>
+		<url-pattern>/sasstats</url-pattern>
 	</servlet-mapping>
 
 

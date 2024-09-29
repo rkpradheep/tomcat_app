@@ -41,7 +41,8 @@ public class CSVParser extends HttpServlet
 		try
 		{
 			String statsId = httpServletRequest.getParameter("stats_id");
-			File statsFile = new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + statsId + ".csv");
+			File statsFile = new File(Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads/" + statsId + "_inprocess.csv");
+			statsFile = statsFile.exists() ? statsFile : new File(statsFile.getAbsolutePath().replace("_inprocess", StringUtils.EMPTY));
 			FormData formData = null;
 			if(StringUtils.isNotEmpty(statsId))
 			{
@@ -78,9 +79,10 @@ public class CSVParser extends HttpServlet
 
 			bufferedReader.lines().forEach(line -> tableData.append(constructBody(counter.incrementAndGet(), line, headerSize)));
 			tableData.append("</tbody>\n");
-			Map<String, String> responseMap = new HashMap<>();
+			Map<String, Object> responseMap = new HashMap<>();
 			responseMap.put("table_data", tableData.toString());
 			responseMap.put("total", String.valueOf(counter.get()));
+			responseMap.put("is_completed", !statsFile.getName().contains("_inprocess"));
 			SecurityUtil.writeJSONResponse(httpServletResponse, responseMap);
 
 		}
@@ -121,9 +123,15 @@ public class CSVParser extends HttpServlet
 
 	public List<String> getCSVRow(String line)
 	{
+		List<String> values = new ArrayList<>();
+
+		if(StringUtils.isEmpty(line))
+		{
+			return values;
+		}
+
 		char[] lineSplit = line.toCharArray();
 		boolean isQuoteEnclosed = false;
-		List<String> values = new ArrayList<>();
 		String currentValue = null;
 		for(int i = 0; i < line.length(); i++)
 		{

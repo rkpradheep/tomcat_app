@@ -114,7 +114,9 @@ public class StatsAPI extends HttpServlet
 						runnableList.clear();
 						if(statsMeta.getRequestCount() >= requestList.size())
 						{
-							IOUtils.copy(new FileInputStream(outputFile), new FileOutputStream(Util.HOME_PATH + "/uploads/" + outputFile.getName()));
+							File desFile = new File(outputFile.getAbsolutePath().replace("_inprocess", StringUtils.EMPTY));
+							outputFile.renameTo(desFile);
+							IOUtils.copy(new FileInputStream(desFile), new FileOutputStream(Util.HOME_PATH + "/uploads/" + outputFile.getName()));
 							IOUtils.copy(new FileInputStream(SecurityUtil.getUploadsPath() + "/" + "RawResponse_" + statsMeta.getRequestId() + ".txt"), new FileOutputStream(Util.HOME_PATH + "/uploads/RawResponse_" + statsMeta.getRequestId() + ".txt"));
 							break;
 						}
@@ -148,8 +150,6 @@ public class StatsAPI extends HttpServlet
 			ImmutableTriple<String, Map<String, String>, JSONObject> placeHolderTriple = StatsUtil.handlerPlaceholder(statsMeta, requestData, requestCount);
 
 			String response = connect(statsMeta, placeHolderTriple.getLeft(), placeHolderTriple.getMiddle(), placeHolderTriple.getRight());
-
-			LOGGER.info("Response : " + response);
 
 			handleResponse(statsMeta, requestData, placeHolderTriple, response, requestCount);
 		}

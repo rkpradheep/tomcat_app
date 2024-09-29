@@ -138,7 +138,7 @@
         <p style="font-size: 11px; display: none;" id="suggestionHint">* Click on the matching suggestion to autocomplete</p>
         <select id="autocomplete-container" style="height: 80px; width: 250px; overflow-y: scroll; display: none;"></select>
         <br />
-        <button onclick="execute()">Execute</button><br />
+        <button onclick="execute()">Execute</button><button onclick="runStats()">Run As Stats</button> <button onclick="window.open('/sasstats')">View Stats</button><br />
         <br />
         <br />
         <div id="response" style="display: none;">
@@ -986,6 +986,71 @@ function populateDBProducts()
                     setElementValue("output", JSON.stringify(res, null, 2));
                     alert("Something went wrong. Please check the error response below and try again.");
                     handleQueryOutputForFailed();
+                });
+        }
+
+        function runStats() {
+            unHideElement("response");
+            if (!preExecutionValidation()) {
+                return;
+            }
+
+            unHideElement("loading");
+
+            const data = {
+                "server": document.querySelector('input[name="server"]:checked').value,
+                "ip": document.getElementById("ip").value,
+                "user": document.getElementById("user").value,
+                "password": document.getElementById("password").value,
+                "zsid": document.getElementById("zsid").value,
+                "pk": document.getElementById("pk").value,
+                "query": document.getElementById("query").value,
+                "is_encrypted": isEncrypted,
+                "is_stats" : true
+            }
+
+            var res;
+            fetch("/api/v1/sas/execute", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((response) => {
+                    return response.text();
+                })
+                .then((data) => {
+                    res = JSON.parse(data)
+                    if(handleRedirection(res))
+                    {
+                        hideElement("loading");
+                        return;
+                    }
+                    var error = res["error"]
+                    if (error != undefined) {
+                        if (error == "key_expired") {
+                            getSASMeta();
+                            return;
+                        }
+                        hideElement("loading");
+                        alert(error)
+                        return
+                    }
+                    hideElement("loading");
+                    var temp = JSON.parse(data);
+                    if(temp.auth_uri != undefined)
+                    {
+                      handleZohoAuth(temp.auth_uri)
+                      return;
+                     }
+                     alert(temp.message)
+                })
+                .catch((error) => {
+                    hideElement("loading");
+                    console.log(error);
+                    setElementValue("output", JSON.stringify(res, null, 2));
+                    alert("Something went wrong. Please check the error response below and try again.");
                 });
         }
 

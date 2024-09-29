@@ -157,7 +157,7 @@ public class StatsUtil
 	{
 		try
 		{
-			JSONObject responseJSON = new JSONObject(response);
+			JSONObject responseJSON = new JSONObject(SecurityUtil.isValidJSON(response) ? response : "{}");
 			String responseColumnValue = statsMeta.getResponseColumnValue(responseColumnName);
 
 			Object columnValue;
@@ -294,7 +294,8 @@ public class StatsUtil
 		statsMeta.setRequestIntervalSeconds(requestIntervalSeconds);
 		statsMeta.setPlaceholderHandlerFunction(placeholderHandlerFunction);
 		statsMeta.setRequestFilePath(requestFilePath);
-		statsMeta.setResponseFilePath(responseFilePath);
+		String[] filePathExtensionArray = responseFilePath.split("\\.");
+		statsMeta.setResponseFilePath(filePathExtensionArray.length == 0 ? responseFilePath + "_inprocess" : filePathExtensionArray[0] + "_inprocess." + filePathExtensionArray[1]);
 		statsMeta.setRequestDataReader(requestFileReader);
 		statsMeta.setTest(isTest);
 

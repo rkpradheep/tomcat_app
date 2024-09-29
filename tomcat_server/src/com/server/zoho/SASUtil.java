@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -22,6 +23,8 @@ import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONObject;
 
 import com.server.framework.common.AppException;
@@ -67,6 +70,16 @@ public class SASUtil
 		ResultSet resultSet = statement.getResultSet();
 		resultSet.next();
 		return resultSet.getString("ADDRESS");
+	}
+
+	public static Pair<String, String> getMasterSlaveIPPair(Connection connection, String clusterIP) throws SQLException
+	{
+		PreparedStatement statement = connection.prepareStatement("Select master.address as masterip,slave.address as slaveip from GridAddress as main inner join GridAccount on main.addressid = GridAccount.addressid and main.address = ? inner join GridVirtualNode on GridAccount.accountid = GridVirtualNode.clusterid inner join GridAddress as master on master.addressid = GridVirtualNode.masterid inner join GridAddress as slave on slave.addressid = GridVirtualNode.slaveid");
+		statement.setObject(1, clusterIP);
+		statement.execute();
+		ResultSet resultSet = statement.getResultSet();
+		resultSet.next();
+		return new ImmutablePair<>(resultSet.getString("masterip"), resultSet.getString("slaveip"));
 	}
 
 	public static Connection getDBConnection(String server, String ip, String db, String user, String password) throws Exception
@@ -144,7 +157,7 @@ public class SASUtil
 
 	}
 
-	public static void handleQuery(String query, String server, String ip, String db, String user, String password, Map<String, Object> resultMap, Long sasStartRange, Long sasEndRange)
+	public static void handleQuery(String query, String server, String ip, String db, String user, String password, Map<String, Object> resultMap, Long sasStartRange, Long sasEndRange, boolean skipScoping)
 	{
 		String pkName = null;
 		if(query == null || query.replaceAll(" ", "").length() == 0)
@@ -157,18 +170,21 @@ public class SASUtil
 		{
 			PreparedStatement preparedStatement;
 
-			Pattern pattern = Pattern.compile("(.*)(?i)(from)\\s+(\\w+)(.*)");
-			Matcher matcher = pattern.matcher(query);
+			Pattern selectQuerPattern = Pattern.compile("(?i)(select)(.*)(from)\\s+(\\w+)(.*)");
+			Matcher matcher = selectQuerPattern.matcher(query);
 			Pattern updatePattern = Pattern.compile("(?i)(Update)\\s+(\\w+)\\s+(?i)(set)(.*)\\s+(?i)(where)\\s+(.*)");
 			Matcher updateMatcher = updatePattern.matcher(query);
 			if(matcher.matches())
 			{
-				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", matcher.group(3));
+				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", matcher.group(4));
 				while(primaryKeys.next())
 				{
 					pkName = primaryKeys.getString("COLUMN_NAME");
 					if(pkName.matches("(.*)(?i)(id)"))
 					{
+						Pattern allisaPattern = Pattern.compile("(?i)(select)(.*)(from)\\s+(\\w+)\\s+AS\\s+(\\w+)\\s+(.*)");
+						Matcher aliasMatcher = allisaPattern.matcher(query);
+						pkName = (aliasMatcher.matches() ? aliasMatcher.group(5) : matcher.group(4)).concat(".").concat(pkName);
 						break;
 					}
 				}
@@ -194,6 +210,7 @@ public class SASUtil
 						pkName = null;
 					}
 				}
+
 				int datType = -1;
 				ResultSet resultSet = connection.getMetaData().getColumns(null, "jbossdb", updateMatcher.group(2), null);
 				while(resultSet.next())
@@ -242,7 +259,7 @@ public class SASUtil
 				endQuery = query.substring(limitMatcher.start(2));
 			}
 
-			if(pkName == null || !pkName.matches("(.*)(?i)(id)") || pkName.equalsIgnoreCase("zsid") || pkName.equalsIgnoreCase("zuid"))
+			if(skipScoping || pkName == null || !pkName.matches("(.*)(?i)(id)") || pkName.equalsIgnoreCase("zsid") || pkName.equalsIgnoreCase("zuid"))
 			{
 				preparedStatement = connection.prepareStatement(startQuery + endQuery);
 			}
@@ -285,24 +302,24 @@ public class SASUtil
 
 	}
 
-	private static List getQueryOutput(PreparedStatement preparedStatement) throws SQLException
+	static List<Map<String, String>> getQueryOutput(PreparedStatement preparedStatement) throws SQLException
 	{
 		ResultSet resultSet = preparedStatement.getResultSet();
 		ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 
-		List queryOutput = new ArrayList();
+		List<Map<String, String>> queryOutput = new ArrayList<>();
 		while(resultSet.next())
 		{
-			Map row = new LinkedHashMap();
+			Map<String, String> row = new LinkedHashMap<>();
 			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
 			{
-				row.put(resultSetMetaData.getColumnName(i).toUpperCase(), resultSet.getString(i));
+				row.put(resultSetMetaData.getColumnLabel(i).toUpperCase(), resultSet.getString(i));
 			}
 			queryOutput.add(row);
 		}
 		if(queryOutput.isEmpty())
 		{
-			Map row = new LinkedHashMap();
+			Map<String, String> row = new LinkedHashMap<>();
 			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
 			{
 				row.put(resultSetMetaData.getColumnName(i).toUpperCase(), "<EMPTY>");
