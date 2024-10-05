@@ -5,15 +5,19 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.methods.HttpPost;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
+import com.server.framework.http.HttpAPI;
 
 public class ReminderTask
 {
@@ -45,11 +49,16 @@ public class ReminderTask
 		String updateId = new JSONObject(db.getString("activityid")).optString("updateId", null);
 		String recentActivityId = new JSONObject(db.getString("activityid")).getString("recentActivityId");
 
+		JSONArray pendingUsers = new JSONArray();
 		String message = "Are you ready now?\n";
 		for(String userID : pendingUser)
 		{
+			pendingUsers.put(userID);
 			message += "\n{@" + userID + "}";
 		}
+
+		HttpAPI.makeNetworkCall("https://cliq.zoho.com/api/v2/bots/callboty/alerts", HttpPost.METHOD_NAME, Map.of("Authorization", "Bearer " + accessToken), new JSONObject().put("text", "Are your ready now? Kindly update the invitation status.").put("user_ids", pendingUsers));
+
 		String response = Util.postMessageToChat(CHAT_ID, message, recentActivityId, accessToken);
 		String messageID = new JSONObject(response).getString("message_id").replaceAll("%20", "_");
 
