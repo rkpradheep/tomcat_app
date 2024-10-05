@@ -67,7 +67,7 @@ public class StatsUtil
 			Map<String, String> requestMap = new HashMap<>();
 			for(int i = 0; i < lineArray.length; i++)
 			{
-				requestMap.put("\\$\\{Col_" + i + "\\}", lineArray[i]);
+				requestMap.put("${Col_" + i + "}", lineArray[i]);
 			}
 			statsMeta.getRequestMeta().addRequest(requestMap);
 			requestDataCount++;
@@ -88,8 +88,8 @@ public class StatsUtil
 		{
 			long currentTime = System.nanoTime();
 			Map<String, String> phMeta = new HashMap<>();
-			phMeta.put("\\$\\{RequestNo\\}", requestCount + "");
-			phMeta.put("\\$\\{CurrentTime\\}", currentTime + "");
+			phMeta.put("${RequestNo}", requestCount + "");
+			phMeta.put("${CurrentTime}", currentTime + "");
 			phMeta.put(requestDataEntrySet.getKey(), requestDataEntrySet.getValue());
 			connectionUrl = replacePH(connectionUrl, phMeta);
 			for(Map.Entry<String, String> paramsEntrySet : statsMeta.getRequestMeta().getParamsMap().entrySet())
@@ -106,7 +106,7 @@ public class StatsUtil
 	{
 		for(Map.Entry<String, String> phMetaEntrySet : phMeta.entrySet())
 		{
-			value = value.replaceAll(phMetaEntrySet.getKey(), phMetaEntrySet.getValue());
+			value = value.replace(phMetaEntrySet.getKey(), phMetaEntrySet.getValue());
 		}
 		return value;
 	}
@@ -241,10 +241,17 @@ public class StatsUtil
 
 	static RequestMeta getRequestMeta(String connectionUrl, Element paramsElement, String jsonBody) throws Exception
 	{
-		NodeList paramNodeList = paramsElement.getChildNodes();
-
 		RequestMeta requestMeta = new RequestMeta();
 		requestMeta.setConnectionUrl(connectionUrl);
+		requestMeta.setJsonPayload(jsonBody);
+
+		if(Objects.isNull(paramsElement))
+		{
+			return requestMeta;
+		}
+
+		NodeList paramNodeList = paramsElement.getChildNodes();
+
 		for(int i = 0; i < paramNodeList.getLength(); i++)
 		{
 			Node paramNode = paramNodeList.item(i);
@@ -253,7 +260,7 @@ public class StatsUtil
 				requestMeta.addParam(paramNode.getNodeName(), paramNode.getTextContent());
 			}
 		}
-		requestMeta.setJsonPayload(jsonBody);
+
 		return requestMeta;
 	}
 
@@ -287,6 +294,9 @@ public class StatsUtil
 		Node isTestNode = getNode(configuration, "is-test");
 		boolean isTest = Objects.nonNull(isTestNode) && Boolean.parseBoolean(isTestNode.getTextContent());
 
+		Node disableParallelNode = getNode(configuration, "disable-parallel-calls");
+		boolean disableParallelCalls = Objects.nonNull(isTestNode) && Boolean.parseBoolean(disableParallelNode.getTextContent());
+
 		StatsMeta statsMeta = new StatsMeta();
 		statsMeta.setMethod(method);
 		statsMeta.setRequestMeta(getRequestMeta(connectionUrl, (Element) getNode(configuration, "params"), jsonPayload));
@@ -298,6 +308,7 @@ public class StatsUtil
 		statsMeta.setResponseFilePath(filePathExtensionArray.length == 0 ? responseFilePath + "_inprocess" : filePathExtensionArray[0] + "_inprocess." + filePathExtensionArray[1]);
 		statsMeta.setRequestDataReader(requestFileReader);
 		statsMeta.setTest(isTest);
+		statsMeta.setDisableParallelCalls(disableParallelCalls);
 
 		Element headersElement = (Element) getNode(configuration, "headers");
 		if(Objects.nonNull(headersElement))

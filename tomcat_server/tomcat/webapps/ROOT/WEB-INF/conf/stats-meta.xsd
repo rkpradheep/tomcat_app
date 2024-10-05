@@ -28,6 +28,7 @@
       <xs:element name="placeholder-handler" type="xs:string" minOccurs="0"/>
       <xs:element name="json-body" type="xs:string" minOccurs="0"/>
       <xs:element name="is-test" type="xs:boolean" minOccurs="0"/>
+      <xs:element name="disable-parallel-calls" type="xs:boolean" minOccurs="0"/>
       <xs:element name="headers" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
@@ -35,7 +36,7 @@
           </xs:sequence>
         </xs:complexType>
       </xs:element>
-      <xs:element name="params">
+      <xs:element name="params" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>

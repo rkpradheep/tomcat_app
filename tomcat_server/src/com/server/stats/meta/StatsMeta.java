@@ -28,6 +28,7 @@ public class StatsMeta
 	private String responseHeaders;
 	private final ResponseMeta responseMeta = new ResponseMeta();
 	private boolean isTest;
+	private boolean disableParallelCalls;
 
 
 	public String getMethod()
@@ -205,5 +206,15 @@ public class StatsMeta
 	public void setTest(boolean test)
 	{
 		isTest = test;
+	}
+
+	public boolean isDisableParallelCalls()
+	{
+		return disableParallelCalls;
+	}
+
+	public void setDisableParallelCalls(boolean disableParallelCalls)
+	{
+		this.disableParallelCalls = disableParallelCalls;
 	}
 }

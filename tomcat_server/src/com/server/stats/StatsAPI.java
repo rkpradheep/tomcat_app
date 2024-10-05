@@ -12,6 +12,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,14 +21,17 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+import org.jose4j.lang.HashUtil;
 import org.json.JSONObject;
 
 import com.server.concurrency.ConcurrencyAPIHandler;
+import com.server.framework.common.AppException;
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 import com.server.framework.http.FormData;
@@ -38,6 +43,8 @@ import com.server.stats.meta.StatsMeta;
 
 public class StatsAPI extends HttpServlet
 {
+
+	private static final List<String> RUNNING_STATS = new ArrayList<>();
 
 	private static final Logger LOGGER = Logger.getLogger(StatsAPI.class.getName());
 
@@ -60,17 +67,27 @@ public class StatsAPI extends HttpServlet
 				return;
 			}
 
-			String reqId = String.valueOf(DateUtil.getCurrentTimeInMillis());
-			reqId = Util.getAESEncryptedValue(reqId);
-			StatsMeta statsMeta = StatsUtil.getStatsMeta(Objects.isNull(configuration) ? configurationFile.getFileData().getInputStream() : new ByteArrayInputStream(configuration.getValue().getBytes()), requestData.getFileData().getReader(), SecurityUtil.getUploadsPath() + "/"  + reqId + ".csv");
+			byte[] configurationFileBytes = Objects.nonNull(configurationFile) ? configurationFile.getFileData().getBytes() : configuration.getValue().getBytes();
+			byte[] requestDataBytes = requestData.getFileData().getBytes();
+
+			String reqId = DigestUtils.sha256Hex(ByteBuffer.allocate(configurationFileBytes.length + requestDataBytes.length).put(configurationFileBytes).put(requestDataBytes).array());
+
+			if(RUNNING_STATS.contains(reqId))
+			{
+				throw new AppException("Stats already running for this configuration with ReqId : " + reqId);
+			}
+
+			StatsMeta statsMeta = StatsUtil.getStatsMeta(Objects.isNull(configuration) ? configurationFile.getFileData().getInputStream() : new ByteArrayInputStream(configuration.getValue().getBytes()), requestData.getFileData().getReader(), SecurityUtil.getUploadsPath() + "/" + reqId + ".csv");
 			statsMeta.setRequestId(reqId);
 			statsMeta.setRawResponseWriter(new FileWriter(SecurityUtil.getUploadsPath() + "/" + "RawResponse_" + reqId + ".txt"));
+			RUNNING_STATS.add(reqId);
 
 			JobUtil.scheduleJob(() -> startStats(statsMeta), 1);
 
 			File statsFile = new File(SecurityUtil.getUploadsPath() + "/" + reqId + ".csv");
 			long starTime = DateUtil.getCurrentTimeInMillis();
-			while(!statsFile.exists() && (DateUtil.getCurrentTimeInMillis() - starTime) < DateUtil.ONE_SECOND_IN_MILLISECOND * 5);
+			while(!statsFile.exists() && (DateUtil.getCurrentTimeInMillis() - starTime) < DateUtil.ONE_SECOND_IN_MILLISECOND * 5)
+				;
 
 			SecurityUtil.writeSuccessJSONResponse(response, "Stats request initiated successfully.", Map.of("request_id", reqId));
 		}
@@ -110,17 +127,22 @@ public class StatsAPI extends HttpServlet
 
 					if(requestCount >= statsMeta.getRequestBatchSize() || statsMeta.getRequestCount() >= requestList.size())
 					{
-						ConcurrencyAPIHandler.executeAsynchronously(runnableList);
+						if(statsMeta.isDisableParallelCalls())
+						{
+							runnableList.forEach(Runnable::run);
+						}
+						else
+						{
+							ConcurrencyAPIHandler.executeAsynchronously(runnableList);
+						}
+
 						runnableList.clear();
 						if(statsMeta.getRequestCount() >= requestList.size())
 						{
-							File desFile = new File(outputFile.getAbsolutePath().replace("_inprocess", StringUtils.EMPTY));
-							outputFile.renameTo(desFile);
-							IOUtils.copy(new FileInputStream(desFile), new FileOutputStream(Util.HOME_PATH + "/uploads/" + outputFile.getName()));
-							IOUtils.copy(new FileInputStream(SecurityUtil.getUploadsPath() + "/" + "RawResponse_" + statsMeta.getRequestId() + ".txt"), new FileOutputStream(Util.HOME_PATH + "/uploads/RawResponse_" + statsMeta.getRequestId() + ".txt"));
 							break;
 						}
-						Thread.sleep(1000L * statsMeta.getRequestIntervalSeconds());
+						long waitTime = DateUtil.getCurrentTimeInMillis() + (1000L * statsMeta.getRequestIntervalSeconds());
+						while(waitTime > DateUtil.getCurrentTimeInMillis());
 						requestCount = 0;
 					}
 				}
@@ -138,6 +160,14 @@ public class StatsAPI extends HttpServlet
 		}
 		finally
 		{
+
+			RUNNING_STATS.remove(statsMeta.getRequestId());
+			File desFile = new File(outputFile.getAbsolutePath().replace("_inprocess", StringUtils.EMPTY));
+			outputFile.renameTo(desFile);
+			IOUtils.copy(new FileInputStream(desFile), new FileOutputStream(Util.HOME_PATH + "/uploads/" + outputFile.getName()));
+			IOUtils.copy(new FileInputStream(SecurityUtil.getUploadsPath() + "/" + "RawResponse_" + statsMeta.getRequestId() + ".txt"), new FileOutputStream(Util.HOME_PATH + "/uploads/RawResponse_" + statsMeta.getRequestId() + ".txt"));
+			LOGGER.log(Level.INFO, "Stats completed for ReqId : {0}", statsMeta.getRequestId());
+
 			statsMeta.getRawResponseWriter().close();
 			statsMeta.getResponseWriter().close();
 		}
@@ -159,12 +189,14 @@ public class StatsAPI extends HttpServlet
 		}
 	}
 
-	static void handleResponse(StatsMeta statsMeta, Map<String, String> requestData, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount) throws Exception
+	static void handleResponse(StatsMeta statsMeta, Map<String, String> requestData, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
+		throws Exception
 	{
 		StringBuilder rowBuilder = new StringBuilder();
 		for(String responseColumnName : statsMeta.getResponseColumnNames())
 		{
-			rowBuilder.append(StatsUtil.getColumnValue(statsMeta, requestData, responseColumnName, placeHolderTriple, response, requestCount)).append(",");
+			String columnVale = StatsUtil.getColumnValue(statsMeta, requestData, responseColumnName, placeHolderTriple, response, requestCount);
+			rowBuilder.append(StringUtils.contains(columnVale, ",") ? "\"" + columnVale + "\"" : columnVale).append(",");
 		}
 		synchronized(statsMeta.getResponseWriter())
 		{
