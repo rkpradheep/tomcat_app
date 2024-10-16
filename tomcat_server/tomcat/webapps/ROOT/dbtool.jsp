@@ -95,7 +95,7 @@
         <br />
       <!--  Enter either ZSID or PK Value : <br />
         <br /> -->
-        DataSpace ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="zsid" style="width: 100px; height: 25px;" /><br />
+        DataSpace Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="zsid" style="width: 100px; height: 25px;" /><br />
         <!-- PK Value &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --> <input type="text" id="pk" style="width: 400px; height: 25px;display: none" /><br />
         <!--<p>Click on <b>Enable Autocomplete and Quick Execution</b> button to enable intellisense support.</p>-->
         <button id="quickExe" onclick="getTables()">Populate tables</button><br />
@@ -176,7 +176,7 @@
          &nbsp;&nbsp;&nbsp;Customer Id  &nbsp;<input type="text" id="customer_id"/>
         </div>
         <div id="local_jobs_container" style="display:inline">
-         &nbsp;&nbsp;DataSpace ID &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
+         &nbsp;&nbsp;DataSpace Name &nbsp;&nbsp;&nbsp;<input type="text" id="dataspace_id"/>
         </div>
         <br>
            <label for="job-manage">JOB</label>

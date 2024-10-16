@@ -47,7 +47,7 @@ public class JobAPI
 	{
 		if(StringUtils.isEmpty(payload.optString("zsid")))
 		{
-			return new ImmutablePair<>(payload.optLong("user_id"), payload.optLong("customer_id"));
+			return new ImmutablePair<>(payload.optLong("user_id", -1L), payload.optLong("customer_id", -1L));
 		}
 
 		JSONObject serviceCredentials = new JSONObject();

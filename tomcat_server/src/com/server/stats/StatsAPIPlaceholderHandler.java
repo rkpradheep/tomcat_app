@@ -23,28 +23,35 @@ public class StatsAPIPlaceholderHandler
 			String name = null;
 			for(int i = 0; i < userDetailsLength; i++)
 			{
-				JSONObject userObject = userDetails.optJSONObject(i);
-				if(StringUtils.equals(userObject.optString("role"), "Account Owner"))
+				JSONObject userObject = userDetails.getJSONObject(i);
+
+				JSONArray integ = userObject.optJSONArray("integration_details");
+				if(integ == null)
+					continue;
+
+				for(int j = 0; j < integ.length(); j++)
 				{
-					emailID = userObject.optString("email");
-					zuid = userObject.optString("zuid");
-					name = userObject.optString("name");
-					break;
+					if(integ.getJSONObject(j).getString("bank_name").equals("sbi_bank") && StringUtils.isNotEmpty(integ.getJSONObject(j).optString("identifier")))
+					{
+						return "true";
+					}
 				}
+
 			}
-			if(responseColumnName.equals("email"))
-			{
-				return emailID;
-			}
-			if(responseColumnName.equals("zuid"))
-			{
-				return zuid;
-			}
-			if(responseColumnName.equals("name"))
-			{
-				return name;
-			}
-			return null;
+
+			return "false";
+			//			if(responseColumnName.equals("ISBIIntegrated"))
+			//			{
+			//				return emailID;
+			//			}
+			//			if(responseColumnName.equals("zuid"))
+			//			{
+			//				return zuid;
+			//			}
+			//			if(responseColumnName.equals("name"))
+			//			{
+			//				return name;
+			//			}
 		};
 	}
 
@@ -52,7 +59,7 @@ public class StatsAPIPlaceholderHandler
 	{
 		return (responseColumnName, responseColumnValue) -> {
 			JSONArray custom = (JSONArray) responseColumnValue;
-			return  custom.toString();
+			return custom.toString();
 		};
 	}
 }

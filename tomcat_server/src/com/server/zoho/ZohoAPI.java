@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
@@ -29,6 +30,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.jose4j.base64url.Base64Url;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.NumericDate;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -151,6 +155,35 @@ public class ZohoAPI extends HttpServlet
 		return Configuration.getProperty("security." + service + ".iam.service.name") + "-" + currentTimeStr + "-" + new String(HEX.encode(signature.sign()));
 	}
 
+	public static String generateJWTISCSignature(String service, String dc) throws Exception
+	{
+		JwtClaims headerClaims = new JwtClaims();
+		headerClaims.setClaim("typ", "JWT");
+		headerClaims.setClaim("alg", "MD5withRSA");
+
+		JwtClaims payloadClaims = new JwtClaims();
+		payloadClaims.setIssuer(Configuration.getProperty("security." + service + ".iam.service.name"));
+		payloadClaims.setSubject(StringUtils.EMPTY);
+
+		NumericDate numericDate = NumericDate.now();
+		numericDate.setValue(numericDate.getValueInMillis());
+		payloadClaims.setIssuedAt(numericDate);
+
+		payloadClaims.setClaim("client_id", Inet4Address.getLocalHost().getHostAddress());
+
+		String encodedHeader = Base64Url.encode(headerClaims.toJson().getBytes());
+		String encodedPayload = Base64Url.encode(payloadClaims.toJson().getBytes());;
+
+		String encodedPrivateKey = Configuration.getProperty("security.private.key.".concat(service).concat("-").concat(dc));
+		byte[] privateKeyBytes = HEX.decode(encodedPrivateKey.getBytes());
+		PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
+		Signature signature = Signature.getInstance("MD5withRSA");
+		signature.initSign(privateKey);
+		signature.update(encodedHeader.concat(".").concat(encodedPayload).getBytes());
+
+		return encodedHeader + "." + encodedPayload + "." + Base64Url.encode(signature.sign());
+	}
+
 	public static String doEARDecryption(String serviceName, String dc, String keyLabel, String cipherText, boolean isOEK, boolean isSearchable) throws Exception
 	{
 		String clientId = Configuration.getProperty("ear." + serviceName + "-" + dc + "." + "client.id");
@@ -270,6 +303,11 @@ public class ZohoAPI extends HttpServlet
 		}
 
 		boolean isCommon = payload.optBoolean("is_common");
+		if(!isCommon && userIdCustomerIdPair.getLeft() == -1L)
+		{
+			throw new AppException("Please provide valid DataSpace Name for non-common repetitions");
+		}
+
 		String operation = payload.getString("operation");
 		if(StringUtils.equals("get", operation))
 		{
