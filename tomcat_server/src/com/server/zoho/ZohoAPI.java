@@ -259,6 +259,7 @@ public class ZohoAPI extends HttpServlet
 		long jobId = payload.getLong("job_id");
 		String retryRepetition = payload.optString("retry_repetition");
 		String repetition = payload.optString("repetition");
+		boolean isRepetitive = payload.optBoolean("is_repetitive");
 
 		String operation = payload.getString("operation");
 
@@ -275,7 +276,7 @@ public class ZohoAPI extends HttpServlet
 
 		if(StringUtils.equals("add", operation))
 		{
-			return StringUtils.isEmpty(repetition) ? JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateOTJ(jobId, className, retryRepetition, delaySeconds, userId, customerId) : JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateRepetitiveJob(jobId, className, repetition, retryRepetition, delaySeconds, userId, customerId);
+			return !isRepetitive ? JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateOTJ(jobId, className, retryRepetition, delaySeconds, userId, customerId) : JobAPI.getInstance(dc, serviceId, queueName).addOrUpdateRepetitiveJob(jobId, className, repetition, retryRepetition, delaySeconds, userId, customerId);
 		}
 		else if(StringUtils.equals("delete", operation))
 		{

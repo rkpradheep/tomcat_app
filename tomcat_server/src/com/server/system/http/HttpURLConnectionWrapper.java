@@ -61,6 +61,10 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 		{
 			if(Objects.isNull(httpLogId))
 			{
+				if(callCompleted)
+				{
+					return;
+				}
 				httpLogId = (long) Thread.currentThread().getContextClassLoader().loadClass("com.server.framework.security.SecurityUtil").getDeclaredMethod("addHttpLog", HttpURLConnection.class).invoke(null, this);
 			}
 			else
@@ -181,7 +185,14 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 
 	public InputStream getErrorStream()
 	{
-		return connection.getErrorStream();
+		try
+		{
+			return getErrorStreamWrapper();
+		}
+		catch(IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
 	public long getExpiration()
@@ -311,7 +322,12 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 			return errorStreamWrapper;
 		}
 
-		errorStreamWrapper =  new ByteArrayInputStream(connection.getErrorStream().readAllBytes());
+		InputStream errorStream = connection.getErrorStream();
+		if(Objects.isNull(errorStream))
+		{
+			return null;
+		}
+		errorStreamWrapper =  new ByteArrayInputStream(errorStream.readAllBytes());
 		return errorStreamWrapper;
 	}
 
@@ -337,7 +353,6 @@ public class HttpURLConnectionWrapper extends HttpsURLConnection
 
 	public OutputStream getOutputStream() throws IOException
 	{
-
 		return connection.getOutputStream();
 	}
 

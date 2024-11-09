@@ -624,7 +624,8 @@ function addOrUpdateJob()
                    "delay": getElementValue("delay_seconds"),
                    "repetition" : getElementValue("repetition"),
                    "retry_repetition" : getElementValue("retry_repetition"),
-                   "operation":"add"
+                   "operation":"add",
+                   "is_repetitive" : document.getElementById("is_repetitive").checked
                }
 
                     unHideElement("loading");

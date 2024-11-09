@@ -260,13 +260,13 @@ public class JobAPI
 		return jobMethodId.equals("j5") ? "Job updated successfully" : "Job added successfully";
 	}
 
-	public String addOrUpdateRepetitiveJob(long jobId, String className, String repetition, String retryRepetition, int delaySeconds, long userId, long customerId) throws Exception
+	public String addOrUpdateRepetitiveJob(long jobId, String className, String repetition, String retryRepetition, Integer delaySeconds, long userId, long customerId) throws Exception
 	{
 		JSONObject jobDetails = new JSONObject()
 			.put(getIdForRepetitiveJob("JOB_ID"), jobId)
 			.put(getIdForRepetitiveJob("CLASS_NAME"), className)
 			.put(getIdForRepetitiveJob("USER_ID"), userId)
-			.put(getIdForRepetitiveJob("SCHEDULED_TIME"), delaySeconds != -1 ? DateUtil.getCurrentTimeInMillis() + (1000L * delaySeconds) : null)
+			.put(getIdForRepetitiveJob("SCHEDULED_TIME"), Objects.nonNull(delaySeconds) ? DateUtil.getCurrentTimeInMillis() + (1000L * delaySeconds) : null)
 			.put("md", "2")
 			.put(getIdForRepetitiveJob("TRANSACTION_TIME"), -1)
 			.put(getIdForRepetitiveJob("SCHEDULE_NAME"), repetition)

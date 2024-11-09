@@ -413,7 +413,7 @@ public class SecurityUtil
 
 	public static Long addHttpLog(HttpURLConnection connection) throws IOException
 	{
-		PosterOutputStream outputStream = StringUtils.equals(connection.getRequestProperty("Content-Type"), "application/json") ? (PosterOutputStream) connection.getOutputStream() : null;
+ 		PosterOutputStream outputStream = StringUtils.equals(connection.getRequestProperty("Content-Type"), "application/json") ? (PosterOutputStream) connection.getOutputStream() : null;
 		String requestJSON = Objects.nonNull(outputStream) ? new String(outputStream.toByteArray()) : null;
 
 		Map<String,String> requestHeaders = connection.getRequestProperties().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entrySet-> String.join("", entrySet.getValue())));
@@ -422,7 +422,7 @@ public class SecurityUtil
 		HttpLogRequest.Builder builder = new HttpLogRequest.Builder()
 			.setUrl(getURLString(connection.getURL()))
 			.setMethod(connection.getRequestMethod())
-			.setIP(getCurrentRequest().getRemoteAddr())
+			.setIP(Objects.isNull(getCurrentRequest()) ? null : getCurrentRequest().getRemoteAddr())
 			.setQueryString(connection.getURL().getQuery())
 			.setThreadName(Thread.currentThread().getName())
 			.setOutgoing(true)
