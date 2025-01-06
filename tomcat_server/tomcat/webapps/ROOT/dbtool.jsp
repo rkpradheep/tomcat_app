@@ -95,8 +95,9 @@
         <br />
       <!--  Enter either ZSID or PK Value : <br />
         <br /> -->
-        DataSpace Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="zsid" style="width: 100px; height: 25px;" /><br />
-        <!-- PK Value &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --> <input type="text" id="pk" style="width: 400px; height: 25px;display: none" /><br />
+        DataSpace Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="zsid" style="width: 100px; height: 25px;" /><br /><br />
+        <!-- PK Value &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
+        <input type="text" id="pk" style="width: 200px; height: 19px;display: none" placeholder="PK"/><br />
         <!--<p>Click on <b>Enable Autocomplete and Quick Execution</b> button to enable intellisense support.</p>-->
         <button id="quickExe" onclick="getTables()">Populate tables</button><br />
         <div id="tableSelection" style="display: none;">
@@ -412,7 +413,6 @@ function getJobDetails()
 
 function getRepetitionDetails()
 {
-
                const data = {
                    "service":getElementValue("taskengine_product").split("-")[0],
                    "dc": getElementValue("taskengine_product").split("-")[1],
@@ -420,7 +420,8 @@ function getRepetitionDetails()
                    "customer_id": getElementValue("customer_id"),
                    "thread_pool": getElementValue("thread_pool"),
                    "operation":"get",
-                   "repetition_name" : getElementValue("repetition_name")
+                   "repetition_name" : getElementValue("repetition_name"),
+                    "is_common" : document.getElementById("is_common").checked,
                }
 
                     unHideElement("loading");
@@ -1200,7 +1201,11 @@ function handleZohoAuth(authURI)
                         throw new Error("API error")
                     }
 
-                    TABLE_LIST = res;
+                    if(!res.is_multigrid)
+                    {
+                        unHideElement("pk");
+                    }
+                    TABLE_LIST = res.tables;
                     hideElement("quickExe")
                     hideElement("loading");
                     unHideElement("response");
@@ -1432,6 +1437,7 @@ function handleZohoAuth(authURI)
                 setElementValue("zsid", "admin");
                 hideElement("queryOutputContainer");
                 hideElement("tableSelection");
+                hideElement("pk");
                 if (product == "custom"){
                     unHideElement("quickExe");
                     unHideElement("credentials_box")

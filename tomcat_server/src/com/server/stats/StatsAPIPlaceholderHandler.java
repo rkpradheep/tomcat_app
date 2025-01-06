@@ -15,31 +15,40 @@ public class StatsAPIPlaceholderHandler
 	{
 		return (responseColumnName, responseColumnValue) -> {
 
-			JSONArray userDetails = (JSONArray) responseColumnValue;
-			int userDetailsLength = userDetails.length();
+//			JSONArray userDetails = (JSONArray) responseColumnValue;
+//			int userDetailsLength = userDetails.length();
+//
+//			String emailID = null;
+//			String zuid = null;
+//			String name = null;
+//			for(int i = 0; i < userDetailsLength; i++)
+//			{
+//				JSONObject userObject = userDetails.getJSONObject(i);
+//
+//				JSONArray integ = userObject.optJSONArray("integration_details");
+//				if(integ == null)
+//					continue;
+//
+//				for(int j = 0; j < integ.length(); j++)
+//				{
+//					if(integ.getJSONObject(j).getString("bank_name").equals("sbi_bank") && StringUtils.isNotEmpty(integ.getJSONObject(j).optString("identifier")))
+//					{
+//						return "true";
+//					}
+//				}
+//
+//			}
+//
+//			return "false";
 
-			String emailID = null;
-			String zuid = null;
-			String name = null;
-			for(int i = 0; i < userDetailsLength; i++)
-			{
-				JSONObject userObject = userDetails.getJSONObject(i);
+			JSONObject requestData = new JSONObject(responseColumnValue.toString());
+			return requestData.getJSONObject("beneMaintV2").getJSONArray("BeneList").getJSONObject(0).getString("BeneAccountNo");
 
-				JSONArray integ = userObject.optJSONArray("integration_details");
-				if(integ == null)
-					continue;
 
-				for(int j = 0; j < integ.length(); j++)
-				{
-					if(integ.getJSONObject(j).getString("bank_name").equals("sbi_bank") && StringUtils.isNotEmpty(integ.getJSONObject(j).optString("identifier")))
-					{
-						return "true";
-					}
-				}
 
-			}
 
-			return "false";
+
+
 			//			if(responseColumnName.equals("ISBIIntegrated"))
 			//			{
 			//				return emailID;

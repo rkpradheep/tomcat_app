@@ -45,7 +45,7 @@ public class HttpAPI
 
 	public static HttpResponse makeNetworkCall(String url, String method) throws IOException
 	{
-		return makeNetworkCall(url, method, null, null, null, null);
+		return makeNetworkCall(url, method, (String) null, null, null, null);
 	}
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap) throws IOException
@@ -65,6 +65,11 @@ public class HttpAPI
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap, JSONObject jsonBody) throws IOException
 	{
+		return makeNetworkCall(url, method, headersMap, parametersMap, jsonBody, null);
+	}
+
+	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap, JSONObject jsonBody, Proxy proxy) throws IOException
+	{
 		Map<String,String> headersMapWrapper = new HashMap<>();
 		if(method.equals(HttpPost.METHOD_NAME) && Objects.nonNull(jsonBody))
 		{
@@ -74,14 +79,14 @@ public class HttpAPI
 		parametersMap = ObjectUtils.defaultIfNull(parametersMap, new HashMap<>());
 		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet-> entrySet.getKey().concat("=").concat(URLEncoder.encode(entrySet.getValue(), StandardCharsets.UTF_8))).collect(Collectors.toList());
 
-		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMapWrapper, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, null);
+		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMapWrapper, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, proxy);
 	}
 
 	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream, Proxy proxy) throws IOException
 	{
 		if(StringUtils.isNotEmpty(queryString))
 		{
-			url = !StringUtils.contains(url, "?") ? url.concat("?").concat(queryString) : url.concat(queryString);
+			url = !StringUtils.contains(url, "?") ? url.concat("?").concat(queryString) : StringUtils.contains(url, "&") ? url.concat(queryString) : url.concat("&").concat(queryString);
 		}
 
 		HttpURLConnection httpURLConnection = (HttpURLConnection) (Objects.nonNull(proxy) ? new URL(url).openConnection(proxy) : new URL(url).openConnection());

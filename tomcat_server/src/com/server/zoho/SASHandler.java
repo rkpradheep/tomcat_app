@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.framework.common.AppException;
@@ -89,7 +90,7 @@ public class SASHandler extends HttpServlet
 
 		try(Connection conn = SASUtil.getDBConnection(server, ip, "jbossdb", user, password))
 		{
-			zsid = !zsid.equals("") ? zsid : SASUtil.getZSIDFromPK(conn, pk);
+			zsid = !zsid.equals("") && StringUtils.isEmpty(pk) ? zsid : SASUtil.getZSIDFromPK(conn, pk);
 			PreparedStatement statement = conn.prepareStatement("SELECT SASAccounts.ID, CustomerDatabase.SCHEMANAME, CustomerDatabase.DBMASTERID FROM SASAccounts INNER JOIN UserDomains on SASAccounts.ID = UserDomains.ID INNER JOIN CustomerDatabase on UserDomains.CUSTOMERID = CustomerDatabase.CustomerID where SASAccounts.LOGINNAME = ?");
 			statement.setString(1, zsid);
 			statement.execute();
@@ -97,7 +98,7 @@ public class SASHandler extends HttpServlet
 			boolean exist = resultSet.next();
 			if(!exist)
 			{
-				throw new AppException("Invalid zsid or pk");
+				throw new AppException("Invalid " + (StringUtils.isEmpty(pk) ? "zsid" : "PK value " + " provided."));
 			}
 			long[] limits = SASUtil.getLimits(Long.valueOf(resultSet.getString("ID")));
 			String schema = resultSet.getString("SCHEMANAME");
@@ -182,7 +183,7 @@ public class SASHandler extends HttpServlet
 					{
 					}
 				}
-				SecurityUtil.writeJSONResponse(response, tableList);
+				SecurityUtil.writeJSONResponse(response, Map.of("tables", tableList, "is_multigrid", SASUtil.isMultiGrid(connection)));
 				return;
 			}
 

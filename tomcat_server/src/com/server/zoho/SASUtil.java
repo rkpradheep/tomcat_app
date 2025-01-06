@@ -47,9 +47,7 @@ public class SASUtil
 	public static String getSpaceIDFromPK(Long pk)
 	{
 		pk = (pk / 1000000000000L) + 1;
-
-		String spaceID = pk.toString();
-		return spaceID.length() == 5 ? "90".concat(spaceID) : spaceID.length() == 6 ? "9".concat(spaceID) : spaceID;
+		return pk.toString();
 	}
 
 	public static String getZSIDFromPK(Connection connection, String pk) throws SQLException
@@ -60,6 +58,19 @@ public class SASUtil
 		ResultSet resultSet = statement.getResultSet();
 		resultSet.next();
 		return resultSet.getString("LOGINNAME");
+	}
+
+	public static boolean isMultiGrid(Connection connection) throws Exception
+	{
+		PreparedStatement statement = connection.prepareStatement("SELECT GridConfiguration.PROPVAL from GridConfiguration where LOWER(GridConfiguration.PROPNAME) = ?");
+		statement.setString(1, "multigrid");
+		statement.execute();
+		ResultSet resultSet = statement.getResultSet();
+		if(!resultSet.next())
+		{
+			return false;
+		}
+		return resultSet.getBoolean("PROPVAL");
 	}
 
 	public static String getClusterIP(Connection connection, String clusterID) throws SQLException

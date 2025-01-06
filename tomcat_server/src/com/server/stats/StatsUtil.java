@@ -94,6 +94,10 @@ public class StatsUtil
 			connectionUrl = replacePH(connectionUrl, phMeta);
 			for(Map.Entry<String, String> paramsEntrySet : statsMeta.getRequestMeta().getParamsMap().entrySet())
 			{
+				if(params.containsKey(paramsEntrySet.getKey()))
+				{
+					continue;
+				}
 				params.put(paramsEntrySet.getKey(), replacePH(paramsEntrySet.getValue(), phMeta));
 			}
 			modifyJSONPayload(jsonObject, requestDataEntrySet.getKey(), requestDataEntrySet.getValue(), phMeta);
