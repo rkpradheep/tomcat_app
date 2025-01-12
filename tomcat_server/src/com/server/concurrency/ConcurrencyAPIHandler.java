@@ -90,7 +90,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 
 		JSONObject headers = Objects.nonNull(Util.getJSONFromString(headersFromRequest)) ? new JSONObject(headersFromRequest) : parseChromeHeaders(headersFromRequest);
 
-		String queryString = parseQueryString(params);
+		String queryString = HttpAPI.getEncodedQueryString(params.toMap());
 
 		formDataMap.remove("meta_json");
 
@@ -184,7 +184,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		if(StringUtils.isNotEmpty(formUrlEncodedJSONString))
 		{
 			headersMap.put("Content-Type", "application/x-www-form-urlencoded");
-			return new ByteArrayInputStream(parseQueryString(new JSONObject(formUrlEncodedJSONString)).getBytes());
+			return new ByteArrayInputStream(HttpAPI.getEncodedQueryString(new JSONObject(formUrlEncodedJSONString).toMap()).getBytes());
 		}
 
 		if(formDataMap.size() < 1)
@@ -221,17 +221,6 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		httpEntity.writeTo(byteArrayOutputStream);
 		return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-	}
-
-	static String parseQueryString(JSONObject params)
-	{
-		String parsedQueryString = StringUtils.EMPTY;
-
-		for(String param : params.keySet())
-		{
-			parsedQueryString += URLEncoder.encode(param.trim()) + "=" + URLEncoder.encode(params.getString(param)) + "&";
-		}
-		return parsedQueryString.replaceAll("&$", StringUtils.EMPTY);
 	}
 
 	static JSONObject parseChromeHeaders(String chromeHeaders)

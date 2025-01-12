@@ -13,6 +13,7 @@ import java.net.SocketAddress;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +25,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
 public class HttpAPI
@@ -43,6 +47,22 @@ public class HttpAPI
 		outputStream.flush();
 	}
 
+	public static String getEncodedQueryString(Map<String, ?> dataMap)
+	{
+		List<NameValuePair> nameValuePairList = new ArrayList<>();
+		for(String key : dataMap.keySet())
+		{
+			nameValuePairList.add(new BasicNameValuePair(key, ObjectUtils.defaultIfNull(dataMap.get(key), StringUtils.EMPTY).toString()));
+		}
+
+		return URLEncodedUtils.format(nameValuePairList, StandardCharsets.UTF_8);
+	}
+
+	public static InputStream getInputStreamForUrlFormEncoded(Map<String, ?> formMap)
+	{
+		return new ByteArrayInputStream(getEncodedQueryString(formMap).getBytes());
+	}
+
 	public static HttpResponse makeNetworkCall(String url, String method) throws IOException
 	{
 		return makeNetworkCall(url, method, (String) null, null, null, null);
@@ -53,11 +73,11 @@ public class HttpAPI
 		return makeNetworkCall(url, method, headersMap, null, null);
 	}
 
-
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, JSONObject jsonObject) throws IOException
 	{
-		return makeNetworkCall(url, method , headersMap, null, jsonObject);
+		return makeNetworkCall(url, method, headersMap, null, jsonObject);
 	}
+
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap) throws IOException
 	{
 		return makeNetworkCall(url, method, headersMap, parametersMap, null);
@@ -70,14 +90,14 @@ public class HttpAPI
 
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap, JSONObject jsonBody, Proxy proxy) throws IOException
 	{
-		Map<String,String> headersMapWrapper = new HashMap<>();
+		Map<String, String> headersMapWrapper = new HashMap<>();
 		if(method.equals(HttpPost.METHOD_NAME) && Objects.nonNull(jsonBody))
 		{
 			headersMapWrapper.put("Content-Type", "application/json");
 		}
 		headersMapWrapper.putAll(ObjectUtils.defaultIfNull(headersMap, new HashMap<>()));
 		parametersMap = ObjectUtils.defaultIfNull(parametersMap, new HashMap<>());
-		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet-> entrySet.getKey().concat("=").concat(URLEncoder.encode(entrySet.getValue(), StandardCharsets.UTF_8))).collect(Collectors.toList());
+		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet -> entrySet.getKey().concat("=").concat(URLEncoder.encode(entrySet.getValue(), StandardCharsets.UTF_8))).collect(Collectors.toList());
 
 		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMapWrapper, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, proxy);
 	}
