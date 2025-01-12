@@ -27,7 +27,7 @@ var stats_id = statsIdInput.value;
         return;
      }
     document.getElementById("output").innerHTML = data.table_data;
-    document.getElementById("total").innerHTML = "TOTAL : " + data.total +  "<br/><br/> STATUS : " + (isStatsFileReady != 'true' ? 'RUNNING' : 'COMPLETED');;
+    document.getElementById("total").innerHTML = "TOTAL : " + data.total +  "<br/><br/> STATUS : " + (!isStatsFileReady? 'RUNNING' : 'COMPLETED');
     isStatsFileReady = data.is_completed
 
     })
@@ -43,8 +43,10 @@ function initiateStats()
 
 
     if (document.getElementById('requestData').files[0] == undefined || document.getElementById('requestData').files[0].length == 0) {
-        alert('Please upload request data file');
-        return;
+        if(getElementValue("requestDataText") == undefined || getElementValue("requestDataText").length == 0){
+          alert('Please upload request data file or enter request data text');
+          return;
+          }
     }
 
         if (getElementValue('configuration_area') == undefined) {
@@ -55,6 +57,7 @@ function initiateStats()
 const formData = new FormData();
 formData.append("configuration", getElementValue('configuration_area'));
 formData.append("request_data", document.getElementById('requestData').files[0]);
+formData.append("request_data_text", getElementValue("requestDataText"));
 
 
   const requestOptions = {

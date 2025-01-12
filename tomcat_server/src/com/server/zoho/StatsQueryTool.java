@@ -106,7 +106,13 @@ public class StatsQueryTool
 							{
 								break;
 							}
-							stringBuilder.append(String.join(",", outputMap.values())).append(",").append(host).append(",").append(schema).append("\n");
+							for(String value : outputMap.values())
+							{
+								stringBuilder.append("\"" + StringUtils.defaultIfEmpty(value, StringUtils.EMPTY).replaceAll("\"", "\"\"") + "\"").append(",");
+							}
+
+							stringBuilder.append(host).append(",").append(schema).append("\n");
+
 						}
 						output.print(stringBuilder);
 						output.flush();

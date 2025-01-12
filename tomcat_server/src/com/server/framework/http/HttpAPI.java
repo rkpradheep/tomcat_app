@@ -14,6 +14,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,15 @@ import org.json.JSONObject;
 
 public class HttpAPI
 {
+
+	public static Map<String, String> convertRawHeadersToMap(String rawHeaders)
+	{
+		String[] lines = rawHeaders.split("\n");
+
+		return Arrays.stream(lines)
+			.filter(line -> line.contains(":") && !line.toLowerCase().contains("content-type") && !line.toLowerCase().contains("content-length"))
+			.collect(Collectors.toMap(header-> header.split(":")[0], header-> header.split(":")[1]));
+	}
 
 	public static void copyInputStreamToOutputStream(InputStream inputStream, OutputStream outputStream) throws IOException
 	{

@@ -15,6 +15,7 @@ public class StatsAPIPlaceholderHandler
 	{
 		return (responseColumnName, responseColumnValue) -> {
 
+			return "test";
 //			JSONArray userDetails = (JSONArray) responseColumnValue;
 //			int userDetailsLength = userDetails.length();
 //
@@ -41,8 +42,8 @@ public class StatsAPIPlaceholderHandler
 //
 //			return "false";
 
-			JSONObject requestData = new JSONObject(responseColumnValue.toString());
-			return requestData.getJSONObject("beneMaintV2").getJSONArray("BeneList").getJSONObject(0).getString("BeneAccountNo");
+//			JSONObject requestData = new JSONObject(responseColumnValue.toString());
+//			return requestData.getJSONObject("beneMaintV2").getJSONArray("BeneList").getJSONObject(0).getString("BeneAccountNo");
 
 
 

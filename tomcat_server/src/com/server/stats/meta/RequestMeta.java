@@ -12,7 +12,7 @@ public class RequestMeta
 {
 	private String jsonPayload;
 	private Map<String, String> paramsMap = new TreeMap<>();
-	private final List<Map<String, String>> requestList = new ArrayList<>();
+	private final List<Map<String, String>> requestRowList = new ArrayList<>();
 	private String connectionUrl;
 
 	public void addParam(String paramName, String paramValue)
@@ -27,12 +27,12 @@ public class RequestMeta
 
 	public void addRequest(Map<String,String> request)
 	{
-		requestList.add(request);
+		requestRowList.add(request);
 	}
 
-	public List<Map<String,String>> getRequestList()
+	public List<Map<String,String>> getRequestRowList()
 	{
-		return requestList;
+		return requestRowList;
 	}
 
 	public JSONObject getJsonPayload()

@@ -11,9 +11,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
-import org.jose4j.lang.HashUtil;
 import org.json.JSONObject;
 
 import com.server.concurrency.ConcurrencyAPIHandler;
@@ -56,20 +56,22 @@ public class StatsAPI extends HttpServlet
 			FormData configurationFile = formDataMap.get("configuration_file");
 			FormData configuration = formDataMap.get("configuration");
 			FormData requestData = formDataMap.get("request_data");
-			if(Objects.isNull(requestData) || (Objects.isNull(configuration) && Objects.isNull(configurationFile)))
+			FormData requestDataText = formDataMap.get("request_data_text");
+			if((Objects.isNull(requestData) && Objects.isNull(requestDataText)) || (Objects.isNull(configuration) && Objects.isNull(configurationFile)))
 			{
-				SecurityUtil.writerErrorResponse(response, "configuration or input file is missing");
+				SecurityUtil.writerErrorResponse(response, "configuration or request data is missing");
 				return;
 			}
-			if(!StringUtils.equals(requestData.getFileData().getContentType(), "text/csv"))
+			if(Objects.isNull(requestDataText) && !StringUtils.equals(requestData.getFileData().getContentType(), "text/csv"))
 			{
 				SecurityUtil.writerErrorResponse(response, "Request data file is not in csv format");
 				return;
 			}
 
 			byte[] configurationFileBytes = Objects.nonNull(configurationFile) ? configurationFile.getFileData().getBytes() : configuration.getValue().getBytes();
-			byte[] requestDataBytes = requestData.getFileData().getBytes();
+			configurationFileBytes = new String(configurationFileBytes).replaceAll("&", "&amp;").getBytes();
 
+			byte[] requestDataBytes = Objects.nonNull(requestDataText) ? requestDataText.getValue().getBytes() : requestData.getFileData().getBytes();
 			String reqId = DigestUtils.sha256Hex(ByteBuffer.allocate(configurationFileBytes.length + requestDataBytes.length).put(configurationFileBytes).put(requestDataBytes).array());
 
 			if(RUNNING_STATS.contains(reqId))
@@ -77,7 +79,10 @@ public class StatsAPI extends HttpServlet
 				throw new AppException("Stats already running for this configuration with ReqId : " + reqId);
 			}
 
-			StatsMeta statsMeta = StatsUtil.getStatsMeta(Objects.isNull(configuration) ? configurationFile.getFileData().getInputStream() : new ByteArrayInputStream(configuration.getValue().getBytes()), requestData.getFileData().getReader(), SecurityUtil.getUploadsPath() + "/" + reqId + ".csv");
+			Reader requestDataReader = new InputStreamReader(new ByteArrayInputStream(requestDataBytes));
+
+
+			StatsMeta statsMeta = StatsUtil.getStatsMeta(new ByteArrayInputStream(configurationFileBytes), requestDataReader, SecurityUtil.getUploadsPath() + "/" + reqId + ".csv");
 			statsMeta.setRequestId(reqId);
 			statsMeta.setRawResponseWriter(new FileWriter(SecurityUtil.getUploadsPath() + "/" + "RawResponse_" + reqId + ".txt"));
 			RUNNING_STATS.add(reqId);
@@ -108,14 +113,14 @@ public class StatsAPI extends HttpServlet
 		{
 			statsMeta.setResponseWriter(output);
 
-			List<Map<String, String>> requestList = StatsUtil.getRequestList(statsMeta);
+			List<Map<String, String>> requestRowList = StatsUtil.getRequestRowList(statsMeta);
 
 			statsMeta.getResponseWriter().println(statsMeta.getResponseHeaders());
 			output.flush();
 
 			List<Runnable> runnableList = new ArrayList<>();
 
-			for(Map<String, String> requestData : requestList)
+			for(Map<String, String> requestDataRow : requestRowList)
 			{
 				try
 				{
@@ -123,9 +128,9 @@ public class StatsAPI extends HttpServlet
 					requestCount++;
 
 					int currentRequestNo = statsMeta.getRequestCount();
-					runnableList.add(() -> makeCall(statsMeta, requestData, currentRequestNo));
+					runnableList.add(() -> makeCall(statsMeta, requestDataRow, currentRequestNo));
 
-					if(requestCount >= statsMeta.getRequestBatchSize() || statsMeta.getRequestCount() >= requestList.size())
+					if(requestCount >= statsMeta.getRequestBatchSize() || statsMeta.getRequestCount() >= requestRowList.size())
 					{
 						if(statsMeta.isDisableParallelCalls())
 						{
@@ -137,7 +142,7 @@ public class StatsAPI extends HttpServlet
 						}
 
 						runnableList.clear();
-						if(statsMeta.getRequestCount() >= requestList.size())
+						if(statsMeta.getRequestCount() >= requestRowList.size())
 						{
 							break;
 						}
@@ -177,7 +182,7 @@ public class StatsAPI extends HttpServlet
 	{
 		try
 		{
-			ImmutableTriple<String, Map<String, String>, JSONObject> placeHolderTriple = StatsUtil.handlerPlaceholder(statsMeta, requestData, requestCount);
+			ImmutableTriple<String, Map<String, String>, JSONObject> placeHolderTriple = StatsUtil.handlePlaceholder(statsMeta, requestData, requestCount);
 
 			String response = connect(statsMeta, placeHolderTriple.getLeft(), placeHolderTriple.getMiddle(), placeHolderTriple.getRight());
 

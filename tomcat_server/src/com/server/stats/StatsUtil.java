@@ -2,7 +2,6 @@ package com.server.stats;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Arrays;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,9 +24,7 @@ import javax.xml.validation.Validator;
 
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,13 +34,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.server.framework.common.Util;
+import com.server.framework.http.HttpAPI;
 import com.server.framework.security.SecurityUtil;
 import com.server.stats.meta.RequestMeta;
 import com.server.stats.meta.StatsMeta;
 
 public class StatsUtil
 {
-	static List<Map<String, String>> getRequestList(StatsMeta statsMeta) throws Exception
+	static List<Map<String, String>> getRequestRowList(StatsMeta statsMeta) throws Exception
 	{
 		CSVParser inputDataParser;
 
@@ -64,44 +61,46 @@ public class StatsUtil
 			{
 				continue;
 			}
+
+			requestDataCount++;
+			if(requestDataCount == 1 && statsMeta.isSkipFirstRow())
+			{
+				continue;
+			}
 			Map<String, String> requestMap = new HashMap<>();
 			for(int i = 0; i < lineArray.length; i++)
 			{
 				requestMap.put("${Col_" + i + "}", lineArray[i]);
 			}
 			statsMeta.getRequestMeta().addRequest(requestMap);
-			requestDataCount++;
 			if(statsMeta.isTest() && requestDataCount == 2)
 			{
 				break;
 			}
 		}
-		return statsMeta.getRequestMeta().getRequestList();
+		return statsMeta.getRequestMeta().getRequestRowList();
 	}
 
-	static ImmutableTriple<String, Map<String, String>, JSONObject> handlerPlaceholder(StatsMeta statsMeta, Map<String, String> requestData, int requestCount)
+	static ImmutableTriple<String, Map<String, String>, JSONObject> handlePlaceholder(StatsMeta statsMeta, Map<String, String> requestDataRow, int requestCount)
 	{
 		String connectionUrl = statsMeta.getRequestMeta().getConnectionUrl();
 		Map<String, String> params = new HashMap<>();
 		JSONObject jsonObject = statsMeta.getRequestMeta().getJsonPayload();
-		for(Map.Entry<String, String> requestDataEntrySet : requestData.entrySet())
+
+		long currentTime = System.nanoTime();
+		Map<String, String> phMeta = new HashMap<>();
+		phMeta.put("${RequestNo}", requestCount + "");
+		phMeta.put("${CurrentTime}", currentTime + "");
+
+		phMeta.putAll(requestDataRow);
+
+		connectionUrl = replacePH(connectionUrl, phMeta);
+		statsMeta.getRequestMeta().getParamsMap().forEach((key, value) ->
 		{
-			long currentTime = System.nanoTime();
-			Map<String, String> phMeta = new HashMap<>();
-			phMeta.put("${RequestNo}", requestCount + "");
-			phMeta.put("${CurrentTime}", currentTime + "");
-			phMeta.put(requestDataEntrySet.getKey(), requestDataEntrySet.getValue());
-			connectionUrl = replacePH(connectionUrl, phMeta);
-			for(Map.Entry<String, String> paramsEntrySet : statsMeta.getRequestMeta().getParamsMap().entrySet())
-			{
-				if(params.containsKey(paramsEntrySet.getKey()))
-				{
-					continue;
-				}
-				params.put(paramsEntrySet.getKey(), replacePH(paramsEntrySet.getValue(), phMeta));
-			}
-			modifyJSONPayload(jsonObject, requestDataEntrySet.getKey(), requestDataEntrySet.getValue(), phMeta);
-		}
+			params.put(key, replacePH(value, phMeta));
+			modifyJSONPayload(jsonObject, key, value, phMeta);
+
+		});
 
 		return new ImmutableTriple<>(connectionUrl, params, jsonObject);
 	}
@@ -247,7 +246,7 @@ public class StatsUtil
 	{
 		RequestMeta requestMeta = new RequestMeta();
 		requestMeta.setConnectionUrl(connectionUrl);
-		requestMeta.setJsonPayload(jsonBody);
+		requestMeta.setJsonPayload(StringUtils.defaultIfEmpty(jsonBody, StringUtils.EMPTY).trim());
 
 		if(Objects.isNull(paramsElement))
 		{
@@ -294,9 +293,12 @@ public class StatsUtil
 		String responseFilePath = Objects.isNull(responseFilePathNode) ? customResponseFilePath : responseFilePathNode.getTextContent();
 		Node processResponseHandlerMethodNode = getNode(configuration, "placeholder-handler");
 		String processResponseHandlerMethod = getTextContent(processResponseHandlerMethodNode);
+		processResponseHandlerMethod = StringUtils.defaultIfEmpty(processResponseHandlerMethod, StringUtils.EMPTY).trim();
 		BiFunction<String, Object, String> placeholderHandlerFunction = StringUtils.isEmpty(processResponseHandlerMethod) ? null : (BiFunction<String, Object, String>) Class.forName("com.server.stats.StatsAPIPlaceholderHandler").getDeclaredMethod(processResponseHandlerMethod).invoke(null);
 		Node isTestNode = getNode(configuration, "is-test");
 		boolean isTest = Objects.nonNull(isTestNode) && Boolean.parseBoolean(isTestNode.getTextContent());
+		Node skipFirstRowNode = getNode(configuration, "skip-first-request-data-row");
+		boolean skipFirstRow = Objects.nonNull(skipFirstRowNode) && Boolean.parseBoolean(skipFirstRowNode.getTextContent());
 
 		Node disableParallelNode = getNode(configuration, "disable-parallel-calls");
 		boolean disableParallelCalls = Objects.nonNull(isTestNode) && Boolean.parseBoolean(disableParallelNode.getTextContent());
@@ -312,6 +314,7 @@ public class StatsUtil
 		statsMeta.setResponseFilePath(filePathExtensionArray.length == 0 ? responseFilePath + "_inprocess" : filePathExtensionArray[0] + "_inprocess." + filePathExtensionArray[1]);
 		statsMeta.setRequestDataReader(requestFileReader);
 		statsMeta.setTest(isTest);
+		statsMeta.setSkipFirstRow(skipFirstRow);
 		statsMeta.setDisableParallelCalls(disableParallelCalls);
 
 		Element headersElement = (Element) getNode(configuration, "headers");
@@ -326,6 +329,13 @@ public class StatsUtil
 					statsMeta.addRequestHeader(headerNodeList.item(i).getNodeName(), headerNodeList.item(i).getTextContent());
 				}
 			}
+		}
+
+		headersElement = (Element) getNode(configuration, "raw-request-headers");
+		if(Objects.nonNull(headersElement))
+		{
+			String rawHeaders = headersElement.getTextContent();
+			HttpAPI.convertRawHeadersToMap(rawHeaders).entrySet().forEach(entry-> statsMeta.addRequestHeader(entry.getKey(), entry.getValue()));
 		}
 
 		Element responseElement = (Element) getNode(configuration, "response");

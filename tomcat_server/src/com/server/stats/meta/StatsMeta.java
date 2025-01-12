@@ -28,6 +28,7 @@ public class StatsMeta
 	private String responseHeaders;
 	private final ResponseMeta responseMeta = new ResponseMeta();
 	private boolean isTest;
+	private boolean skipFirstRow;
 	private boolean disableParallelCalls;
 
 
@@ -206,6 +207,16 @@ public class StatsMeta
 	public void setTest(boolean test)
 	{
 		isTest = test;
+	}
+
+	public boolean isSkipFirstRow()
+	{
+		return skipFirstRow;
+	}
+
+	public void setSkipFirstRow(boolean skipFirstRow)
+	{
+		this.skipFirstRow = skipFirstRow;
 	}
 
 	public boolean isDisableParallelCalls()

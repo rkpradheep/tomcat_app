@@ -176,12 +176,18 @@
 </nav>
 <p style="margin-top: 50px">XML Configuration</p>
 <div id="configuration" style="margin-top: 20px">
-    <textarea spellcheck="false" id="configuration_area" name="configuration" rows="20" cols="70" style="font-size: 18px; color: white; background-color: black;max-width: 80vw;overflow:auto;">
+    <textarea spellcheck="false" id="configuration_area" name="configuration" rows="20" cols="70" style="font-size: 18px; color: white; background-color: black;max-width: 80vw;overflow:auto;padding-left: 5px; padding-right: 5px;">
 <?xml version="1.0"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="stats-meta.xsd">
+    <!--
+    Placeholders :  ${Col_0}, ${Col_1} etc
+    <header name="Name" placeholder="true">data/user</header>
+    -->
+
+    <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="stats-meta.xsd">
 
     <is-test>true</is-test>
+    <skip-first-request-data-row>false</skip-first-request-data-row>
     <disable-parallel-calls>true</disable-parallel-calls>
 
     <url></url>
@@ -191,12 +197,14 @@
     <headers>
     </headers>
 
+    <raw-request-headers>
+    </raw-request-headers>
+
     <params>
     </params>
 
-  <!--  <json-body>
-        </json-body>
-   -->
+    <json-body>
+    </json-body>
 
     <request-batch-size>48</request-batch-size>
 
@@ -206,13 +214,21 @@
         <header name="Request No">${RequestNo}</header>
     </response>
 
+   <placeholder-handler></placeholder-handler>
+
 </configuration>
     </textarea>
 </div>
 <br/>
 <br/>
-CSV Request Data<input type="file" id="requestData" style="position: sticky;">
+CSV Request Data
 <br/>
+<br/>
+<input type="file" id="requestData" style="position: sticky;">
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OR<br/><br/>
+PLAIN CSV TEXT<br/><br/>
+<textarea id="requestDataText" rows="10" cols="70" style="font-size: 18px; color: white; background-color: black;max-width: 80vw;overflow:auto;padding-left: 5px; padding-right: 5px;"></textarea>
 <br/>
 <button onclick="initiateStats()" style="position: sticky;">Initiate Stats</button>
 <br/>
