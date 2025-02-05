@@ -91,7 +91,7 @@ public class SASHandler extends HttpServlet
 		try(Connection conn = SASUtil.getDBConnection(server, ip, "jbossdb", user, password))
 		{
 			zsid = !zsid.equals("") && StringUtils.isEmpty(pk) ? zsid : SASUtil.getZSIDFromPK(conn, pk);
-			PreparedStatement statement = conn.prepareStatement("SELECT SASAccounts.ID, CustomerDatabase.SCHEMANAME, CustomerDatabase.DBMASTERID FROM SASAccounts INNER JOIN UserDomains on SASAccounts.ID = UserDomains.ID INNER JOIN CustomerDatabase on UserDomains.CUSTOMERID = CustomerDatabase.CustomerID where SASAccounts.LOGINNAME = ?");
+			PreparedStatement statement = conn.prepareStatement(Configuration.getProperty("sas.space.details.query"));
 			statement.setString(1, zsid);
 			statement.execute();
 			ResultSet resultSet = statement.getResultSet();

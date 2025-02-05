@@ -1,5 +1,6 @@
 package com.server.zoho;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,7 +65,7 @@ public class JobAPI
 		serviceCredentials.put("user", user);
 		serviceCredentials.put("password", password);
 		serviceCredentials.put("zsid", "admin");
-		serviceCredentials.put("query", "Select SASAccounts.id, UserDomains.customerid from SASAccounts INNER JOIN UserDomains on SASAccounts.id = UserDomains.id WHERE SASAccounts.loginname = '" + payload.getString("zsid") + "'");
+		serviceCredentials.put("query", MessageFormat.format(Configuration.getProperty("sas.customerid.and.userid.fetch.query"),payload.getString("zsid")));
 
 		Map output = (Map) ((List) SASHandler.handleSasRequest(serviceCredentials).get("query_output")).get(0);
 		if(StringUtils.equals((String)output.get("ID"), "<EMPTY>"))

@@ -52,7 +52,7 @@ public class SASUtil
 
 	public static String getZSIDFromPK(Connection connection, String pk) throws SQLException
 	{
-		PreparedStatement statement = connection.prepareStatement("SELECT SASAccounts.LOGINNAME from SASAccounts where SASAccounts.ID = ?");
+		PreparedStatement statement = connection.prepareStatement(Configuration.getProperty("sas.zsid.from.pk.query"));
 		statement.setLong(1, Long.parseLong(getSpaceIDFromPK(Long.parseLong(pk))));
 		statement.execute();
 		ResultSet resultSet = statement.getResultSet();
@@ -62,7 +62,7 @@ public class SASUtil
 
 	public static boolean isMultiGrid(Connection connection) throws Exception
 	{
-		PreparedStatement statement = connection.prepareStatement("SELECT GridConfiguration.PROPVAL from GridConfiguration where LOWER(GridConfiguration.PROPNAME) = ?");
+		PreparedStatement statement = connection.prepareStatement(Configuration.getProperty("sas.multigrid.query"));
 		statement.setString(1, "multigrid");
 		statement.execute();
 		ResultSet resultSet = statement.getResultSet();
@@ -75,7 +75,7 @@ public class SASUtil
 
 	public static String getClusterIP(Connection connection, String clusterID) throws SQLException
 	{
-		PreparedStatement statement = connection.prepareStatement("SELECT GridAddress.ADDRESS FROM DBCluster INNER JOIN GridServices ON DBCluster.DBCLUSTERID=GridServices.SERVICEID INNER JOIN GridAccount ON GridServices.ACCOUNTID=GridAccount.ACCOUNTID INNER JOIN GridAddress ON GridAccount.ADDRESSID=GridAddress.ADDRESSID INNER JOIN GridVirtualNode ON GridServices.ACCOUNTID=GridVirtualNode.CLUSTERID INNER JOIN GridResources ON GridServices.SERVICEID=GridResources.RESOURCEID INNER JOIN DatabaseDrivers ON DBCluster.DBDRIVERID=DatabaseDrivers.DBDRIVERID INNER JOIN DBClusterConfiguration ON DBCluster.DBCLUSTERID=DBClusterConfiguration.CLUSTERID WHERE  (((DBCluster.DBCLUSTERID = ?) AND ((GridResources.ADMINSTATUS = 1) AND ((GridResources.OPERATIONALSTATUS = 1) ))) AND (((DBCluster.DBCLUSTERID >= 0) AND (DBCluster.DBCLUSTERID <= 999999999999)) OR ((DBCluster.DBCLUSTERID >= 0) AND (DBCluster.DBCLUSTERID <= 999999999999))))");
+		PreparedStatement statement = connection.prepareStatement(Configuration.getProperty("sas.cluster.ip.query"));
 		statement.setInt(1, Integer.parseInt(clusterID));
 		statement.execute();
 		ResultSet resultSet = statement.getResultSet();
@@ -85,7 +85,7 @@ public class SASUtil
 
 	public static Pair<String, String> getMasterSlaveIPPair(Connection connection, String clusterIP) throws SQLException
 	{
-		PreparedStatement statement = connection.prepareStatement("Select master.address as masterip,slave.address as slaveip from GridAddress as main inner join GridAccount on main.addressid = GridAccount.addressid and main.address = ? inner join GridVirtualNode on GridAccount.accountid = GridVirtualNode.clusterid inner join GridAddress as master on master.addressid = GridVirtualNode.masterid inner join GridAddress as slave on slave.addressid = GridVirtualNode.slaveid");
+		PreparedStatement statement = connection.prepareStatement(Configuration.getProperty("sas.master.slave.ip.fetch.query"));
 		statement.setObject(1, clusterIP);
 		statement.execute();
 		ResultSet resultSet = statement.getResultSet();
@@ -140,7 +140,7 @@ public class SASUtil
 	{
 		try(Connection connection = getDBConnection(server, ip, db, user, password))
 		{
-			PreparedStatement preparedStatement = connection.prepareStatement(MessageFormat.format("Select Users.Name, Users.Email, Users.ZUID from Users where {0}>= ? AND {0}<=?", userPk));
+			PreparedStatement preparedStatement = connection.prepareStatement(MessageFormat.format(Configuration.getProperty("service.user.details.query"), userPk));
 			preparedStatement.setObject(1, sasStartRange);
 			preparedStatement.setObject(2, sasEndRange);
 

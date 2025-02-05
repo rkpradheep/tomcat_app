@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.server.framework.common.AppException;
+import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 import com.server.framework.job.JobUtil;
@@ -39,7 +40,7 @@ public class StatsQueryTool
 
 	private static List<Map<String, String>> getSchemas(Connection connection) throws Exception
 	{
-		String schemaQuery = "select GridAddress.ADDRESS as ip ,CustomerDatabase.SCHEMANAME as schema_name from CustomerDatabase inner join DBCluster on DBCluster.DBCLUSTERID=CustomerDatabase.DBMASTERID inner join GridServices on GridServices.SERVICEID = DBCluster.DBCLUSTERID inner join GridAccount on GridAccount.ACCOUNTID = GridServices.ACCOUNTID inner join GridAddress on GridAddress.ADDRESSID=GridAccount.ADDRESSID";
+		String schemaQuery = Configuration.getProperty("sas.schema.query");
 		return executeSelect(schemaQuery, connection);
 	}
 
