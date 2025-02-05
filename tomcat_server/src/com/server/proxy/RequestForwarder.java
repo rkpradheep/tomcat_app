@@ -16,7 +16,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.server.framework.http.HttpAPI;
+import com.server.framework.http.HttpContext;
 import com.server.framework.http.HttpResponse;
 import com.server.framework.security.SecurityUtil;
 
@@ -65,7 +68,9 @@ public class RequestForwarder extends HttpServlet
 			headersMap.put(headerName, request.getHeader(headerName));
 		}
 
-		HttpResponse httpResponse = HttpAPI.makeNetworkCall(url, method, request.getQueryString(), headersMap, request.getInputStream(), null);
+		url = url.contains("?") ? url + StringUtils.defaultIfEmpty(request.getQueryString(), StringUtils.EMPTY) : url + (StringUtils.isNotEmpty(request.getQueryString()) ? "?"+ request.getQueryString() : StringUtils.EMPTY);
+
+		HttpResponse httpResponse = HttpAPI.makeNetworkCall(new HttpContext(url, method).setBody(request.getInputStream()).setHeadersMap(headersMap));
 
 		for(String headerName : httpResponse.getResponseHeaders().keySet())
 		{

@@ -6,6 +6,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.net.Inet4Address;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
@@ -41,6 +45,7 @@ import com.server.framework.common.Configuration;
 import com.server.framework.common.EntityType;
 import com.server.framework.common.Util;
 import com.server.framework.http.HttpAPI;
+import com.server.framework.http.HttpContext;
 import com.server.framework.http.HttpResponse;
 import com.server.framework.security.SecurityUtil;
 import com.server.oauth.OauthHandler;
@@ -87,6 +92,40 @@ public class ZohoAPI extends HttpServlet
 			else if(request.getRequestURI().equals("/api/v1/zoho/auth"))
 			{
 				handleZohoAuth(request, response);
+			}
+			else if(request.getRequestURI().equals("/api/v1/payout/httplogs"))
+			{
+				String zsid = request.getParameter("zsid");
+				String logID = request.getParameter("log_id");
+				if(StringUtils.isEmpty(zsid) || StringUtils.isEmpty(logID))
+				{
+					throw new AppException("Invalid request. Please try again with valid input.");
+				}
+				String url = Configuration.getProperty("payout.logs.url");
+
+				url = MessageFormat.format(url , zsid, logID);
+
+				HttpContext httpContext  = new HttpContext(url, "GET")
+					.setHeadersMap(HttpAPI.convertRawHeadersToMap(Files.readString(Path.of(Util.HOME_PATH.concat("/custom/payoutheaders.txt")))));
+				HttpResponse httpResponse = HttpAPI.makeNetworkCall(httpContext);
+				try
+				{
+					JSONObject jsonResponse =  new JSONObject(httpResponse.getStringResponse()).getJSONObject("httpslog");
+					if(jsonResponse.has("response_data"))
+					{
+						jsonResponse.put("response_data", new JSONObject(jsonResponse.getString("response_data")));
+					}
+					if(jsonResponse.has("request_data"))
+					{
+						jsonResponse.put("request_data", new JSONObject(jsonResponse.getString("request_data")));
+					}
+					Map data = jsonResponse.toMap();
+					SecurityUtil.writeSuccessJSONResponse(response, "success", data);
+				}
+				catch(Exception e)
+				{
+					SecurityUtil.writeSuccessJSONResponse(response, "success", new JSONObject().put("error", httpResponse.getStringResponse()).toMap());
+				}
 			}
 			else if(request.getRequestURI().equals("/api/v1/zoho/ear"))
 			{
@@ -223,7 +262,7 @@ public class ZohoAPI extends HttpServlet
 			parametersMap.put("keytoken", new String(HEX.encode(keyTokenHashedBytes)));
 		}
 
-		HttpResponse httpResponse = HttpAPI.makeNetworkCall(earURL, "POST", Map.of("Authorization", "Bearer " + accessToken), parametersMap);
+		HttpResponse httpResponse = HttpAPI.makeNetworkCall(new HttpContext(earURL, "POST").setHeadersMap(Map.of("Authorization", "Bearer " + accessToken)).setParametersMap(parametersMap));
 
 		JSONObject response = new JSONObject(httpResponse.getStringResponse());
 		return doEARDecryption(cipherText, response.getString("key"), response.getString("iv"), isSearchable);
@@ -352,7 +391,7 @@ public class ZohoAPI extends HttpServlet
 
 		zohoToken = Util.getAESDecryptedValue(zohoToken);
 		String url = ZohoAPI.getDomainUrl("accounts","/oauth/user/info","us");
-		JSONObject response = HttpAPI.makeNetworkCall(url, HttpGet.METHOD_NAME, Map.of("Authorization", "Bearer ".concat(zohoToken))).getJSONResponse();
+		JSONObject response = HttpAPI.makeNetworkCall(new HttpContext(url, HttpGet.METHOD_NAME).setHeadersMap(Map.of("Authorization", "Bearer ".concat(zohoToken)))).getJSONResponse();
 		return response.optString("Email");
 	}
 

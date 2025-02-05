@@ -36,6 +36,7 @@ import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 import com.server.framework.http.FormData;
 import com.server.framework.http.HttpAPI;
+import com.server.framework.http.HttpContext;
 import com.server.framework.http.HttpResponse;
 import com.server.framework.job.JobUtil;
 import com.server.framework.security.SecurityUtil;
@@ -217,7 +218,7 @@ public class StatsAPI extends HttpServlet
 
 	public static String connect(StatsMeta statsMeta, String connectionUrl, Map<String, String> params, JSONObject jsonBody) throws Exception
 	{
-		HttpResponse httpResponse = HttpAPI.makeNetworkCall(connectionUrl, statsMeta.getMethod(), statsMeta.getRequestHeaders(), params, jsonBody);
+		HttpResponse httpResponse = HttpAPI.makeNetworkCall(new HttpContext(connectionUrl, statsMeta.getMethod()).setHeadersMap(statsMeta.getRequestHeaders()).setParametersMap(params).setBody(jsonBody));
 		return httpResponse.getStringResponse();
 	}
 }

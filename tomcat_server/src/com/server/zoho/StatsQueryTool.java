@@ -10,6 +10,11 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -92,30 +97,7 @@ public class StatsQueryTool
 
 					try(Connection slaveConnection = SASUtil.getDBConnection(server, SASUtil.getMasterSlaveIPPair(mainClusterSlaveConnection, host).getValue(), schema, user, password))
 					{
-						StringBuilder stringBuilder = new StringBuilder();
-
-						List<Map<String, String>> outputList = executeSelect(query, slaveConnection);
-						for(Map<String, String> outputMap : outputList)
-						{
-							if(!isHeaderWritten)
-							{
-								stringBuilder.append(String.join(",", outputMap.keySet())).append(",ClusterIP,").append("SchemaName").append("\n");
-								isHeaderWritten = true;
-							}
-							if(outputMap.containsValue("<EMPTY>"))
-							{
-								break;
-							}
-							for(String value : outputMap.values())
-							{
-								stringBuilder.append("\"" + StringUtils.defaultIfEmpty(value, StringUtils.EMPTY).replaceAll("\"", "\"\"") + "\"").append(",");
-							}
-
-							stringBuilder.append(host).append(",").append(schema).append("\n");
-
-						}
-						output.print(stringBuilder);
-						output.flush();
+						executeAndWrite(query, slaveConnection, output, host, schema);
 					}
 					catch(Exception e)
 					{
@@ -148,5 +130,41 @@ public class StatsQueryTool
 		preparedStatement.execute();
 
 		return SASUtil.getQueryOutput(preparedStatement);
+	}
+
+	static void executeAndWrite(String sqlQuery, Connection connection, PrintWriter output, String host, String schema) throws SQLException
+	{
+		PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+		preparedStatement.execute();
+
+
+		ResultSet resultSet = preparedStatement.getResultSet();
+		ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+
+		StringBuilder stringBuilder = new StringBuilder();
+		for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+		{
+			stringBuilder.append(resultSetMetaData.getColumnLabel(i).toUpperCase()).append(",");
+		}
+		stringBuilder.append("ClusterIP,").append("SchemaName").append("\n");
+
+		output.print(stringBuilder);
+		output.flush();
+
+		List<Map<String, String>> queryOutput = new ArrayList<>();
+		while(resultSet.next())
+		{
+			Map<String, String> row = new LinkedHashMap<>();
+			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+			{
+				stringBuilder = new StringBuilder();
+				stringBuilder.append("\"" + StringUtils.defaultIfEmpty(resultSet.getString(i), StringUtils.EMPTY).replaceAll("\"", "\"\"") + "\"").append(",");
+				stringBuilder.append(host).append(",").append(schema).append("\n");
+
+				output.print(stringBuilder);
+				output.flush();
+			}
+			queryOutput.add(row);
+		}
 	}
 }

@@ -18,6 +18,7 @@ import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.Util;
 import com.server.framework.http.HttpAPI;
+import com.server.framework.http.HttpContext;
 
 public class ReminderTask
 {
@@ -57,7 +58,7 @@ public class ReminderTask
 			message += "\n{@" + userID + "}";
 		}
 
-		HttpAPI.makeNetworkCall("https://cliq.zoho.com/api/v2/bots/callboty/alerts", HttpPost.METHOD_NAME, Map.of("Authorization", "Bearer " + accessToken), new JSONObject().put("text", "Are your ready now? Kindly update the invitation status.").put("user_ids", pendingUsers));
+		HttpAPI.makeNetworkCall(new HttpContext("https://cliq.zoho.com/api/v2/bots/callboty/alerts", HttpPost.METHOD_NAME).setHeadersMap(Map.of("Authorization", "Bearer " + accessToken)).setBody(new JSONObject().put("text", "Are your ready now? Kindly update the invitation status.").put("user_ids", pendingUsers)));
 
 		String response = Util.postMessageToChat(CHAT_ID, message, recentActivityId, accessToken);
 		String messageID = new JSONObject(response).getString("message_id").replaceAll("%20", "_");

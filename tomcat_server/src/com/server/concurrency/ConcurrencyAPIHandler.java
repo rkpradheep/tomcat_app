@@ -46,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.framework.common.Util;
 import com.server.framework.http.FormData;
 import com.server.framework.http.HttpAPI;
+import com.server.framework.http.HttpContext;
 import com.server.framework.http.HttpResponse;
 import com.server.framework.security.SecurityUtil;
 
@@ -90,8 +91,6 @@ public class ConcurrencyAPIHandler extends HttpServlet
 
 		JSONObject headers = Objects.nonNull(Util.getJSONFromString(headersFromRequest)) ? new JSONObject(headersFromRequest) : parseChromeHeaders(headersFromRequest);
 
-		String queryString = HttpAPI.getEncodedQueryString(params.toMap());
-
 		formDataMap.remove("meta_json");
 
 		Map<String, String> headersMap = new TreeMap<>(headers.keySet().stream().collect(Collectors.toMap(key -> key, headers::getString)));
@@ -118,7 +117,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 			try
 			{
 				Map<String, String> finalHeadersMap = new HashMap<>(headersMap);
-				HttpResponse httpResponse = HttpAPI.makeNetworkCall(url, method, queryString, finalHeadersMap, getInputStream(formDataMap, finalHeadersMap), proxy);
+				HttpResponse httpResponse = HttpAPI.makeNetworkCall(new HttpContext(url, method).setHeadersMap(finalHeadersMap).setParametersMap(params.toMap()).setBody(getInputStream(formDataMap, headersMap)).setProxy(proxy));
 				StringWriter stringWriter = new StringWriter();
 				IOUtils.copy(httpResponse.getInputStream(), stringWriter);
 				JSONObject responseJSON = new JSONObject();

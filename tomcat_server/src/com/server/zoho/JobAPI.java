@@ -21,6 +21,7 @@ import com.server.framework.common.AppException;
 import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
 import com.server.framework.http.HttpAPI;
+import com.server.framework.http.HttpContext;
 import com.server.framework.http.HttpResponse;
 
 public class JobAPI
@@ -35,7 +36,7 @@ public class JobAPI
 
 	public JobAPI(String dc, String serviceId, String queueName) throws Exception
 	{
-		taskEngineUrl = ZohoAPI.getDomainUrl("taskengine", "/ScheduleServlet", dc);
+		taskEngineUrl = ZohoAPI.getDomainUrl("taskengine", Configuration.getProperty("taskengine.schedule.path"), dc);
 		queueId = getQueueId(serviceId, queueName);
 
 		headersMap = new HashMap<>();
@@ -191,7 +192,7 @@ public class JobAPI
 		headersMap.put("queue", queueName);
 		headersMap.put("service-id", serviceId);
 		headersMap.put("opr", "get-queueid-of-queue");
-		HttpResponse httpResponse = HttpAPI.makeNetworkCall(taskEngineUrl.replace("/ScheduleServlet", "/AdminServlet"), HttpPost.METHOD_NAME, headersMap);
+		HttpResponse httpResponse = HttpAPI.makeNetworkCall(new HttpContext(taskEngineUrl.replace(Configuration.getProperty("taskengine.schedule.path"), Configuration.getProperty("taskengine.admin.path")), HttpPost.METHOD_NAME).setHeadersMap(headersMap));
 		handleErrorResponse(httpResponse);
 
 		return httpResponse.getResponseHeaders().get("queue-id");

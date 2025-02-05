@@ -1,6 +1,5 @@
 package com.server.framework.http;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,11 +10,9 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,12 +20,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import org.apache.commons.codec.binary.Base64;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocketFactory;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
@@ -42,7 +40,7 @@ public class HttpAPI
 
 		return Arrays.stream(lines)
 			.filter(line -> line.contains(":") && !line.toLowerCase().contains("content-type") && !line.toLowerCase().contains("content-length"))
-			.collect(Collectors.toMap(header-> header.split(":")[0], header-> header.split(":")[1]));
+			.collect(Collectors.toMap(header -> header.split(":")[0], header -> header.split(":")[1]));
 	}
 
 	public static void copyInputStreamToOutputStream(InputStream inputStream, OutputStream outputStream) throws IOException
@@ -68,52 +66,24 @@ public class HttpAPI
 		return URLEncodedUtils.format(nameValuePairList, StandardCharsets.UTF_8);
 	}
 
-	public static InputStream getInputStreamForUrlFormEncoded(Map<String, ?> formMap)
-	{
-		return new ByteArrayInputStream(getEncodedQueryString(formMap).getBytes());
-	}
-
-	public static HttpResponse makeNetworkCall(String url, String method) throws IOException
-	{
-		return makeNetworkCall(url, method, (String) null, null, null, null);
-	}
-
-	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap) throws IOException
-	{
-		return makeNetworkCall(url, method, headersMap, null, null);
-	}
-
 	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, JSONObject jsonObject) throws IOException
 	{
-		return makeNetworkCall(url, method, headersMap, null, jsonObject);
+		return makeNetworkCall(new HttpContext(url, method).setHeadersMap(headersMap).setBody(jsonObject));
 	}
 
-	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap) throws IOException
+	public static HttpResponse makeNetworkCall(HttpContext httpContext) throws IOException
 	{
-		return makeNetworkCall(url, method, headersMap, parametersMap, null);
-	}
+		String url = httpContext.getUrl();
+		String method = httpContext.getMethod();
 
-	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap, JSONObject jsonBody) throws IOException
-	{
-		return makeNetworkCall(url, method, headersMap, parametersMap, jsonBody, null);
-	}
 
-	public static HttpResponse makeNetworkCall(String url, String method, Map<String, String> headersMap, Map<String, String> parametersMap, JSONObject jsonBody, Proxy proxy) throws IOException
-	{
-		Map<String, String> headersMapWrapper = new HashMap<>();
-		if(method.equals(HttpPost.METHOD_NAME) && Objects.nonNull(jsonBody))
-		{
-			headersMapWrapper.put("Content-Type", "application/json");
-		}
-		headersMapWrapper.putAll(ObjectUtils.defaultIfNull(headersMap, new HashMap<>()));
-		parametersMap = ObjectUtils.defaultIfNull(parametersMap, new HashMap<>());
-		List<String> queryStringList = parametersMap.entrySet().stream().map(entrySet -> entrySet.getKey().concat("=").concat(URLEncoder.encode(entrySet.getValue(), StandardCharsets.UTF_8))).collect(Collectors.toList());
+		String queryString = HttpAPI.getEncodedQueryString(httpContext.getParametersMap());
 
-		return makeNetworkCall(url, method, String.join("&", queryStringList), headersMapWrapper, Objects.nonNull(jsonBody) ? new ByteArrayInputStream(jsonBody.toString().getBytes()) : null, proxy);
-	}
+		Map<String, Object> headersMap = httpContext.getHeadersMap();
+		InputStream inputStream = httpContext.getInputStream();
+		Proxy proxy = httpContext.getProxy();
+		SSLSocketFactory sslSocketFactory = httpContext.getSslSocketFactory();
 
-	public static HttpResponse makeNetworkCall(String url, String method, String queryString, Map<String, String> headersMap, InputStream inputStream, Proxy proxy) throws IOException
-	{
 		if(StringUtils.isNotEmpty(queryString))
 		{
 			url = !StringUtils.contains(url, "?") ? url.concat("?").concat(queryString) : StringUtils.contains(url, "&") ? url.concat(queryString) : url.concat("&").concat(queryString);
@@ -122,12 +92,17 @@ public class HttpAPI
 		HttpURLConnection httpURLConnection = (HttpURLConnection) (Objects.nonNull(proxy) ? new URL(url).openConnection(proxy) : new URL(url).openConnection());
 		httpURLConnection.setRequestMethod(method);
 		httpURLConnection.setConnectTimeout(5000);
+		if(Objects.nonNull(sslSocketFactory))
+		{
+			((HttpsURLConnection) httpURLConnection).setSSLSocketFactory(sslSocketFactory);
+		}
 
 		if(Objects.nonNull(headersMap))
 		{
-			for(Map.Entry<String, String> headers : headersMap.entrySet())
+			for(Map.Entry<String, Object> headers : headersMap.entrySet())
 			{
-				httpURLConnection.setRequestProperty(headers.getKey(), StringUtils.isNotEmpty(headers.getValue()) ? headers.getValue().replaceAll("\n", StringUtils.EMPTY).trim() : null);
+				String headerValue = Objects.nonNull(headers.getValue())  ? headers.getValue().toString() : null;
+				httpURLConnection.setRequestProperty(headers.getKey(),  headerValue);
 			}
 		}
 

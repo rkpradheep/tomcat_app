@@ -55,6 +55,7 @@ import com.server.framework.common.Configuration;
 import com.server.framework.common.DateUtil;
 import com.server.framework.common.EntityType;
 import com.server.framework.common.Util;
+import com.server.framework.http.HttpContext;
 import com.server.framework.job.JobUtil;
 import com.server.framework.http.FormData;
 import com.server.framework.http.HttpAPI;
@@ -68,7 +69,7 @@ import com.server.table.constants.HTTPLOG;
 
 public class SecurityUtil
 {
-	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/((resources|css|js)/.*)|favicon.ico)", "/api/v1/jobs", "/api/v1/admin/live/logs", "/.well-known/.*", "(/dbtool.jsp|/sasstats|/api/v1/(sas|zoho)/.*)");
+	public static final List<String> SKIP_AUTHENTICATION_ENDPOINTS = Arrays.asList("/_app/health", "/api/v1/(admin/)?authenticate", "/?(manager|tomcat)?login", "(/((resources|css|js)/.*)|favicon.ico)", "/api/v1/jobs", "/payoutlogs", "/api/v1/payout/httplogs", "/api/v1/admin/live/logs", "/.well-known/.*", "(/dbtool.jsp|/sasstats|/api/v1/(sas|zoho)/.*)");
 	public static final Function<String, Boolean> IS_REST_API = requestURI -> requestURI.matches("/api/(.*)");
 	public static final Function<String, Boolean> IS_SKIP_AUTHENTICATION_ENDPOINTS = requestURI -> requestURI.matches(String.join("|", SKIP_AUTHENTICATION_ENDPOINTS));
 
@@ -539,7 +540,7 @@ public class SecurityUtil
 		{
 			String ipLookUpUrl = "https://api.ip2location.io?key=" + Configuration.getProperty("ip2location.apikey") + "&ip=" + ip;
 
-			JSONObject ipLookUpResponse = new JSONObject(HttpAPI.makeNetworkCall(ipLookUpUrl, HttpGet.METHOD_NAME, headersMap).getStringResponse());
+			JSONObject ipLookUpResponse = new JSONObject(HttpAPI.makeNetworkCall(new HttpContext(ipLookUpUrl, HttpGet.METHOD_NAME).setHeadersMap(headersMap)).getStringResponse());
 
 			if(!ipLookUpResponse.has("error"))
 			{
@@ -557,7 +558,7 @@ public class SecurityUtil
 			}
 		}
 
-		String ipLookUpStringResponse = HttpAPI.makeNetworkCall("https://ipapi.co/${IP}/json".replace("${IP}", ip), HttpGet.METHOD_NAME, headersMap).getStringResponse();
+		String ipLookUpStringResponse = HttpAPI.makeNetworkCall(new HttpContext("https://ipapi.co/${IP}/json".replace("${IP}", ip), HttpGet.METHOD_NAME).setHeadersMap(headersMap)).getStringResponse();
 		JSONObject ipLookUpResponse = isValidJSON(ipLookUpStringResponse) ? new JSONObject(ipLookUpStringResponse) : new JSONObject();
 		if(!ipLookUpResponse.has("error") && ipLookUpResponse.has("country_capital"))
 		{

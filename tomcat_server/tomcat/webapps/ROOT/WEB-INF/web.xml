@@ -136,6 +136,7 @@
 		<url-pattern>/snakegame</url-pattern>
 		<url-pattern>/stats</url-pattern>
 		<url-pattern>/sasstats</url-pattern>
+		<url-pattern>/payoutlogs</url-pattern>
 	</servlet-mapping>
 
 
@@ -293,6 +294,7 @@
 		<url-pattern>/api/v1/zoho/jobs</url-pattern>
 		<url-pattern>/api/v1/zoho/repetitions</url-pattern>
 		<url-pattern>/api/v1/zoho/auth</url-pattern>
+		<url-pattern>/api/v1/payout/httplogs</url-pattern>
 	</servlet-mapping>
 
 	<session-config>
