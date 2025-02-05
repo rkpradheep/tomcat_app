@@ -99,8 +99,9 @@ public class StatsUtil
 		{
 			params.put(key, replacePH(value, phMeta));
 			modifyJSONPayload(jsonObject, key, value, phMeta);
-
 		});
+
+		phMeta.forEach((key, value) -> modifyJSONPayload(jsonObject, key, value, phMeta));
 
 		return new ImmutableTriple<>(connectionUrl, params, jsonObject);
 	}
