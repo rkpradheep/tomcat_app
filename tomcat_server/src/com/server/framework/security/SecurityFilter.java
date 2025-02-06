@@ -27,9 +27,10 @@ import com.server.framework.user.UserUtil;
 
 public class SecurityFilter implements Filter
 {
-	static final ThreadLocal<User> CURRENT_USER_TL = new ThreadLocal<>();
-	static final ThreadLocal<HttpServletRequest> CURRENT_REQUEST_TL = new ThreadLocal<>();
-	static final ThreadLocal<ServletContext> SERVLET_CONTEXT_TL = new ThreadLocal<>();
+	static final ThreadLocal<User> CURRENT_USER_TL = new InheritableThreadLocal<>();
+	static final ThreadLocal<HttpServletRequest> CURRENT_REQUEST_TL = new InheritableThreadLocal<>();
+	static final ThreadLocal<ServletContext> SERVLET_CONTEXT_TL = new InheritableThreadLocal<>();
+	static final ThreadLocal<Boolean> DISABLE_HTTP_LOG = new InheritableThreadLocal<>();
 	private static final Logger LOGGER = Logger.getLogger(SecurityFilter.class.getName());
 
 	@Override public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException
@@ -69,7 +70,6 @@ public class SecurityFilter implements Filter
 				return;
 			}
 
-
 			CURRENT_USER_TL.set(UserUtil.getCurrentUser());
 
 			if(!isResourceURI && !requestURI.equals("/api/v1/admin/db/execute"))
@@ -98,7 +98,6 @@ public class SecurityFilter implements Filter
 				filterChain.doFilter(servletRequest, servletResponse);
 				return;
 			}
-
 
 			if(SecurityUtil.isLoggedIn())
 			{

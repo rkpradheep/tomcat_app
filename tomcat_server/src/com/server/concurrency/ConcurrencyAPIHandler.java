@@ -137,7 +137,16 @@ public class ConcurrencyAPIHandler extends HttpServlet
 		List<Runnable> runnableList = new ArrayList<>();
 		IntStream.range(0, concurrencyCalls).forEach(value -> runnableList.add(runnable));
 
-		executeAsynchronously(runnableList);
+		boolean oldDisableHttpsLog = SecurityUtil.getDisableHttpLog();
+		try
+		{
+			oldDisableHttpsLog = SecurityUtil.setDisableHttpLog(true);
+			executeAsynchronously(runnableList);
+		}
+		finally
+		{
+			SecurityUtil.setDisableHttpLog(oldDisableHttpsLog);
+		}
 
 		LOGGER.log(Level.INFO, "Response list size {0}", responseList.size());
 

@@ -379,6 +379,19 @@ public class SecurityUtil
 		}
 	}
 
+	public static boolean setDisableHttpLog(boolean disableHttpLog)
+	{
+		boolean oldValue = getDisableHttpLog();
+		SecurityFilter.DISABLE_HTTP_LOG.set(disableHttpLog);
+		return oldValue;
+	}
+
+	public static boolean getDisableHttpLog()
+	{
+		return Boolean.parseBoolean(String.valueOf(SecurityFilter.DISABLE_HTTP_LOG.get()));
+	}
+
+
 	public static void addHTTPLog() throws IOException
 	{
 		addHTTPLog(EntityType.COMMON);
@@ -438,6 +451,10 @@ public class SecurityUtil
 	{
 		try
 		{
+			if(SecurityUtil.getDisableHttpLog())
+			{
+				return null;
+			}
 			String queryString = httpLogRequest.getQueryString();
 			Map<String,String> parameterMap = StringUtils.isEmpty(queryString) ? null : Arrays.stream(queryString.split("&")).map(query-> query.split("=")).collect(Collectors.toMap(name-> name[0], value-> value[1]));
 			String parameters = Objects.nonNull(parameterMap) ? new JSONObject(parameterMap).toString() : null;
