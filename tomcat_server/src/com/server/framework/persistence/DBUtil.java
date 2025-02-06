@@ -4,17 +4,19 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 
+import com.server.framework.common.AppException;
 import com.server.framework.common.Configuration;
 
 public class DBUtil
@@ -45,9 +47,11 @@ public class DBUtil
 			basicDataSource.setPassword(Configuration.getProperty("db.server.password"));
 			basicDataSource.setMaxIdle(5);
 			basicDataSource.setMinIdle(2);
-			basicDataSource.setMaxTotal(20);
+			basicDataSource.setMaxTotal(150);
+			basicDataSource.setMaxWait(Duration.ofSeconds(5));
 			basicDataSource.setDefaultAutoCommit(false);
 			basicDataSource.setAutoCommitOnReturn(false);
+
 			basicDataSource.start();
 
 			dataSource = basicDataSource;
@@ -130,7 +134,7 @@ public class DBUtil
 
 	public static Connection getServerDBConnectionForTxn() throws Exception
 	{
-		return ObjectUtils.defaultIfNull(DataAccess.Transaction.getActiveTxnFromTL(), dataSource.getConnection());
+		return Objects.isNull(DataAccess.Transaction.getActiveTxnFromTL()) ? dataSource.getConnection() : DataAccess.Transaction.getActiveTxnFromTL();
 	}
 
 	public static void closeDataSource()

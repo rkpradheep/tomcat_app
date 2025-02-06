@@ -478,7 +478,7 @@ public class SecurityUtil
 
 			updateQuery.setValue(HTTPLOG.STATUSCODE, connection.getResponseCode());
 			InputStream inputStream = connection.getErrorStream();
-			inputStream = ObjectUtils.defaultIfNull(inputStream, connection.getInputStream());
+			inputStream = Objects.isNull(inputStream) ? connection.getInputStream():  inputStream;
 			updateQuery.setValue(HTTPLOG.RESPONSEDATA, new String(inputStream.readAllBytes()));
 			updateQuery.setValue(HTTPLOG.RESPONSEHEADERS, reponseHeadersString);
 			DataAccess.update(updateQuery);
