@@ -175,19 +175,23 @@ public class SASUtil
 		{
 			return;
 		}
-		query = query.replaceAll("\n", " ");
+		query = query.replaceAll("\n", " ").trim();
 		query = query.replaceAll("(\\.|;)$", "");
+		boolean isSelectQuery = false;
+		boolean isShowQuery = false;
 		try(Connection connection = getDBConnection(server, ip, db, user, password))
 		{
 			PreparedStatement preparedStatement;
 
 			Pattern selectQuerPattern = Pattern.compile("(?i)(select)(.*)(from)\\s+(\\w+)(.*)");
-			Matcher matcher = selectQuerPattern.matcher(query);
+			Matcher selectQueryMatcher = selectQuerPattern.matcher(query);
 			Pattern updatePattern = Pattern.compile("(?i)(Update)\\s+(\\w+)\\s+(?i)(set)(.*)\\s+(?i)(where)\\s+(.*)");
 			Matcher updateMatcher = updatePattern.matcher(query);
-			if(matcher.matches())
+			Matcher showQueryMatcher = Pattern.compile("(?i)(Show)\\s+(\\w+)").matcher(query);
+			if(selectQueryMatcher.matches())
 			{
-				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", matcher.group(4));
+				isSelectQuery = true;
+				ResultSet primaryKeys = connection.getMetaData().getPrimaryKeys(null, "jbossdb", selectQueryMatcher.group(4));
 				while(primaryKeys.next())
 				{
 					pkName = primaryKeys.getString("COLUMN_NAME");
@@ -195,7 +199,7 @@ public class SASUtil
 					{
 						Pattern allisaPattern = Pattern.compile("(?i)(select)(.*)(from)\\s+(\\w+)\\s+AS\\s+(\\w+)\\s+(.*)");
 						Matcher aliasMatcher = allisaPattern.matcher(query);
-						pkName = (aliasMatcher.matches() ? aliasMatcher.group(5) : matcher.group(4)).concat(".").concat(pkName);
+						pkName = (aliasMatcher.matches() ? aliasMatcher.group(5) : selectQueryMatcher.group(4)).concat(".").concat(pkName);
 						break;
 					}
 				}
@@ -235,6 +239,10 @@ public class SASUtil
 				{
 					throw new AppException("Update query cannot be performed as PK column with BIGINT type is not found for this table!");
 				}
+			}
+			else if(showQueryMatcher.matches())
+			{
+				isShowQuery = true;
 			}
 			else
 			{
@@ -288,7 +296,7 @@ public class SASUtil
 				preparedStatement.setObject(2, sasEndRange);
 			}
 
-			if(!query.matches("(?i)select(.*)"))
+			if(!(isSelectQuery || isShowQuery))
 			{
 				int updatedRecords = preparedStatement.executeUpdate();
 				if(updatedRecords > 1)
