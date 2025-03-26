@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -133,8 +134,38 @@ public class StatsUtil
 			}
 			else
 			{
-				jsonObject.put(key, replacePH(jsonObject.getString(key), phMeta));
+				Object value = jsonObject.get(key);
+				String modifiedValue = replacePH(value.toString(), phMeta);
+				jsonObject.put(key, stringToObject(modifiedValue, value.getClass()));
 			}
+		}
+	}
+
+	static Object stringToObject(String value, Class<?> type)
+	{
+		if(type == Integer.class)
+		{
+			return Integer.valueOf(value);
+		}
+		else if(type == Double.class)
+		{
+			return Double.valueOf(value);
+		}
+		else if(type == Float.class)
+		{
+			return Float.valueOf(value);
+		}
+		else if(type == Boolean.class)
+		{
+			return Boolean.valueOf(value);
+		}
+		else if(type == BigDecimal.class)
+		{
+			return new BigDecimal(value);
+		}
+		else
+		{
+			return value;
 		}
 	}
 
@@ -157,7 +188,8 @@ public class StatsUtil
 		}
 	}
 
-	static String getColumnValue(StatsMeta statsMeta, Map<String, String> requestData, String responseColumnName, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
+	static String getColumnValue(StatsMeta statsMeta, Map<String, String> requestData, String
+		responseColumnName, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
 	{
 		try
 		{
@@ -336,7 +368,7 @@ public class StatsUtil
 		if(Objects.nonNull(headersElement))
 		{
 			String rawHeaders = headersElement.getTextContent();
-			HttpAPI.convertRawHeadersToMap(rawHeaders).entrySet().forEach(entry-> statsMeta.addRequestHeader(entry.getKey(), entry.getValue()));
+			HttpAPI.convertRawHeadersToMap(rawHeaders).entrySet().forEach(entry -> statsMeta.addRequestHeader(entry.getKey(), entry.getValue()));
 		}
 
 		Element responseElement = (Element) getNode(configuration, "response");

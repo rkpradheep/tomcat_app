@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRegistration;
@@ -496,6 +497,7 @@ public class SecurityUtil
 			updateQuery.setValue(HTTPLOG.STATUSCODE, connection.getResponseCode());
 			InputStream inputStream = connection.getErrorStream();
 			inputStream = Objects.isNull(inputStream) ? connection.getInputStream():  inputStream;
+			inputStream = StringUtils.equals(responseHeaders.get("Content-Encoding"), "gzip") ? new GZIPInputStream(inputStream) : inputStream;
 			updateQuery.setValue(HTTPLOG.RESPONSEDATA, new String(inputStream.readAllBytes()));
 			updateQuery.setValue(HTTPLOG.RESPONSEHEADERS, reponseHeadersString);
 			DataAccess.update(updateQuery);
