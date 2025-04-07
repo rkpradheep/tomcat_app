@@ -65,7 +65,7 @@ public class JobAPI
 		serviceCredentials.put("user", user);
 		serviceCredentials.put("password", password);
 		serviceCredentials.put("zsid", "admin");
-		serviceCredentials.put("query", MessageFormat.format(Configuration.getProperty("sas.customerid.and.userid.fetch.query"),payload.getString("zsid")));
+		serviceCredentials.put("query", Configuration.getProperty("sas.customerid.and.userid.fetch.query").replace("{0}", payload.getString("zsid")));
 
 		Map output = (Map) ((List) SASHandler.handleSasRequest(serviceCredentials).get("query_output")).get(0);
 		if(StringUtils.equals((String)output.get("ID"), "<EMPTY>"))

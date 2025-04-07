@@ -418,6 +418,7 @@ function getRepetitionDetails()
                    "dc": getElementValue("taskengine_product").split("-")[1],
                    "zsid": getElementValue("dataspace_id"),
                    "customer_id": getElementValue("customer_id"),
+                    "user_id": getElementValue("user_id"),
                    "thread_pool": getElementValue("thread_pool"),
                    "operation":"get",
                    "repetition_name" : getElementValue("repetition_name"),
@@ -677,6 +678,7 @@ function deleteRepetition()
                    "dc": getElementValue("taskengine_product").split("-")[1],
                    "zsid": getElementValue("dataspace_id"),
                    "customer_id": getElementValue("customer_id"),
+                   "user_id": getElementValue("user_id"),
                    "repetition_name": getElementValue("repetition_name"),
                    "thread_pool": getElementValue("thread_pool"),
                    "operation":"delete"
