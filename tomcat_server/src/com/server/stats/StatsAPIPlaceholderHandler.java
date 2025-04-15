@@ -1,21 +1,24 @@
 package com.server.stats;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import com.server.stats.meta.StatsMeta;
+import org.apache.commons.lang3.function.TriFunction;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.server.stats.meta.StatsMeta;
+public class StatsAPIPlaceholderHandler {
+    public static Map<String, Set<String>> emailZSIDSet = new HashMap<>();
 
-public class StatsAPIPlaceholderHandler
-{
-	public static BiFunction<String, Object, String> getPayoutPlaceholderHandler()
-	{
-		return (responseColumnName, responseColumnValue) -> {
+    public static TriFunction<StatsMeta, String, Object, String> getPayoutPlaceholderHandler() {
+        return (statsMeta, responseColumnName, responseColumnValue) -> {
 
-			return "test";
+            return "test";
+
 //			JSONArray userDetails = (JSONArray) responseColumnValue;
 //			int userDetailsLength = userDetails.length();
 //
@@ -46,30 +49,37 @@ public class StatsAPIPlaceholderHandler
 //			return requestData.getJSONObject("beneMaintV2").getJSONArray("BeneList").getJSONObject(0).getString("BeneAccountNo");
 
 
+            //			if(responseColumnName.equals("ISBIIntegrated"))
+            //			{
+            //				return emailID;
+            //			}
+            //			if(responseColumnName.equals("zuid"))
+            //			{
+            //				return zuid;
+            //			}
+            //			if(responseColumnName.equals("name"))
+            //			{
+            //				return name;
+            //			}
+        };
+    }
 
-
-
-
-			//			if(responseColumnName.equals("ISBIIntegrated"))
-			//			{
-			//				return emailID;
-			//			}
-			//			if(responseColumnName.equals("zuid"))
-			//			{
-			//				return zuid;
-			//			}
-			//			if(responseColumnName.equals("name"))
-			//			{
-			//				return name;
-			//			}
-		};
-	}
-
-	public static BiFunction<String, Object, String> getBooksPlaceholderHandler()
-	{
-		return (responseColumnName, responseColumnValue) -> {
-			JSONArray custom = (JSONArray) responseColumnValue;
-			return custom.toString();
-		};
-	}
+    public static TriFunction<StatsMeta, String, Object, String> getBooksPlaceholderHandler() {
+        return (statsMeta, responseColumnName, responseColumnValue) -> {
+            JSONObject response = new JSONObject(responseColumnValue.toString());
+            JSONArray jsonArray = response.getJSONArray("organization_details");
+            String email = statsMeta.getCurrentRequestRow().get("${Col_0}");
+            String orgs = "";
+            for (int i = 0; i < jsonArray.length(); i++) {
+                orgs += jsonArray.getJSONObject(i).getString("organization_id") + ",";
+                try {
+                    statsMeta.getPlaceHolderWriter().write(email + "," + jsonArray.getJSONObject(i).getString("organization_id") + "\n");
+                    statsMeta.getPlaceHolderWriter().flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return orgs;
+        };
+    }
 }

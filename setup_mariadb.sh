@@ -46,7 +46,14 @@ sudo chmod -R +777 /opt/mariadb/
 sudo chown -R mysql:mysql $MARIADB_HOME
 cp mariadb_server.sh $MARIADB_HOME
 sudo chown mysql:mysql $MARIADB_HOME/mariadb_server.sh
-sudo apt-get --yes --force-yes install libaio1 libaio-dev libnuma-dev libncurses6 libncurses5
+
+#sudo apt-get install libaio1 libaio-dev libnuma-dev libncurses6
+
+#workaround for libaio1 not available in later version
+sudo apt-get install --yes libaio-dev libnuma-dev libncurses6
+sudo wget -P /tmp http://launchpadlibrarian.net/646633572/libaio1_0.3.113-4_amd64.deb
+sudo dpkg -i /tmp/libaio1_0.3.113-4_amd64.deb
+
 cd $MARIADB_HOME
 sudo touch my.cnf
 sudo chmod -R 644 my.cnf

@@ -7,6 +7,7 @@ trap '[ $? -eq 0 ] || echo "${RED}######### OPERATION FAILED #########${NC}"' EX
 
 echo "############## Build started ##############\n"
 
+
 if [ -z "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
     if git diff --quiet; then
       git pull origin master --rebase
@@ -22,7 +23,10 @@ export JAVA_HOME=/opt/java/zulu$JAVA_VERSION
 
 export MY_HOME=$MY_HOME
 
-sudo systemctl stop tomcat
+if [ "$1" != "auto" ]; then
+  sudo systemctl stop tomcat
+fi
+
 
 sudo rm -rf tomcat_build
 
@@ -32,6 +36,8 @@ echo "MY_HOME : ${MY_HOME}"
 
 $GRADLE setUpServer
 
-sudo systemctl start tomcat
+if [ "$1" != "auto" ]; then
+  sudo systemctl start tomcat
+fi
 
 echo "${GREEN}############## Build completed ##############${NC}\n"

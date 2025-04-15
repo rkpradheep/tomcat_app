@@ -1,5 +1,7 @@
 package com.server.stats.meta;
 
+import org.apache.commons.lang3.function.TriFunction;
+
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -17,10 +19,11 @@ public class StatsMeta
 	private final Map<String, String> requestHeaders = new HashMap<>();
 	private int requestBatchSize;
 	private int requestIntervalSeconds;
-	private BiFunction<String,Object,String> placeholderHandlerFunction;
+	private TriFunction<StatsMeta, String,Object,String> placeholderHandlerFunction;
 	private AtomicInteger requestCount = new AtomicInteger(0);
 	private PrintWriter responseWriter;
 	private FileWriter rawResponseWriter;
+	private FileWriter placeHolderWriter;
 	private String requestFilePath;
 	private Reader  requestDataReader;
 	private String responseFilePath;
@@ -30,6 +33,7 @@ public class StatsMeta
 	private boolean isTest;
 	private boolean skipFirstRow;
 	private boolean disableParallelCalls;
+	private Map<String, String> currentRequestRow;
 
 
 	public String getMethod()
@@ -78,12 +82,22 @@ public class StatsMeta
 		this.requestIntervalSeconds = requestIntervalSeconds;
 	}
 
-	public BiFunction<String,Object, String> getPlaceholderHandlerFunction()
+	public void setCurrentRequestRow(Map<String, String> currentRequestRow)
+	{
+		this.currentRequestRow = currentRequestRow;
+	}
+
+	public Map<String, String> getCurrentRequestRow()
+	{
+		return currentRequestRow;
+	}
+
+	public TriFunction<StatsMeta, String,Object, String> getPlaceholderHandlerFunction()
 	{
 		return placeholderHandlerFunction;
 	}
 
-	public void setPlaceholderHandlerFunction(BiFunction<String,Object,String> placeholderHandlerFunction)
+	public void setPlaceholderHandlerFunction(TriFunction<StatsMeta, String,Object,String> placeholderHandlerFunction)
 	{
 		this.placeholderHandlerFunction = placeholderHandlerFunction;
 	}
@@ -184,9 +198,19 @@ public class StatsMeta
 		return rawResponseWriter;
 	}
 
+	public FileWriter getPlaceHolderWriter()
+	{
+		return placeHolderWriter;
+	}
+
 	public void setRawResponseWriter(FileWriter rawResponseWriter)
 	{
 		this.rawResponseWriter = rawResponseWriter;
+	}
+
+	public void setPlaceHolderWriter(FileWriter placeHolderWriter)
+	{
+		this.placeHolderWriter = placeHolderWriter;
 	}
 
 	public String getRequestId()

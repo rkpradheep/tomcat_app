@@ -25,6 +25,7 @@ import javax.xml.validation.Validator;
 
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.function.TriFunction;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.json.JSONArray;
@@ -82,7 +83,7 @@ public class StatsUtil
 		return statsMeta.getRequestMeta().getRequestRowList();
 	}
 
-	static ImmutableTriple<String, Map<String, String>, JSONObject> handlePlaceholder(StatsMeta statsMeta, Map<String, String> requestDataRow, int requestCount)
+	static ImmutableTriple<String, Map<String, String>, JSONObject> handlePlaceholder(StatsMeta statsMeta, int requestCount)
 	{
 		String connectionUrl = statsMeta.getRequestMeta().getConnectionUrl();
 		Map<String, String> params = new HashMap<>();
@@ -93,7 +94,7 @@ public class StatsUtil
 		phMeta.put("${RequestNo}", requestCount + "");
 		phMeta.put("${CurrentTime}", currentTime + "");
 
-		phMeta.putAll(requestDataRow);
+		phMeta.putAll(statsMeta.getCurrentRequestRow());
 
 		connectionUrl = replacePH(connectionUrl, phMeta);
 		statsMeta.getRequestMeta().getParamsMap().forEach((key, value) ->
@@ -188,8 +189,7 @@ public class StatsUtil
 		}
 	}
 
-	static String getColumnValue(StatsMeta statsMeta, Map<String, String> requestData, String
-		responseColumnName, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
+	static String getColumnValue(StatsMeta statsMeta, String responseColumnName, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
 	{
 		try
 		{
@@ -213,7 +213,7 @@ public class StatsUtil
 			}
 			else if(columnPHMatcher.matches())
 			{
-				columnValue = requestData.get(responseColumnValue);
+				columnValue = statsMeta.getCurrentRequestRow().get(responseColumnValue);
 			}
 			else if(jsonPHMatcher.matches())
 			{
@@ -231,7 +231,7 @@ public class StatsUtil
 					columnValue = getJSONPHValue(responseJSON, responseColumnValue);
 				}
 			}
-			return statsMeta.isPHResponseColumn(responseColumnName) ? statsMeta.getPlaceholderHandlerFunction().apply(responseColumnName, columnValue) : String.valueOf(columnValue);
+			return statsMeta.isPHResponseColumn(responseColumnName) ? statsMeta.getPlaceholderHandlerFunction().apply(statsMeta, responseColumnName, columnValue) : String.valueOf(columnValue);
 		}
 		catch(Exception e)
 		{
@@ -327,7 +327,7 @@ public class StatsUtil
 		Node processResponseHandlerMethodNode = getNode(configuration, "placeholder-handler");
 		String processResponseHandlerMethod = getTextContent(processResponseHandlerMethodNode);
 		processResponseHandlerMethod = StringUtils.defaultIfEmpty(processResponseHandlerMethod, StringUtils.EMPTY).trim();
-		BiFunction<String, Object, String> placeholderHandlerFunction = StringUtils.isEmpty(processResponseHandlerMethod) ? null : (BiFunction<String, Object, String>) Class.forName("com.server.stats.StatsAPIPlaceholderHandler").getDeclaredMethod(processResponseHandlerMethod).invoke(null);
+		TriFunction<StatsMeta, String, Object, String> placeholderHandlerFunction = StringUtils.isEmpty(processResponseHandlerMethod) ? null : (TriFunction<StatsMeta, String, Object, String>) Class.forName("com.server.stats.StatsAPIPlaceholderHandler").getDeclaredMethod(processResponseHandlerMethod).invoke(null);
 		Node isTestNode = getNode(configuration, "is-test");
 		boolean isTest = Objects.nonNull(isTestNode) && Boolean.parseBoolean(isTestNode.getTextContent());
 		Node skipFirstRowNode = getNode(configuration, "skip-first-request-data-row");

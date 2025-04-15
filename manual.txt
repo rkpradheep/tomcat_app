@@ -43,6 +43,12 @@ sudo usermod -aG docker $USER
 su - $USER
 
 
+For Docker/Podman
+
+sudo socat TCP-LISTEN:1081,fork TCP:127.0.0.1:1080 &
+sudo socat TCP-LISTEN:3127,fork TCP:127.0.0.1:3128 &
+
+
 
 To generate self signed certificate
 

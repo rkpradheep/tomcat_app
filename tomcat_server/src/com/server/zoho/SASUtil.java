@@ -106,19 +106,19 @@ public class SASUtil
 			else
 			{
 				Class.forName("org.postgresql.Driver");
-				conn = DriverManager.getConnection(MessageFormat.format("jdbc:postgresql://{0}:5432/sasdb?currentSchema={1}&connectTimeout=5000&useSSL=false", ip, db), user, password);
+				conn = DriverManager.getConnection(MessageFormat.format("jdbc:postgresql://{0}:5432/sasdb?currentSchema={1}&connectTimeout=5&useSSL=false", ip, db), user, password);
 			}
 			conn.setAutoCommit(false);
 			return conn;
 		}
 		catch(Exception e)
 		{
-			CONNECTION_RETRY_ATTEMPT.set(CONNECTION_RETRY_ATTEMPT.get() + 1);
-			if(CONNECTION_RETRY_ATTEMPT.get() <= 3)
-			{
-				TimeUnit.SECONDS.sleep(2);
-				return getDBConnection(server, ip, db, user, password);
-			}
+//			CONNECTION_RETRY_ATTEMPT.set(CONNECTION_RETRY_ATTEMPT.get() + 1);
+//			if(CONNECTION_RETRY_ATTEMPT.get() <= 3)
+//			{
+//				TimeUnit.SECONDS.sleep(2);
+//				return getDBConnection(server, ip, db, user, password);
+//			}
 			throw e;
 		}
 		finally

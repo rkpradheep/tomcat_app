@@ -28,8 +28,9 @@ else
   sh setup_mariadb.sh
 fi
 
-sh setup_services.sh
 
-sh build.sh
-
-sudo systemcl enable tomcat
+if [ "$1" != "auto" ]; then
+  sh setup_services.sh
+  sh build.sh $1
+  sudo systemcl enable tomcat
+fi

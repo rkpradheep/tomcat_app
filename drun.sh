@@ -1,16 +1,23 @@
-docker build -t tomcat-app .
+podman rm --force tomcat_app
 
-docker rm --force tomcat_app
-#
-docker run -d -t -p 8093:3128 -p 8091:443 -p 8090:80 -p 8092:8002 --name tomcat_app tomcat-app:latest /bin/bash
+podman run -d -t -p 443:443 -p 80:80 -p 8002:8002 --name tomcat_app tomcat-app:latest /bin/bash
 
-docker cp ./custom/remotecustom.properties tomcat_app:/MyHome/custom/custom.properties
 
-#docker exec tomcat_app sed -i 's/db.server.ip = 127.0.0.1/db.server.ip = /' ./app.properties >> ./app.properties
+podman cp ./custom/ tomcat_app:/MyHome
 
-docker exec tomcat_app sh build.sh
+podman exec tomcat_app sed -i 's/proxyHost=localhost/proxyHost=host.docker.internal/g' ./custom/custom.properties
+podman exec tomcat_app sed -i 's/socksProxyHost=localhost/socksProxyHost=host.docker.internal/g' ./custom/custom.properties
+podman exec tomcat_app sed -i 's/3128/3127/g' ./custom/custom.properties
+podman exec tomcat_app sed -i 's/1080/1081/g' ./custom/custom.properties
 
-docker exec tomcat_app systemctl start mariadb
-docker exec tomcat_app systemctl start tomcat
+podman exec tomcat_app sh /opt/mysql/mysql-8.3.0-linux-glibc2.28-x86_64/mysql_server.sh stop
 
-docker exec -it tomcat_app /bin/bash
+podman exec tomcat_app sh /opt/mysql/mysql-8.3.0-linux-glibc2.28-x86_64/mysql_server.sh start
+
+podman exec tomcat_app sh build.sh auto
+
+podman exec tomcat_app sh /MyHome/tomcat_build/bin/shutdown.sh
+
+podman exec tomcat_app sh /MyHome/tomcat_build/run.sh
+
+podman exec -it tomcat_app /bin/bash

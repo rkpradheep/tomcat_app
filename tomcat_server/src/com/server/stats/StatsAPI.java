@@ -86,6 +86,7 @@ public class StatsAPI extends HttpServlet
 			StatsMeta statsMeta = StatsUtil.getStatsMeta(new ByteArrayInputStream(configurationFileBytes), requestDataReader, SecurityUtil.getUploadsPath() + "/" + reqId + ".csv");
 			statsMeta.setRequestId(reqId);
 			statsMeta.setRawResponseWriter(new FileWriter(SecurityUtil.getUploadsPath() + "/" + "RawResponse_" + reqId + ".txt"));
+			statsMeta.setPlaceHolderWriter(new FileWriter(SecurityUtil.getUploadsPath() + "/" + "PlaceHolder_" + reqId + ".csv"));
 			RUNNING_STATS.add(reqId);
 
 			JobUtil.scheduleJob(() -> startStats(statsMeta), 1);
@@ -129,7 +130,8 @@ public class StatsAPI extends HttpServlet
 					requestCount++;
 
 					int currentRequestNo = statsMeta.getRequestCount();
-					runnableList.add(() -> makeCall(statsMeta, requestDataRow, currentRequestNo));
+					statsMeta.setCurrentRequestRow(requestDataRow);
+					runnableList.add(() -> makeCall(statsMeta, currentRequestNo));
 
 					if(requestCount >= statsMeta.getRequestBatchSize() || statsMeta.getRequestCount() >= requestRowList.size())
 					{
@@ -176,18 +178,19 @@ public class StatsAPI extends HttpServlet
 
 			statsMeta.getRawResponseWriter().close();
 			statsMeta.getResponseWriter().close();
+			statsMeta.getPlaceHolderWriter().close();
 		}
 	}
 
-	static void makeCall(StatsMeta statsMeta, Map<String, String> requestData, int requestCount)
+	static void makeCall(StatsMeta statsMeta, int requestCount)
 	{
 		try
 		{
-			ImmutableTriple<String, Map<String, String>, JSONObject> placeHolderTriple = StatsUtil.handlePlaceholder(statsMeta, requestData, requestCount);
+			ImmutableTriple<String, Map<String, String>, JSONObject> placeHolderTriple = StatsUtil.handlePlaceholder(statsMeta, requestCount);
 
 			String response = connect(statsMeta, placeHolderTriple.getLeft(), placeHolderTriple.getMiddle(), placeHolderTriple.getRight());
 
-			handleResponse(statsMeta, requestData, placeHolderTriple, response, requestCount);
+			handleResponse(statsMeta, placeHolderTriple, response, requestCount);
 		}
 		catch(Exception e)
 		{
@@ -195,13 +198,13 @@ public class StatsAPI extends HttpServlet
 		}
 	}
 
-	static void handleResponse(StatsMeta statsMeta, Map<String, String> requestData, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
+	static void handleResponse(StatsMeta statsMeta, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
 		throws Exception
 	{
 		StringBuilder rowBuilder = new StringBuilder();
 		for(String responseColumnName : statsMeta.getResponseColumnNames())
 		{
-			String columnVale = StatsUtil.getColumnValue(statsMeta, requestData, responseColumnName, placeHolderTriple, response, requestCount);
+			String columnVale = StatsUtil.getColumnValue(statsMeta, responseColumnName, placeHolderTriple, response, requestCount);
 			rowBuilder.append(StringUtils.contains(columnVale, ",") ? "\"" + columnVale + "\"" : columnVale).append(",");
 		}
 		synchronized(statsMeta.getResponseWriter())

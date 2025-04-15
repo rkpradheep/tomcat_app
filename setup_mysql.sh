@@ -46,9 +46,14 @@ sudo chmod -R +777 /opt/mysql/
 sudo chown -R mysql:mysql $MYSQL_HOME
 sudo cp mysql_server.sh $MYSQL_HOME
 sudo chown mysql:mysql $MYSQL_HOME/mysql_server.sh
-sudo apt-get install libaio1 libaio-dev libnuma-dev libncurses6
-#workaround for libaio1 not availalbe in later version : curl -O http://launchpadlibrarian.net/646633572/libaio1_0.3.113-4_amd64.deb ; sudo dpkg -i libaio1_0.3.113-4_amd64.deb
-#sudo apt-get install libaio-dev libnuma-dev libncurses6
+
+#sudo apt-get install libaio1 libaio-dev libnuma-dev libncurses6
+
+#workaround for libaio1 not available in later version
+sudo apt-get install --yes libaio-dev libnuma-dev libncurses6
+sudo wget -P /tmp http://launchpadlibrarian.net/646633572/libaio1_0.3.113-4_amd64.deb
+sudo dpkg -i /tmp/libaio1_0.3.113-4_amd64.deb
+
 cd $MYSQL_HOME
 sudo touch my.cnf
 sudo chmod -R 644 my.cnf
@@ -68,11 +73,9 @@ sudo ./bin/mysqld --defaults-file=${MYSQL_HOME}/my.cnf --initialize  --user=mysq
 sudo cp $MY_HOME/mysql_init_command.txt $MYSQL_HOME/data
 sudo sh ./mysql_server.sh init
 
-echo "Please enter the password as root if prompted to start and init the mysql"
-sudo ./bin/mysql --defaults-file=$MYSQL_HOME/my.cnf -u root -p < $MY_HOME/dd-changes.sql
+sudo ./bin/mysql --defaults-file=$MYSQL_HOME/my.cnf -u root -proot < $MY_HOME/dd-changes.sql
 
-echo "Enter password below to stop the mysql for now"
-sudo ./bin/mysqladmin --defaults-file=${MYSQL_HOME}/my.cnf --user=root -p shutdown
+sudo ./bin/mysqladmin --defaults-file=${MYSQL_HOME}/my.cnf --user=root -proot shutdown
 
 sudo rm -rf /tmp/mysql-${MYSQL_VERSION}.tar.xz
 
