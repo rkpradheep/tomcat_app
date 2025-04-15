@@ -19,7 +19,7 @@ if [ "$AUTO_MODE" = "false" ]; then
 fi
 
 echo "############## Java setup started ##############\n"
-
+sudo mkdir -p /opt/java
 sudo chmod -R +777 /opt/java
 sudo rm -rf /opt/java/zulu${JAVA_VERSION}
 

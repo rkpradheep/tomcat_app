@@ -33,9 +33,10 @@ if ! $(grep -q mysql /etc/passwd) ; then
     echo "Adding mysql user"
     sudo useradd mysql
 fi
-
+sudo mkdir -p /opt/mariadb
 sudo rm -rf /opt/mariadb/mariadb-${MARIADB_VERSION}
-sudo wget -P /tmp https://mariadb.in.ssimn.org/mariadb-${MARIADB_VERSION_ONLY}/bintar-linux-systemd-x86_64/mariadb-${MARIADB_VERSION}.tar.gz
+#sudo wget -P /tmp https://mariadb.in.ssimn.org/mariadb-${MARIADB_VERSION_ONLY}/bintar-linux-systemd-x86_64/mariadb-${MARIADB_VERSION}.tar.gz
+sudo wget -P /tmp https://dlm.mariadb.com/3906741/MariaDB/mariadb-${MARIADB_VERSION_ONLY}/bintar-linux-systemd-x86_64/mariadb-${MARIADB_VERSION}.tar.gz
 if ! [ -d "/opt/mariadb" ]; then
   sudo mkdir /opt/mariadb
 fi

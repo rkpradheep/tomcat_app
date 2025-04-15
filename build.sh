@@ -26,6 +26,10 @@ sudo systemctl stop tomcat
 
 sudo rm -rf tomcat_build
 
+echo "JAVA_HOME : ${JAVA_HOME}"
+echo "GRADLE : ${GRADLE}"
+echo "MY_HOME : ${MY_HOME}"
+
 $GRADLE setUpServer
 
 sudo systemctl start tomcat

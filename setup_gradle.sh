@@ -21,6 +21,7 @@ fi
 
 echo "############## Gradle setup started ##############\n"
 
+sudo mkdir -p /opt/gradle
 sudo rm -rf /opt/gradle/gradle-${GRADLE_VERSION}
 sudo chmod -R +777 /opt/gradle
 echo "############## Downloading Gradle ${GRADLE_VERSION} ##############\n"

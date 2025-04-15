@@ -20,3 +20,5 @@ export GREEN='\033[0;32m'
 export NC='\033[0m'
 
 export TOMCAT_VERSION="10.1.23"
+
+export DB_SERVER="mysql"

@@ -9,7 +9,7 @@ trap '[ $? -eq 0 ] || echo "${RED}######### MYSQL SETUP FAILED #########${NC}"' 
 ########### MYSQL SETUP START ##############
 
 if [ "$AUTO_MODE" = "false" ]; then
-  echo "Do you want to setup JAVA? (yes/no)"
+  echo "Do you want to setup MYSQL? (yes/no)"
   read consent
 
   if ! [ "$consent" = "yes" ]; then
@@ -33,20 +33,25 @@ if ! $(grep -q mysql /etc/passwd) ; then
     echo "Adding mysql user"
     sudo useradd mysql
 fi
+sudo mkdir -p /opt/mysql
 sudo rm -rf /opt/mysql/mysql-${MYSQL_VERSION}
 sudo wget -P /tmp https://dev.mysql.com/get/Downloads/MySQL-8.3/mysql-${MYSQL_VERSION}.tar.xz
-sudo chmod -R 777 /opt/mysql
 if ! [ -d "/opt/mysql" ]; then
   sudo mkdir /opt/mysql
 fi
+sudo chmod -R 777 /opt/mysql
 sudo tar -xvf /tmp/mysql-${MYSQL_VERSION}.tar.xz --directory /opt/mysql
 MYSQL_HOME=/opt/mysql/mysql-${MYSQL_VERSION}
+sudo chmod -R +777 /opt/mysql/
 sudo chown -R mysql:mysql $MYSQL_HOME
-cp mysql_server.sh $MYSQL_HOME
+sudo cp mysql_server.sh $MYSQL_HOME
 sudo chown mysql:mysql $MYSQL_HOME/mysql_server.sh
 sudo apt-get install libaio1 libaio-dev libnuma-dev libncurses6
+#workaround for libaio1 not availalbe in later version : curl -O http://launchpadlibrarian.net/646633572/libaio1_0.3.113-4_amd64.deb ; sudo dpkg -i libaio1_0.3.113-4_amd64.deb
+#sudo apt-get install libaio-dev libnuma-dev libncurses6
 cd $MYSQL_HOME
 sudo touch my.cnf
+sudo chmod -R 644 my.cnf
 sudo sh -c "echo > my.cnf"
 sudo sh -c "echo [client] >> my.cnf"
 sudo sh -c "echo socket=${MYSQL_HOME}/data/mysql.sock >> my.cnf"
