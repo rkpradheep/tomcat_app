@@ -83,6 +83,16 @@ public class SecurityUtil
 		return endPoint.matches("(/(((resources|css|js)/.*)|favicon.ico))");
 	}
 
+
+    public static boolean isRequestFromLoopBackAddress()
+    {
+        try {
+            return InetAddress.getByName(getCurrentRequest().getRemoteAddr()).isLoopbackAddress();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 	public static String getUploadsPath()
 	{
 		return Util.HOME_PATH + "/tomcat_build/webapps/ROOT/uploads";

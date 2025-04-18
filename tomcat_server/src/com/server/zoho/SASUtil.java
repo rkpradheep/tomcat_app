@@ -106,7 +106,7 @@ public class SASUtil
 			else
 			{
 				Class.forName("org.postgresql.Driver");
-				conn = DriverManager.getConnection(MessageFormat.format("jdbc:postgresql://{0}:5432/sasdb?currentSchema={1}&connectTimeout=5&useSSL=false", ip, db), user, password);
+				conn = DriverManager.getConnection(MessageFormat.format("jdbc:postgresql://{0}:5432/sasdb?currentSchema={1}&connectTimeout=20&useSSL=false", ip, db), user, password);
 			}
 			conn.setAutoCommit(false);
 			return conn;

@@ -1,5 +1,6 @@
 package com.server.framework.security;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +45,10 @@ public class ThrottleHandler
 
 	static boolean handleThrottling(HttpServletRequest request)
 	{
+		if(SecurityUtil.isRequestFromLoopBackAddress())
+		{
+			return true;
+		}
 		synchronized(ipLockTimeMap)
 		{
 			String ip = SecurityUtil.getOriginatingUserIP();
