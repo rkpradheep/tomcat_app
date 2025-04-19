@@ -47,9 +47,11 @@ public class InstrumentationUtil implements ClassFileTransformer
 			endBlock.append("endTime = com.server.framework.common.DateUtil.getCurrentTimeInMillis();");
 
 			endBlock.append("jakarta.servlet.http.HttpServletRequest httpServletRequest = ((jakarta.servlet.http.HttpServletRequest) servletRequest);");
+			endBlock.append("jakarta.servlet.http.HttpServletResponse httpServletResponse = ((jakarta.servlet.http.HttpServletResponse) servletResponse);");
 			endBlock.append("String requestURI = httpServletRequest.getRequestURI().replaceFirst(httpServletRequest.getContextPath(), \"\");");
-			endBlock.append("if(!com.server.framework.security.SecurityUtil.isResourceUri($1.getServletContext(), requestURI))");
-			endBlock.append("LOGGER.info(\"Request completed in " + "\" + (endTime-startTime)/1000f + \" seconds\");");
+			endBlock.append("if(!com.server.framework.security.SecurityUtil.isResourceUri($1.getServletContext(), requestURI)){");
+			endBlock.append("httpServletResponse.setHeader(\"TOTAL-TIME-TAKEN\", String.valueOf((endTime-startTime)/1000f) + \" second(s)\");");
+			endBlock.append("LOGGER.info(\"Request completed in " + "\" + (endTime-startTime)/1000f + \" second(s)\");}");
 
 			m.insertAfter(endBlock.toString());
 
