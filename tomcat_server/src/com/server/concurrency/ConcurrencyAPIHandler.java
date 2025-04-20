@@ -117,7 +117,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 			try
 			{
 				Map<String, String> finalHeadersMap = new HashMap<>(headersMap);
-				HttpResponse httpResponse = HttpAPI.makeNetworkCall(new HttpContext(url, method).setHeadersMap(finalHeadersMap).setParametersMap(params.toMap()).setBody(getInputStream(formDataMap, headersMap)).setProxy(proxy));
+				HttpResponse httpResponse = HttpAPI.makeNetworkCall(new HttpContext(url, method).setParametersMap(params.toMap()).setBody(getInputStream(formDataMap, finalHeadersMap)).setHeadersMap(finalHeadersMap).setProxy(proxy));
 				StringWriter stringWriter = new StringWriter();
 				IOUtils.copy(httpResponse.getInputStream(), stringWriter);
 				JSONObject responseJSON = new JSONObject();
@@ -195,7 +195,7 @@ public class ConcurrencyAPIHandler extends HttpServlet
 			return new ByteArrayInputStream(HttpAPI.getEncodedQueryString(new JSONObject(formUrlEncodedJSONString).toMap()).getBytes());
 		}
 
-		if(formDataMap.size() < 1)
+		if(formDataMap.isEmpty())
 		{
 			return null;
 		}
