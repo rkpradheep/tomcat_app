@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class StatsMeta
 {
@@ -19,13 +20,13 @@ public class StatsMeta
 	private final Map<String, String> requestHeaders = new HashMap<>();
 	private int requestBatchSize;
 	private int requestIntervalSeconds;
-	private TriFunction<StatsMeta, String,Object,String> placeholderHandlerFunction;
+	private Function<PlaceHolderMeta, String> placeholderHandlerFunction;
 	private AtomicInteger requestCount = new AtomicInteger(0);
 	private PrintWriter responseWriter;
 	private FileWriter rawResponseWriter;
 	private FileWriter placeHolderWriter;
 	private String requestFilePath;
-	private Reader  requestDataReader;
+	private Reader requestDataReader;
 	private String responseFilePath;
 	private RequestMeta requestMeta;
 	private String responseHeaders;
@@ -33,8 +34,6 @@ public class StatsMeta
 	private boolean isTest;
 	private boolean skipFirstRow;
 	private boolean disableParallelCalls;
-	private Map<String, String> currentRequestRow;
-
 
 	public String getMethod()
 	{
@@ -51,13 +50,12 @@ public class StatsMeta
 		return params;
 	}
 
-
 	public void addRequestHeader(String headerName, String headerValue)
 	{
 		requestHeaders.put(headerName, headerValue);
 	}
 
-	public Map<String,String> getRequestHeaders()
+	public Map<String, String> getRequestHeaders()
 	{
 		return requestHeaders;
 	}
@@ -82,22 +80,12 @@ public class StatsMeta
 		this.requestIntervalSeconds = requestIntervalSeconds;
 	}
 
-	public void setCurrentRequestRow(Map<String, String> currentRequestRow)
-	{
-		this.currentRequestRow = currentRequestRow;
-	}
-
-	public Map<String, String> getCurrentRequestRow()
-	{
-		return currentRequestRow;
-	}
-
-	public TriFunction<StatsMeta, String,Object, String> getPlaceholderHandlerFunction()
+	public Function<PlaceHolderMeta, String> getPlaceholderHandlerFunction()
 	{
 		return placeholderHandlerFunction;
 	}
 
-	public void setPlaceholderHandlerFunction(TriFunction<StatsMeta, String,Object,String> placeholderHandlerFunction)
+	public void setPlaceholderHandlerFunction(Function<PlaceHolderMeta, String> placeholderHandlerFunction)
 	{
 		this.placeholderHandlerFunction = placeholderHandlerFunction;
 	}
@@ -121,7 +109,6 @@ public class StatsMeta
 	{
 		this.responseWriter = responseWriter;
 	}
-
 
 	public String getResponseFilePath()
 	{

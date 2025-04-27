@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
+import com.server.stats.meta.PlaceHolderMeta;
 import com.server.stats.meta.StatsMeta;
 import org.apache.commons.lang3.function.TriFunction;
 import org.json.JSONArray;
@@ -14,12 +16,12 @@ import org.json.JSONObject;
 public class StatsAPIPlaceholderHandler {
     public static Map<String, Set<String>> emailZSIDSet = new HashMap<>();
 
-    public static TriFunction<StatsMeta, String, Object, String> getPayoutPlaceholderHandler() {
-        return (statsMeta, responseColumnName, responseColumnValue) -> {
+    public static Function<PlaceHolderMeta, String> getPayoutPlaceholderHandler() {
+        return (placeholderHandlerMeta) -> {
 
             return "test";
 
-//			JSONArray userDetails = (JSONArray) responseColumnValue;
+			//			JSONArray userDetails = (JSONArray) responseColumnValue;
 //			int userDetailsLength = userDetails.length();
 //
 //			String emailID = null;
@@ -64,17 +66,17 @@ public class StatsAPIPlaceholderHandler {
         };
     }
 
-    public static TriFunction<StatsMeta, String, Object, String> getBooksPlaceholderHandler() {
-        return (statsMeta, responseColumnName, responseColumnValue) -> {
-            JSONObject response = new JSONObject(responseColumnValue.toString());
+    public static Function<PlaceHolderMeta, String> getBooksPlaceholderHandler() {
+        return (placeholderHandlerMeta) -> {
+            JSONObject response = new JSONObject(placeholderHandlerMeta.getColumnValue().toString());
             JSONArray jsonArray = response.getJSONArray("organization_details");
-            String email = statsMeta.getCurrentRequestRow().get("${Col_0}");
+            String email = placeholderHandlerMeta.getRequestDataRow().get("${Col_0}");
             String orgs = "";
             for (int i = 0; i < jsonArray.length(); i++) {
                 orgs += jsonArray.getJSONObject(i).getString("organization_id") + ",";
                 try {
-                    statsMeta.getPlaceHolderWriter().write(email + "," + jsonArray.getJSONObject(i).getString("organization_id") + "\n");
-                    statsMeta.getPlaceHolderWriter().flush();
+                    placeholderHandlerMeta.getStatsMeta().getPlaceHolderWriter().write(email + "," + jsonArray.getJSONObject(i).getString("organization_id") + "\n");
+                    placeholderHandlerMeta.getStatsMeta().getPlaceHolderWriter().flush();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

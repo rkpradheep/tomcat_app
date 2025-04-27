@@ -130,8 +130,7 @@ public class StatsAPI extends HttpServlet
 					requestCount++;
 
 					int currentRequestNo = statsMeta.getRequestCount();
-					statsMeta.setCurrentRequestRow(requestDataRow);
-					runnableList.add(() -> makeCall(statsMeta, currentRequestNo));
+					runnableList.add(() -> makeCall(statsMeta, currentRequestNo, requestDataRow));
 
 					if(requestCount >= statsMeta.getRequestBatchSize() || statsMeta.getRequestCount() >= requestRowList.size())
 					{
@@ -182,15 +181,15 @@ public class StatsAPI extends HttpServlet
 		}
 	}
 
-	static void makeCall(StatsMeta statsMeta, int requestCount)
+	static void makeCall(StatsMeta statsMeta, int requestCount, Map<String, String> requestDataRow)
 	{
 		try
 		{
-			ImmutableTriple<String, Map<String, String>, JSONObject> placeHolderTriple = StatsUtil.handlePlaceholder(statsMeta, requestCount);
+			ImmutableTriple<String, Map<String, String>, JSONObject> placeHolderTriple = StatsUtil.handlePlaceholder(statsMeta, requestCount, requestDataRow);
 
 			String response = connect(statsMeta, placeHolderTriple.getLeft(), placeHolderTriple.getMiddle(), placeHolderTriple.getRight());
 
-			handleResponse(statsMeta, placeHolderTriple, response, requestCount);
+			handleResponse(statsMeta, placeHolderTriple, response, requestCount, requestDataRow);
 		}
 		catch(Exception e)
 		{
@@ -198,13 +197,13 @@ public class StatsAPI extends HttpServlet
 		}
 	}
 
-	static void handleResponse(StatsMeta statsMeta, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
+	static void handleResponse(StatsMeta statsMeta, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount, Map<String, String> requestDataRow)
 		throws Exception
 	{
 		StringBuilder rowBuilder = new StringBuilder();
 		for(String responseColumnName : statsMeta.getResponseColumnNames())
 		{
-			String columnVale = StatsUtil.getColumnValue(statsMeta, responseColumnName, placeHolderTriple, response, requestCount);
+			String columnVale = StatsUtil.getColumnValue(statsMeta, responseColumnName, placeHolderTriple, response, requestCount, requestDataRow);
 			rowBuilder.append(StringUtils.contains(columnVale, ",") ? "\"" + columnVale + "\"" : columnVale).append(",");
 		}
 		synchronized(statsMeta.getResponseWriter())

@@ -98,7 +98,8 @@ public class StatsQueryTool
 
 					try(Connection slaveConnection = SASUtil.getDBConnection(server, SASUtil.getMasterSlaveIPPair(mainClusterSlaveConnection, host).getValue(), schema, user, password))
 					{
-						executeAndWrite(query, slaveConnection, output, host, schema);
+						executeAndWrite(query, slaveConnection, output, host, schema, isHeaderWritten);
+						isHeaderWritten = true;
 					}
 					catch(Exception e)
 					{
@@ -112,8 +113,8 @@ public class StatsQueryTool
 			finally
 			{
 				File destFile = new File(file.getAbsolutePath().replace("_inprocess", ""));
-				file.renameTo(destFile);
 				IOUtils.copy(new FileInputStream(destFile), new FileOutputStream(Util.HOME_PATH + "/uploads/" + destFile.getName()));
+				file.renameTo(destFile);
 				if(output != null)
 				{
 					output.close();
@@ -133,39 +134,39 @@ public class StatsQueryTool
 		return SASUtil.getQueryOutput(preparedStatement);
 	}
 
-	static void executeAndWrite(String sqlQuery, Connection connection, PrintWriter output, String host, String schema) throws SQLException
+	static void executeAndWrite(String sqlQuery, Connection connection, PrintWriter output, String host, String schema, boolean isHeaderWritten) throws SQLException
 	{
 		PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
 		preparedStatement.execute();
 
+		StringBuilder stringBuilder = new StringBuilder();
 
 		ResultSet resultSet = preparedStatement.getResultSet();
 		ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 
-		StringBuilder stringBuilder = new StringBuilder();
-		for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+		if(!isHeaderWritten)
 		{
-			stringBuilder.append(resultSetMetaData.getColumnLabel(i).toUpperCase()).append(",");
+			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+			{
+				stringBuilder.append(resultSetMetaData.getColumnLabel(i).toUpperCase()).append(",");
+			}
+			stringBuilder.deleteCharAt(stringBuilder.lastIndexOf(",")).append("\n");
 		}
-		stringBuilder.append("ClusterIP,").append("SchemaName").append("\n");
+		//stringBuilder.append("ClusterIP: ").append(host).append(", ").append("SchemaName: ").append(schema).append("\n");
 
 		output.print(stringBuilder);
 		output.flush();
 
-		List<Map<String, String>> queryOutput = new ArrayList<>();
 		while(resultSet.next())
 		{
-			Map<String, String> row = new LinkedHashMap<>();
+			stringBuilder = new StringBuilder();
 			for(int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
 			{
-				stringBuilder = new StringBuilder();
-				stringBuilder.append("\"" + StringUtils.defaultIfEmpty(resultSet.getString(i), StringUtils.EMPTY).replaceAll("\"", "\"\"") + "\"").append(",");
-				stringBuilder.append(host).append(",").append(schema).append("\n");
-
-				output.print(stringBuilder);
-				output.flush();
+				stringBuilder.append("\"").append(StringUtils.defaultIfEmpty(resultSet.getString(i), StringUtils.EMPTY).replaceAll("\"", "\"\"")).append("\"").append(",");
 			}
-			queryOutput.add(row);
+			stringBuilder.deleteCharAt(stringBuilder.lastIndexOf(","));
+			output.println(stringBuilder);
+			output.flush();
 		}
 	}
 }

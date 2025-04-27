@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,11 +41,13 @@ import org.w3c.dom.NodeList;
 import com.server.framework.common.Util;
 import com.server.framework.http.HttpAPI;
 import com.server.framework.security.SecurityUtil;
+import com.server.stats.meta.PlaceHolderMeta;
 import com.server.stats.meta.RequestMeta;
 import com.server.stats.meta.StatsMeta;
 
 public class StatsUtil
 {
+	private static final Logger LOGGER = Logger.getLogger(StatsUtil.class.getName());
 	static List<Map<String, String>> getRequestRowList(StatsMeta statsMeta) throws Exception
 	{
 		CSVParser inputDataParser;
@@ -83,7 +88,7 @@ public class StatsUtil
 		return statsMeta.getRequestMeta().getRequestRowList();
 	}
 
-	static ImmutableTriple<String, Map<String, String>, JSONObject> handlePlaceholder(StatsMeta statsMeta, int requestCount)
+	static ImmutableTriple<String, Map<String, String>, JSONObject> handlePlaceholder(StatsMeta statsMeta, int requestCount, Map<String, String> requestDataRow)
 	{
 		String connectionUrl = statsMeta.getRequestMeta().getConnectionUrl();
 		Map<String, String> params = new HashMap<>();
@@ -94,7 +99,7 @@ public class StatsUtil
 		phMeta.put("${RequestNo}", requestCount + "");
 		phMeta.put("${CurrentTime}", currentTime + "");
 
-		phMeta.putAll(statsMeta.getCurrentRequestRow());
+		phMeta.putAll(requestDataRow);
 
 		connectionUrl = replacePH(connectionUrl, phMeta);
 		statsMeta.getRequestMeta().getParamsMap().forEach((key, value) ->
@@ -189,7 +194,7 @@ public class StatsUtil
 		}
 	}
 
-	static String getColumnValue(StatsMeta statsMeta, String responseColumnName, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount)
+	static String getColumnValue(StatsMeta statsMeta, String responseColumnName, Triple<String, Map<String, String>, JSONObject> placeHolderTriple, String response, int requestCount, Map<String, String> requestDataRow)
 	{
 		try
 		{
@@ -213,7 +218,7 @@ public class StatsUtil
 			}
 			else if(columnPHMatcher.matches())
 			{
-				columnValue = statsMeta.getCurrentRequestRow().get(responseColumnValue);
+				columnValue = requestDataRow.get(responseColumnValue);
 			}
 			else if(jsonPHMatcher.matches())
 			{
@@ -231,10 +236,14 @@ public class StatsUtil
 					columnValue = getJSONPHValue(responseJSON, responseColumnValue);
 				}
 			}
-			return statsMeta.isPHResponseColumn(responseColumnName) ? statsMeta.getPlaceholderHandlerFunction().apply(statsMeta, responseColumnName, columnValue) : String.valueOf(columnValue);
+			PlaceHolderMeta placeHolderMeta = new PlaceHolderMeta(responseColumnName, columnValue);
+			placeHolderMeta.setStatsMeta(statsMeta);
+			placeHolderMeta.setRequestDataRow(requestDataRow);
+			return statsMeta.isPHResponseColumn(responseColumnName) ? statsMeta.getPlaceholderHandlerFunction().apply(placeHolderMeta) : String.valueOf(columnValue);
 		}
 		catch(Exception e)
 		{
+			LOGGER.log(Level.SEVERE, "Exception occurred", e);
 			return null;
 		}
 	}
@@ -252,7 +261,7 @@ public class StatsUtil
 			{
 				return temp.opt(columnValuePH);
 			}
-			temp = !jsonArrayPatternMatcher.matches() ? temp.getJSONObject(columnValuePH) : (JSONObject) temp.getJSONArray(jsonArrayPatternMatcher.group(1)).get(Integer.valueOf(jsonArrayPatternMatcher.group(2)));
+			temp = !jsonArrayPatternMatcher.matches() ? new JSONObject(temp.get(columnValuePH).toString()) : (JSONObject)new JSONArray(temp.get(jsonArrayPatternMatcher.group(1)).toString()).get(Integer.parseInt(jsonArrayPatternMatcher.group(2)));
 		}
 		return null;
 	}
@@ -327,7 +336,7 @@ public class StatsUtil
 		Node processResponseHandlerMethodNode = getNode(configuration, "placeholder-handler");
 		String processResponseHandlerMethod = getTextContent(processResponseHandlerMethodNode);
 		processResponseHandlerMethod = StringUtils.defaultIfEmpty(processResponseHandlerMethod, StringUtils.EMPTY).trim();
-		TriFunction<StatsMeta, String, Object, String> placeholderHandlerFunction = StringUtils.isEmpty(processResponseHandlerMethod) ? null : (TriFunction<StatsMeta, String, Object, String>) Class.forName("com.server.stats.StatsAPIPlaceholderHandler").getDeclaredMethod(processResponseHandlerMethod).invoke(null);
+		Function<PlaceHolderMeta, String> placeholderHandlerFunction = StringUtils.isEmpty(processResponseHandlerMethod) ? null : (Function<PlaceHolderMeta, String>) Class.forName("com.server.stats.StatsAPIPlaceholderHandler").getDeclaredMethod(processResponseHandlerMethod).invoke(null);
 		Node isTestNode = getNode(configuration, "is-test");
 		boolean isTest = Objects.nonNull(isTestNode) && Boolean.parseBoolean(isTestNode.getTextContent());
 		Node skipFirstRowNode = getNode(configuration, "skip-first-request-data-row");
