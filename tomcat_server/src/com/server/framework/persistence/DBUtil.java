@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.sql.DataSource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 
@@ -61,7 +63,6 @@ public class DBUtil
 		catch(Exception e)
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred while initialising data source", e);
-			throw new RuntimeException("DataSource initialisation failed");
 		}
 	}
 
@@ -134,16 +135,16 @@ public class DBUtil
 
 	public static Connection getServerDBConnectionForTxn() throws Exception
 	{
-		return Objects.isNull(DataAccess.Transaction.getActiveTxnFromTL()) ? dataSource.getConnection() : DataAccess.Transaction.getActiveTxnFromTL();
+		return Objects.isNull(DataAccess.Transaction.getActiveTxnFromTL()) ? getDataSource().getConnection() : DataAccess.Transaction.getActiveTxnFromTL();
 	}
 
 	public static void closeDataSource()
 	{
 		try
 		{
-			if(!dataSource.isClosed())
+			if(!getDataSource().isClosed())
 			{
-				dataSource.close();
+				getDataSource().close();
 				LOGGER.info("Datasource closed successfully");
 			}
 		}
@@ -151,5 +152,18 @@ public class DBUtil
 		{
 			LOGGER.log(Level.SEVERE, "Exception occurred while closing data source", e);
 		}
+	}
+
+	private static BasicDataSource getDataSource() throws Exception
+	{
+		if(Objects.isNull(dataSource))
+		{
+			initialiseDataSource();
+		}
+		if(Objects.isNull(dataSource))
+		{
+			throw new AppException("Database connection failed");
+		}
+		return dataSource;
 	}
 }

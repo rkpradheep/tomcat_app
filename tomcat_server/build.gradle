@@ -92,11 +92,11 @@ task setupTomcatContainer{
         properties.store (catalinaPropsFile.newWriter(), null)
 
         exec {
-            commandLine "sed", "-i", "s|home_ph|${home}|", "${home}/tomcat_build/run.sh"
+            commandLine "sed", "-i", "", "s|home_ph|${home}|", "${home}/tomcat_build/run.sh"
         }
 
         exec {
-            commandLine "sed", "-i", "s|production_ph|${getCustomProperty ("production", false)}|", "${home}/tomcat_build/run.sh"
+            commandLine "sed", "-i", "", "s|production_ph|${getCustomProperty ("production", false)}|", "${home}/tomcat_build/run.sh"
         }
 
         println "set-up tomcat container completed"
@@ -111,6 +111,9 @@ task setTomcatEnvironmentValues{
                 ],
                 [from: "CUSTOM_JAVA_OPTS=",
                  to: "CUSTOM_JAVA_OPTS=\"" + getCustomProperty ("java.opts", "") + "\""
+                ],
+                [from: "JAVA_HOME=",
+                 to: "JAVA_HOME=\"" + System.getenv ("JAVA_HOME") + "\""
                 ]
         ])
         if (getCustomProperty ("custom.keystore.file", null) != null) {

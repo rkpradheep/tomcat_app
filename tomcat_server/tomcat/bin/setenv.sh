@@ -2,7 +2,7 @@
 export MY_HOME=
 export CUSTOM_JAVA_OPTS=
 export JPDA_ADDRESS="*:8002"
-export JAVA_HOME="/opt/java/zulu17.48.15-ca-jdk17.0.10-linux_x64"
+export JAVA_HOME=
 export CATALINA_PID="/$MY_HOME/tomcat_build/temp/tomcat.pid"
 export CATALINA_HOME="$MY_HOME/tomcat_build"
 export CATALINA_BASE="$MY_HOME/tomcat_build"

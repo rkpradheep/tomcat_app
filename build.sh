@@ -1,5 +1,12 @@
 #!/bin/bash
 
+os_name=$(uname)
+
+if [ "$os_name" == "Darwin" ]; then
+    echo "Executing build script for MAC"
+    exec sh mac_build.sh
+fi
+
 . ./set_variables.sh
 
 set -e

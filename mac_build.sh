@@ -1,9 +1,29 @@
-#!/bin/sh
+#!/bin/bash
 
-MY_HOME=home_ph
-PRODUCTION=production_ph
+. ./set_variables.sh
 
-exec > $MY_HOME/tomcat_build/nohup.out 2>&1
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+sdk use gradle 7.3
+
+sdk use java 17.0.14-zulu
+
+set -e
+trap '[ $? -eq 0 ] || echo "${RED}######### OPERATION FAILED #########${NC}"' EXIT
+
+echo "############## Build started ##############\n"
+
+
+if [ -z "$(git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD)" ]; then
+    if git diff --quiet; then
+      git pull origin master --rebase
+    fi
+else
+  echo "${RED}############## There are some unpushed commits. Please push and try again ##############${NC}\n"
+  exit 1
+fi
+
+export MY_HOME=$MY_HOME
 
 setupMysql() {
 
@@ -34,21 +54,12 @@ podman=/opt/podman/bin/podman
     fi
 }
 
-os_name=$(uname)
+rm -rf tomcat_build
 
-if [[ "$os_name" == "Darwin" ]]; then
-    echo "Setting up mysql for macOS."
-    setupMysql
-fi
+setupMysql
+gradle setUpServer
+
+sh $MY_HOME/tomcat_build/run.sh
 
 
-cd $MY_HOME/tomcat_build
-
-appHealth=$(curl -s -X POST http://localhost/_app/health)
-
-if test "$appHealth" = "true" ; then
-  	echo  'Going to shutdown tomcat'
-  	sh ./bin/shutdown.sh
-fi
-
-sh ./bin/catalina.sh jpda start
+echo "${GREEN}############## Build completed ##############${NC}\n"
