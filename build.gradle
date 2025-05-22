@@ -1,6 +1,13 @@
-plugins {
-    id 'java'
-    id 'java-library'
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
 }
 
 
@@ -32,9 +39,3 @@ ext.configureTaskDependencies = { task, dependentTasks ->
         dependentTasks [i + 1].mustRunAfter dependentTasks [i]
     }
 }
-
-
-apply from: 'tomcat_server/build.gradle'
-apply from: 'shell_scripts/build.gradle'
-
-// tasks : setupServer, installScripts

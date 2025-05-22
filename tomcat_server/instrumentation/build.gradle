@@ -1,0 +1,14 @@
+plugins {
+    id 'java'
+}
+jar{
+    archiveFileName = "instrumentation.jar"
+    manifest {
+        attributes(
+                'Agent-Class': 'com.server.instrumentation.InstrumentationAPI',
+                'Can-Redefine-Classes': 'true',
+                'Can-Retransform-Classes': 'true',
+                'Premain-Class': 'com.server.instrumentation.InstrumentationAPI'
+        )
+    }
+}

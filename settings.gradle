@@ -1,0 +1,20 @@
+rootProject.name = 'myhome'
+
+include 'tomcat-server'
+include 'shell-scripts'
+
+include 'tomcat-server:framework'
+include 'tomcat-server:instrumentation'
+include 'tomcat-server:root-app'
+include 'tomcat-server:table-constants'
+include 'tomcat-server:tomcat-core'
+
+project(':tomcat-server').projectDir = file('tomcat_server')
+project(':shell-scripts').projectDir = file('shell_scripts')
+
+project(':tomcat-server:framework').projectDir = file('tomcat_server/framework')
+project(':tomcat-server:instrumentation').projectDir = file('tomcat_server/instrumentation')
+project(':tomcat-server:root-app').projectDir = file('tomcat_server/root-app')
+project(':tomcat-server:table-constants').projectDir = file('tomcat_server/table-constants')
+project(':tomcat-server:tomcat-core').projectDir = file('tomcat_server/tomcat-core')
+

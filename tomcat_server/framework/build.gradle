@@ -1,0 +1,13 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation project(':tomcat-server:table-constants')
+}
+
+jar {
+    doLast {
+        println ("jar packaging completed")
+    }
+}

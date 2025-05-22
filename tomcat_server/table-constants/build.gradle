@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+}
+
+def submoduleDir = project(':tomcat-server:table-constants').projectDir
+def tmpDir = "${layout.buildDirectory.get ().asFile.absolutePath}/temp"
+
+dependencies {
+    implementation fileTree(dir: "${rootProject.projectDir}/tomcat_server/lib/app", include: ['*.jar'])
+    implementation fileTree(dir: "${submoduleDir}/src/main/build-tools/lib", include: ['*.jar'])
+}
+
+compileJava{
+    doLast {
+        println ("compilation completed")
+    }
+}
+
+jar{
+        doLast {
+            new File ("${tmpDir}").mkdirs ()
+            javaexec {
+                classpath = files (
+                        "/Users/pradheep-14225/MyHome/tomcat_server/table-constants/build/libs/table-constants.jar"
+                )
+                classpath += files (fileTree (dir: "${submoduleDir}/src/main/build-tools/lib", include: ['*.jar']).files)
+                classpath += files (fileTree (dir: "/Users/pradheep-14225/MyHome/tomcat_server//lib/app", include: ['*.jar']).files)
+                mainClass = 'TableConstantGenerator'
+                args = [
+                        project (':tomcat-server').getCustomProperty ("db.server", "mariadb"),
+                        project (':tomcat-server').getCustomProperty ("db.server.port", "4000"),
+                        project (':tomcat-server').getCustomProperty ("db.server.user", "root"),
+                        project (':tomcat-server').getCustomProperty ("db.server.password", "root"),
+                        project (':tomcat-server').getCustomProperty ("db.server.schema", "tomcatserver")
+                ]
+                environment 'MY_HOME', rootProject.projectDir
+            }
+
+            def mainClassesDir = sourceSets.main.output.classesDirs.asPath
+
+            delete fileTree(dir: mainClassesDir)
+            delete fileTree(dir: "${layout.buildDirectory.get ().asFile.absolutePath}/libs}")
+
+            ant.javac (
+                    srcdir: "${tmpDir}",
+                    destdir: "${mainClassesDir}",
+                    includeantruntime: false
+            )
+
+            ant.jar (
+                    destfile: "${layout.buildDirectory.get ().asFile.absolutePath}/libs/table-constants.jar",
+                    basedir: "${mainClassesDir}"
+            )
+
+            delete tmpDir
+
+            println ("jar packaging completed")
+        }
+    }

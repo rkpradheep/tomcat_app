@@ -8,3 +8,11 @@
  */
 
 rootProject.name = 'tomcat_server'
+
+// Include all modules
+include 'framework'
+include 'instrumentation'
+include 'root-app'
+include 'table-constants'
+include 'tomcat-core'
+
